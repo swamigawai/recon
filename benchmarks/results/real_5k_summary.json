@@ -1,0 +1,32 @@
+{
+  "dataset_name": "NYC 311 Service Requests (Real 5k Slice)",
+  "row_count": 5000,
+  "column_count": 44,
+  "sha256_fingerprint": "b0d0477d50f5ff36c933f8bd17fbad5f71b3df9953ae5a8da510243357223eb7",
+  "performance": {
+    "ingestion_time_seconds": 1.761,
+    "profiling_time_seconds": 28.6277,
+    "total_time_seconds": 30.3887,
+    "peak_memory_mb": 26.01,
+    "repeat_run_deterministic": true
+  },
+  "statistics_verified": {
+    "total_rows": 5000,
+    "duplicate_rows": 0,
+    "closed_date_nulls": 2813,
+    "closed_date_null_pct": 56.26,
+    "incident_zip_nulls": 41,
+    "incident_zip_null_pct": 0.82,
+    "latitude_nulls": 83,
+    "latitude_null_pct": 1.66
+  },
+  "real_world_risks_found": 3,
+  "validation_outcome": {
+    "total_records": 5000,
+    "valid_records": 3455,
+    "quarantined_records": 1545,
+    "contract_pass_rate_pct": 69.1,
+    "silently_dropped_records": 0
+  },
+  "readiness_state": "NEEDS_REVIEW"
+}

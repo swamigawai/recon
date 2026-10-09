@@ -14,6 +14,7 @@ CANDIDATE_DATETIME_FORMATS = [
     "%m/%d/%Y %H:%M",
     "%m/%d/%Y",
     # ISO-8601 & Standard Formats
+    "%Y-%m-%dT%H:%M:%S.%f",
     "%Y-%m-%dT%H:%M:%SZ",
     "%Y-%m-%dT%H:%M:%S",
     "%Y-%m-%d %H:%M:%S",
@@ -33,6 +34,8 @@ BOOLEAN_TOKENS = {
 def try_parse_int(val: str) -> int | None:
     """Attempts to parse string as integer."""
     clean = val.strip()
+    if not clean or not (clean[0].isdigit() or clean[0] in ("+", "-")):
+        return None
     try:
         # Check without floating point representation
         if "." in clean:
@@ -45,6 +48,8 @@ def try_parse_int(val: str) -> int | None:
 def try_parse_float(val: str) -> float | None:
     """Attempts to parse string as float."""
     clean = val.strip()
+    if not clean or not (clean[0].isdigit() or clean[0] in ("+", "-")):
+        return None
     try:
         f = float(clean)
         # Avoid treating integers as floats unless decimal/scientific notation is present
@@ -68,6 +73,9 @@ def try_parse_datetime(val: str) -> tuple[datetime | None, str | None, bool]:
         (parsed_datetime, matched_format_string, is_date_only)
     """
     clean = val.strip()
+    # Fast guard: datetime representations require at least 8 chars and delimiters
+    if len(clean) < 8 or ("/" not in clean and "-" not in clean):
+        return None, None, False
     for fmt in CANDIDATE_DATETIME_FORMATS:
         try:
             dt = datetime.strptime(clean, fmt)

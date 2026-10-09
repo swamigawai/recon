@@ -1,0 +1,10 @@
+{
+  "dataset_name": "NYC 311 Service Requests (Real 5k Slice)",
+  "source_url": "https://data.cityofnewyork.us/resource/erm2-nwe9.csv?$limit=5000",
+  "retrieval_timestamp_utc": "2026-10-09T16:21:24.808047+00:00",
+  "sha256_fingerprint": "b0d0477d50f5ff36c933f8bd17fbad5f71b3df9953ae5a8da510243357223eb7",
+  "file_size_bytes": 4096794,
+  "total_lines_including_header": 5001,
+  "estimated_data_rows": 5000,
+  "header_columns_count": 44
+}

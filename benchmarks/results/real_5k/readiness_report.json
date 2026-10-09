@@ -1,0 +1,722 @@
+{
+  "recon_version": "0.1.0",
+  "generated_at": "2026-10-09T16:41:06.724080",
+  "source_file": "nyc_311_5k_real.csv",
+  "source_fingerprint": "b0d0477d50f5ff36c933f8bd17fbad5f71b3df9953ae5a8da510243357223eb7",
+  "contract_name": "service_request_target_contract",
+  "contract_version": "1.0.0",
+  "readiness_state": "NEEDS_REVIEW",
+  "readiness_rationale": "Integration requires human review for 3 warning(s) or ambiguous decision(s).",
+  "blocking_reasons": [],
+  "review_reasons": [
+    "[R004_DATE_PARSING_RISK] Non-Standard Datetime Format on ['created_at', 'created_date']: Source timestamp 'created_date' uses format '%Y-%m-%dT%H:%M:%S.%f', while target requires ISO-8601.",
+    "[R004_DATE_PARSING_RISK] Non-Standard Datetime Format on ['closed_at', 'closed_date']: Source timestamp 'closed_date' uses format '%Y-%m-%dT%H:%M:%S.%f', while target requires ISO-8601.",
+    "[R005_ENUM_VIOLATION] Allowed Value Domain Violation on ['status', 'status']: Source column 'status' contains values ['Assigned', 'In Progress', 'Unspecified'] outside target allowed domain ['OPEN', 'CLOSED', 'PENDING']."
+  ],
+  "verified_facts": {
+    "total_source_rows": 5000,
+    "total_source_columns": 44,
+    "duplicate_source_rows": 0,
+    "columns_summary": {
+      "unique_key": {
+        "inferred_type": "integer",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 5000,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "created_date": {
+        "inferred_type": "datetime",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 4214,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "closed_date": {
+        "inferred_type": "datetime",
+        "null_count": 2813,
+        "null_percentage": 56.26,
+        "distinct_count": 1450,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "agency": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 13,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "agency_name": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 13,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "complaint_type": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 109,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "descriptor": {
+        "inferred_type": "string",
+        "null_count": 83,
+        "null_percentage": 1.66,
+        "distinct_count": 326,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "descriptor_2": {
+        "inferred_type": "string",
+        "null_count": 3227,
+        "null_percentage": 64.54,
+        "distinct_count": 239,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "location_type": {
+        "inferred_type": "string",
+        "null_count": 249,
+        "null_percentage": 4.98,
+        "distinct_count": 62,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "incident_zip": {
+        "inferred_type": "integer",
+        "null_count": 41,
+        "null_percentage": 0.82,
+        "distinct_count": 181,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "incident_address": {
+        "inferred_type": "string",
+        "null_count": 131,
+        "null_percentage": 2.62,
+        "distinct_count": 3544,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "street_name": {
+        "inferred_type": "string",
+        "null_count": 131,
+        "null_percentage": 2.62,
+        "distinct_count": 1762,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "cross_street_1": {
+        "inferred_type": "string",
+        "null_count": 1257,
+        "null_percentage": 25.14,
+        "distinct_count": 1491,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "cross_street_2": {
+        "inferred_type": "string",
+        "null_count": 1262,
+        "null_percentage": 25.24,
+        "distinct_count": 1507,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "intersection_street_1": {
+        "inferred_type": "string",
+        "null_count": 1250,
+        "null_percentage": 25.0,
+        "distinct_count": 1457,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "intersection_street_2": {
+        "inferred_type": "string",
+        "null_count": 1252,
+        "null_percentage": 25.04,
+        "distinct_count": 1482,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "address_type": {
+        "inferred_type": "string",
+        "null_count": 32,
+        "null_percentage": 0.64,
+        "distinct_count": 5,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "city": {
+        "inferred_type": "string",
+        "null_count": 309,
+        "null_percentage": 6.18,
+        "distinct_count": 46,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "landmark": {
+        "inferred_type": "string",
+        "null_count": 1612,
+        "null_percentage": 32.24,
+        "distinct_count": 1440,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "facility_type": {
+        "inferred_type": "string",
+        "null_count": 5000,
+        "null_percentage": 100.0,
+        "distinct_count": 0,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "status": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 5,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "due_date": {
+        "inferred_type": "datetime",
+        "null_count": 4988,
+        "null_percentage": 99.76,
+        "distinct_count": 12,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "resolution_description": {
+        "inferred_type": "string",
+        "null_count": 1632,
+        "null_percentage": 32.64,
+        "distinct_count": 50,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "resolution_action_updated_date": {
+        "inferred_type": "datetime",
+        "null_count": 1603,
+        "null_percentage": 32.06,
+        "distinct_count": 1604,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "community_board": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 68,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "council_district": {
+        "inferred_type": "integer",
+        "null_count": 99,
+        "null_percentage": 1.98,
+        "distinct_count": 51,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "police_precinct": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 78,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "bbl": {
+        "inferred_type": "integer",
+        "null_count": 551,
+        "null_percentage": 11.02,
+        "distinct_count": 3114,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "borough": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 6,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "x_coordinate_state_plane": {
+        "inferred_type": "integer",
+        "null_count": 83,
+        "null_percentage": 1.66,
+        "distinct_count": 3497,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "y_coordinate_state_plane": {
+        "inferred_type": "integer",
+        "null_count": 83,
+        "null_percentage": 1.66,
+        "distinct_count": 3549,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "open_data_channel_type": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 4,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "park_facility_name": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 1,
+        "is_constant": true,
+        "has_whitespace": false
+      },
+      "park_borough": {
+        "inferred_type": "string",
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "distinct_count": 6,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "vehicle_type": {
+        "inferred_type": "string",
+        "null_count": 4762,
+        "null_percentage": 95.24,
+        "distinct_count": 6,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "taxi_company_borough": {
+        "inferred_type": "string",
+        "null_count": 4997,
+        "null_percentage": 99.94,
+        "distinct_count": 2,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "taxi_pick_up_location": {
+        "inferred_type": "string",
+        "null_count": 4975,
+        "null_percentage": 99.5,
+        "distinct_count": 21,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "bridge_highway_name": {
+        "inferred_type": "string",
+        "null_count": 4969,
+        "null_percentage": 99.38,
+        "distinct_count": 17,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "bridge_highway_direction": {
+        "inferred_type": "string",
+        "null_count": 4980,
+        "null_percentage": 99.6,
+        "distinct_count": 15,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "road_ramp": {
+        "inferred_type": "string",
+        "null_count": 4981,
+        "null_percentage": 99.62,
+        "distinct_count": 4,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "bridge_highway_segment": {
+        "inferred_type": "string",
+        "null_count": 4970,
+        "null_percentage": 99.4,
+        "distinct_count": 21,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "latitude": {
+        "inferred_type": "float",
+        "null_count": 83,
+        "null_percentage": 1.66,
+        "distinct_count": 3614,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "longitude": {
+        "inferred_type": "float",
+        "null_count": 83,
+        "null_percentage": 1.66,
+        "distinct_count": 3614,
+        "is_constant": false,
+        "has_whitespace": false
+      },
+      "location": {
+        "inferred_type": "string",
+        "null_count": 83,
+        "null_percentage": 1.66,
+        "distinct_count": 3614,
+        "is_constant": false,
+        "has_whitespace": false
+      }
+    }
+  },
+  "inferred_types": {
+    "unique_key": "integer",
+    "created_date": "datetime",
+    "closed_date": "datetime",
+    "agency": "string",
+    "agency_name": "string",
+    "complaint_type": "string",
+    "descriptor": "string",
+    "descriptor_2": "string",
+    "location_type": "string",
+    "incident_zip": "integer",
+    "incident_address": "string",
+    "street_name": "string",
+    "cross_street_1": "string",
+    "cross_street_2": "string",
+    "intersection_street_1": "string",
+    "intersection_street_2": "string",
+    "address_type": "string",
+    "city": "string",
+    "landmark": "string",
+    "facility_type": "string",
+    "status": "string",
+    "due_date": "datetime",
+    "resolution_description": "string",
+    "resolution_action_updated_date": "datetime",
+    "community_board": "string",
+    "council_district": "integer",
+    "police_precinct": "string",
+    "bbl": "integer",
+    "borough": "string",
+    "x_coordinate_state_plane": "integer",
+    "y_coordinate_state_plane": "integer",
+    "open_data_channel_type": "string",
+    "park_facility_name": "string",
+    "park_borough": "string",
+    "vehicle_type": "string",
+    "taxi_company_borough": "string",
+    "taxi_pick_up_location": "string",
+    "bridge_highway_name": "string",
+    "bridge_highway_direction": "string",
+    "road_ramp": "string",
+    "bridge_highway_segment": "string",
+    "latitude": "float",
+    "longitude": "float",
+    "location": "string"
+  },
+  "mapping_summary": {
+    "total_target_fields": 11,
+    "total_proposals": 11,
+    "approved_mappings_count": 11,
+    "unresolved_count": 0
+  },
+  "risk_summary": {
+    "critical": 0,
+    "high": 3,
+    "medium": 0,
+    "low": 0
+  },
+  "risk_findings": [
+    {
+      "rule_id": "R004_DATE_PARSING_RISK",
+      "rule_name": "Non-Standard Datetime Format",
+      "severity": "high",
+      "status": "potential",
+      "affected_fields": [
+        "created_at",
+        "created_date"
+      ],
+      "evidence": "Source timestamp 'created_date' uses format '%Y-%m-%dT%H:%M:%S.%f', while target requires ISO-8601.",
+      "explanation": "Date parsing must account for regional format semantics (e.g., US month-first vs ISO year-first).",
+      "suggested_action": "Generate explicit datetime transformation parsing '%Y-%m-%dT%H:%M:%S.%f' to ISO-8601."
+    },
+    {
+      "rule_id": "R004_DATE_PARSING_RISK",
+      "rule_name": "Non-Standard Datetime Format",
+      "severity": "high",
+      "status": "potential",
+      "affected_fields": [
+        "closed_at",
+        "closed_date"
+      ],
+      "evidence": "Source timestamp 'closed_date' uses format '%Y-%m-%dT%H:%M:%S.%f', while target requires ISO-8601.",
+      "explanation": "Date parsing must account for regional format semantics (e.g., US month-first vs ISO year-first).",
+      "suggested_action": "Generate explicit datetime transformation parsing '%Y-%m-%dT%H:%M:%S.%f' to ISO-8601."
+    },
+    {
+      "rule_id": "R005_ENUM_VIOLATION",
+      "rule_name": "Allowed Value Domain Violation",
+      "severity": "high",
+      "status": "confirmed",
+      "affected_fields": [
+        "status",
+        "status"
+      ],
+      "evidence": "Source column 'status' contains values ['Assigned', 'In Progress', 'Unspecified'] outside target allowed domain ['OPEN', 'CLOSED', 'PENDING'].",
+      "explanation": "Records with unexpected categorical values will fail target schema validation.",
+      "suggested_action": "Add category mapping dictionary or quarantine records with unmapped domain values."
+    }
+  ],
+  "unresolved_questions": [
+    "Review risk on ['created_at', 'created_date']: Generate explicit datetime transformation parsing '%Y-%m-%dT%H:%M:%S.%f' to ISO-8601.",
+    "Review risk on ['closed_at', 'closed_date']: Generate explicit datetime transformation parsing '%Y-%m-%dT%H:%M:%S.%f' to ISO-8601.",
+    "Review risk on ['status', 'status']: Add category mapping dictionary or quarantine records with unmapped domain values."
+  ],
+  "adapter_validation": {
+    "adapter_name": "service_request_target_contract_adapter",
+    "contract_name": "service_request_target_contract",
+    "contract_version": "1.0.0",
+    "total_input_records": 5000,
+    "valid_records_count": 3455,
+    "quarantined_records_count": 1545,
+    "contract_pass_rate": 69.1,
+    "sample_valid_output": [
+      {
+        "ticket_id": "70676417",
+        "created_at": "2026-10-08T02:17:52Z",
+        "closed_at": null,
+        "agency_code": "DOT",
+        "category": "Street Condition",
+        "description": "Pothole",
+        "borough": "QUEENS",
+        "status": "OPEN",
+        "postal_code": "11415",
+        "latitude": null,
+        "longitude": null
+      },
+      {
+        "ticket_id": "70680871",
+        "created_at": "2026-10-08T02:16:33Z",
+        "closed_at": null,
+        "agency_code": "DOT",
+        "category": "Street Condition",
+        "description": "Pothole",
+        "borough": "QUEENS",
+        "status": "OPEN",
+        "postal_code": "11434",
+        "latitude": null,
+        "longitude": null
+      },
+      {
+        "ticket_id": "70683870",
+        "created_at": "2026-10-08T02:14:58Z",
+        "closed_at": null,
+        "agency_code": "DOT",
+        "category": "Street Condition",
+        "description": "Pothole",
+        "borough": "QUEENS",
+        "status": "OPEN",
+        "postal_code": "11436",
+        "latitude": 40.66704156939636,
+        "longitude": -73.79218337141249
+      }
+    ],
+    "sample_quarantined_records": [
+      {
+        "record_index": 8,
+        "raw_record": {
+          "unique_key": "70679487",
+          "created_date": "2026-10-08T02:06:29.000",
+          "closed_date": "",
+          "agency": "NYPD",
+          "agency_name": "New York City Police Department",
+          "complaint_type": "Noise - Residential",
+          "descriptor": "Loud Music/Party",
+          "descriptor_2": "",
+          "location_type": "Residential Building/House",
+          "incident_zip": "10452",
+          "incident_address": "963 WOODYCREST AVENUE",
+          "street_name": "WOODYCREST AVENUE",
+          "cross_street_1": "WEST 162 STREET",
+          "cross_street_2": "WEST 163 STREET",
+          "intersection_street_1": "WEST 162 STREET",
+          "intersection_street_2": "WEST 163 STREET",
+          "address_type": "ADDRESS",
+          "city": "BRONX",
+          "landmark": "WOODYCREST AVENUE",
+          "facility_type": "",
+          "status": "In Progress",
+          "due_date": "",
+          "resolution_description": "",
+          "resolution_action_updated_date": "",
+          "community_board": "04 BRONX",
+          "council_district": "16",
+          "police_precinct": "Precinct 44",
+          "bbl": "2025110068",
+          "borough": "BRONX",
+          "x_coordinate_state_plane": "1003966",
+          "y_coordinate_state_plane": "242285",
+          "open_data_channel_type": "PHONE",
+          "park_facility_name": "Unspecified",
+          "park_borough": "BRONX",
+          "vehicle_type": "",
+          "taxi_company_borough": "",
+          "taxi_pick_up_location": "",
+          "bridge_highway_name": "",
+          "bridge_highway_direction": "",
+          "road_ramp": "",
+          "bridge_highway_segment": "",
+          "latitude": "40.831669762919574",
+          "longitude": "-73.9287544719845",
+          "location": "POINT (-73.928754471984 40.83166976292)"
+        },
+        "errors": [
+          "Value 'IN PROGRESS' for 'status' not in allowed values ['OPEN', 'CLOSED', 'PENDING']"
+        ]
+      },
+      {
+        "record_index": 9,
+        "raw_record": {
+          "unique_key": "70678263",
+          "created_date": "2026-10-08T02:05:46.000",
+          "closed_date": "",
+          "agency": "NYPD",
+          "agency_name": "New York City Police Department",
+          "complaint_type": "Illegal Parking",
+          "descriptor": "Blocked Hydrant",
+          "descriptor_2": "",
+          "location_type": "Street/Sidewalk",
+          "incident_zip": "11218",
+          "incident_address": "1475 41 STREET",
+          "street_name": "41 STREET",
+          "cross_street_1": "14 AVENUE",
+          "cross_street_2": "15 AVENUE",
+          "intersection_street_1": "14 AVENUE",
+          "intersection_street_2": "15 AVENUE",
+          "address_type": "ADDRESS",
+          "city": "BROOKLYN",
+          "landmark": "41 STREET",
+          "facility_type": "",
+          "status": "In Progress",
+          "due_date": "",
+          "resolution_description": "",
+          "resolution_action_updated_date": "",
+          "community_board": "12 BROOKLYN",
+          "council_district": "39",
+          "police_precinct": "Precinct 66",
+          "bbl": "3053450051",
+          "borough": "BROOKLYN",
+          "x_coordinate_state_plane": "988911",
+          "y_coordinate_state_plane": "171334",
+          "open_data_channel_type": "MOBILE",
+          "park_facility_name": "Unspecified",
+          "park_borough": "BROOKLYN",
+          "vehicle_type": "",
+          "taxi_company_borough": "",
+          "taxi_pick_up_location": "",
+          "bridge_highway_name": "",
+          "bridge_highway_direction": "",
+          "road_ramp": "",
+          "bridge_highway_segment": "",
+          "latitude": "40.63694761319633",
+          "longitude": "-73.98320621008808",
+          "location": "POINT (-73.983206210088 40.636947613196)"
+        },
+        "errors": [
+          "Value 'IN PROGRESS' for 'status' not in allowed values ['OPEN', 'CLOSED', 'PENDING']"
+        ]
+      },
+      {
+        "record_index": 10,
+        "raw_record": {
+          "unique_key": "70676138",
+          "created_date": "2026-10-08T02:05:15.000",
+          "closed_date": "",
+          "agency": "NYPD",
+          "agency_name": "New York City Police Department",
+          "complaint_type": "Illegal Parking",
+          "descriptor": "Parking Permit Improper Use",
+          "descriptor_2": "Parked In Front Of Fire Hydrant",
+          "location_type": "Street/Sidewalk",
+          "incident_zip": "11364",
+          "incident_address": "62-53 219 STREET",
+          "street_name": "219 STREET",
+          "cross_street_1": "HORACE HARDING EXPRESSWAY",
+          "cross_street_2": "64 AVENUE",
+          "intersection_street_1": "HORACE HARDING EXPRESSWAY",
+          "intersection_street_2": "64 AVENUE",
+          "address_type": "ADDRESS",
+          "city": "OAKLAND GARDENS",
+          "landmark": "219 STREET",
+          "facility_type": "",
+          "status": "In Progress",
+          "due_date": "",
+          "resolution_description": "",
+          "resolution_action_updated_date": "",
+          "community_board": "11 QUEENS",
+          "council_district": "23",
+          "police_precinct": "Precinct 111",
+          "bbl": "",
+          "borough": "QUEENS",
+          "x_coordinate_state_plane": "1051197",
+          "y_coordinate_state_plane": "211713",
+          "open_data_channel_type": "MOBILE",
+          "park_facility_name": "Unspecified",
+          "park_borough": "QUEENS",
+          "vehicle_type": "",
+          "taxi_company_borough": "",
+          "taxi_pick_up_location": "",
+          "bridge_highway_name": "",
+          "bridge_highway_direction": "",
+          "road_ramp": "",
+          "bridge_highway_segment": "",
+          "latitude": "40.74752643284391",
+          "longitude": "-73.75838630766704",
+          "location": "POINT (-73.758386307667 40.747526432844)"
+        },
+        "errors": [
+          "Value 'IN PROGRESS' for 'status' not in allowed values ['OPEN', 'CLOSED', 'PENDING']"
+        ]
+      }
+    ],
+    "test_case_results": [
+      {
+        "test_name": "test_valid_record_transformation",
+        "passed": true,
+        "expected_behavior": "Valid source record transforms into contract-compliant payload",
+        "actual_behavior": "Success",
+        "error_message": null
+      },
+      {
+        "test_name": "test_missing_required_field_quarantine",
+        "passed": true,
+        "expected_behavior": "Missing required field triggers quarantine with explicit error",
+        "actual_behavior": "Quarantined as expected",
+        "error_message": null
+      },
+      {
+        "test_name": "test_malformed_date_quarantine",
+        "passed": true,
+        "expected_behavior": "Malformed date triggers quarantine with datetime parsing error",
+        "actual_behavior": "Quarantined as expected",
+        "error_message": null
+      }
+    ],
+    "all_tests_passed": true,
+    "is_contract_valid": true
+  },
+  "checks_run": [
+    "R001_MISSING_REQUIRED_FIELD",
+    "R002_INCOMPATIBLE_TYPES",
+    "R003_NULLABILITY_CONFLICT",
+    "R004_DATE_PARSING_RISK",
+    "R005_ENUM_VIOLATION",
+    "R006_WHITESPACE_INCONSISTENCY",
+    "R007_CONSTANT_SOURCE_COLUMN"
+  ],
+  "checks_skipped": []
+}
