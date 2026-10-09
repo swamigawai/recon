@@ -8,7 +8,7 @@ import recon
 from recon.adapters.generator import generate_adapter
 from recon.contracts.loader import load_target_contract
 from recon.exceptions import ReconError
-from recon.ingestion.csv_loader import load_csv
+from recon.ingestion.loader import load_dataset
 from recon.mapping.approval import approve_mapping_plan
 from recon.mapping.proposer import propose_mappings
 from recon.profiling.profiler import profile_dataset
@@ -20,7 +20,7 @@ from recon.validation.executor import validate_adapter
 def cmd_profile(args: argparse.Namespace) -> int:
     """Runs deterministic profiling on a source dataset."""
     try:
-        dataset = load_csv(args.source)
+        dataset = load_dataset(args.source)
         profile = profile_dataset(dataset)
 
         print("\n" + "=" * 60)
@@ -46,7 +46,7 @@ def cmd_profile(args: argparse.Namespace) -> int:
 def cmd_assess(args: argparse.Namespace) -> int:
     """Evaluates mapping proposals and integration risks for a dataset and target contract."""
     try:
-        dataset = load_csv(args.source)
+        dataset = load_dataset(args.source)
         contract = load_target_contract(args.contract)
         profile = profile_dataset(dataset)
         plan = propose_mappings(profile, contract)
@@ -77,7 +77,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     """Executes full end-to-end integration readiness workflow and exports reports."""
     try:
         out_dir = Path(args.output_dir)
-        dataset = load_csv(args.source)
+        dataset = load_dataset(args.source)
         contract = load_target_contract(args.contract)
         profile = profile_dataset(dataset)
         plan = propose_mappings(profile, contract)

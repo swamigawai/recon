@@ -1,0 +1,57 @@
+{
+  "contract_name": "target_contract_user_profile",
+  "version": "1.0.0",
+  "description": "Standardized user profile downstream ingestion contract",
+  "fields": {
+    "user_id": {
+      "name": "user_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique identifier for the user"
+    },
+    "full_name": {
+      "name": "full_name",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Full display name of the user"
+    },
+    "email": {
+      "name": "email",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$",
+      "description": "RFC-compliant user email address"
+    },
+    "city": {
+      "name": "city",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "City of residence"
+    },
+    "postal_code": {
+      "name": "postal_code",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Postal or zip code"
+    },
+    "company_name": {
+      "name": "company_name",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Associated employer or organization"
+    },
+    "website": {
+      "name": "website",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "User personal or organization website"
+    }
+  }
+}

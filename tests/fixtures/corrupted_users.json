@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "name": "Alice Smith",
+    "email": "alice@example.com",
+    "address": {
+      "city": "Metropolis",
+      "zipcode": "10001"
+    },
+    "company": {
+      "name": "Acme Corp"
+    },
+    "website": "acme.org"
+  },
+  {
+    "id": 2,
+    "name": "",
+    "email": "bob@example.com",
+    "address": {
+      "city": "Gotham",
+      "zipcode": "10002"
+    },
+    "company": {
+      "name": "Wayne Enterprises"
+    },
+    "website": "wayne.com"
+  },
+  {
+    "id": 3,
+    "name": "Charlie Brown",
+    "email": "INVALID_EMAIL_PATTERN",
+    "address": {
+      "city": "Starling City",
+      "zipcode": "10003"
+    },
+    "company": {
+      "name": "Queen Consolidated"
+    },
+    "website": "queen.com"
+  },
+  {
+    "id": 4,
+    "name": "Diana Prince",
+    "email": "diana@themyscira.gov",
+    "address": {
+      "city": null,
+      "zipcode": "10004"
+    },
+    "company": {
+      "name": "Museum of Antiquities"
+    },
+    "website": "museum.org"
+  }
+]

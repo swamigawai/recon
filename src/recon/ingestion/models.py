@@ -1,6 +1,7 @@
 """Data models for raw dataset ingestion."""
 
 from pathlib import Path
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -21,9 +22,9 @@ class RawDataset(BaseModel):
     encoding: str
     headers: list[str]
     row_count: int
-    rows: list[dict[str, str]] = Field(default_factory=list)
+    rows: list[dict[str, Any]] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
 
-    def preview(self, n: int = 5) -> list[dict[str, str]]:
+    def preview(self, n: int = 5) -> list[dict[str, Any]]:
         """Returns first n rows for preview."""
         return self.rows[:n]

@@ -77,6 +77,12 @@ def validate_contract_payload(payload: dict[str, Any], contract: TargetContract)
     return errors
 
 
+def _find_source_field(target_field_name: str, adapter_code: str) -> str | None:
+    """Extracts the source dataset column mapped to a target field from generated adapter code."""
+    match = re.search(rf"raw_val_{re.escape(target_field_name)}\s*=\s*record\.get\(['\"]([^'\"]+)['\"]", adapter_code)
+    return match.group(1) if match else None
+
+
 def validate_adapter(
     adapter: GeneratedAdapter,
     contract: TargetContract,
@@ -117,11 +123,18 @@ def validate_adapter(
         )
 
     # Test Case 2: Missing required field quarantine
-    # Synthetic record missing first key field
+    required_non_null = [name for name, f in contract.fields.items() if f.required and not f.nullable]
     missing_key_rec = dict(records[0]) if records else {}
-    for h in list(missing_key_rec.keys()):
-        if "key" in h.lower() or "id" in h.lower():
-            missing_key_rec[h] = ""
+    mutated = False
+    for rf in required_non_null:
+        src = _find_source_field(rf, adapter.python_code)
+        if src and src in missing_key_rec:
+            missing_key_rec[src] = ""
+            mutated = True
+    if not mutated:
+        for h in list(missing_key_rec.keys()):
+            if "key" in h.lower() or "id" in h.lower():
+                missing_key_rec[h] = ""
     res, errs = transform_record(missing_key_rec)
     tc2_passed = res is None and any("Required non-nullable field" in e for e in errs)
     test_cases.append(
@@ -134,22 +147,56 @@ def validate_adapter(
         )
     )
 
-    # Test Case 3: Malformed date format quarantine
-    malformed_date_rec = dict(records[0]) if records else {}
-    for h in list(malformed_date_rec.keys()):
-        if "date" in h.lower():
-            malformed_date_rec[h] = "INVALID_DATE_FORMAT_123"
-    res, errs = transform_record(malformed_date_rec)
-    tc3_passed = res is None and any("Cannot parse datetime" in e for e in errs)
-    test_cases.append(
-        TestCaseResult(
-            test_name="test_malformed_date_quarantine",
-            passed=tc3_passed,
-            expected_behavior="Malformed date triggers quarantine with datetime parsing error",
-            actual_behavior="Quarantined as expected" if tc3_passed else f"Result: {res}, Errors: {errs}",
-            error_message=None if tc3_passed else "Record was not quarantined",
+    # Test Case 3: Malformed date format quarantine (if contract specifies datetime fields)
+    datetime_fields = [name for name, f in contract.fields.items() if f.target_type == ContractType.DATETIME]
+    if datetime_fields and records:
+        malformed_date_rec = dict(records[0])
+        dt_mutated = False
+        for df in datetime_fields:
+            src = _find_source_field(df, adapter.python_code)
+            if src and src in malformed_date_rec:
+                malformed_date_rec[src] = "INVALID_DATE_FORMAT_123"
+                dt_mutated = True
+        if not dt_mutated:
+            for h in list(malformed_date_rec.keys()):
+                if "date" in h.lower() or "time" in h.lower() or "timestamp" in h.lower():
+                    malformed_date_rec[h] = "INVALID_DATE_FORMAT_123"
+        res, errs = transform_record(malformed_date_rec)
+        tc3_passed = res is None and any("Cannot parse datetime" in e for e in errs)
+        test_cases.append(
+            TestCaseResult(
+                test_name="test_malformed_date_quarantine",
+                passed=tc3_passed,
+                expected_behavior="Malformed date triggers quarantine with datetime parsing error",
+                actual_behavior="Quarantined as expected" if tc3_passed else f"Result: {res}, Errors: {errs}",
+                error_message=None if tc3_passed else "Record was not quarantined",
+            )
         )
-    )
+
+    # Test Case 4: Regex pattern violation quarantine (if contract specifies patterned fields)
+    pattern_fields = [name for name, f in contract.fields.items() if f.pattern]
+    if pattern_fields and records:
+        tgt_pat_field = pattern_fields[0]
+        pattern_rec = dict(records[0])
+        src = _find_source_field(tgt_pat_field, adapter.python_code)
+        if src and src in pattern_rec:
+            pattern_rec[src] = "INVALID_REGEX_VALUE_###!!!"
+        else:
+            for k in list(pattern_rec.keys()):
+                if k == tgt_pat_field or k.endswith("." + tgt_pat_field) or tgt_pat_field in k:
+                    pattern_rec[k] = "INVALID_REGEX_VALUE_###!!!"
+                    break
+        res, errs = transform_record(pattern_rec)
+        tc4_passed = res is None and any("does not match pattern" in e for e in errs)
+        test_cases.append(
+            TestCaseResult(
+                test_name="test_pattern_violation_quarantine",
+                passed=tc4_passed,
+                expected_behavior=f"Pattern violation on '{tgt_pat_field}' triggers quarantine",
+                actual_behavior="Quarantined as expected" if tc4_passed else f"Result: {res}, Errors: {errs}",
+                error_message=None if tc4_passed else "Record was not quarantined",
+            )
+        )
 
     all_tests_passed = all(tc.passed for tc in test_cases)
     total_in = len(records)

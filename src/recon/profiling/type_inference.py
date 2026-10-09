@@ -107,24 +107,31 @@ def infer_column_type(
     matched_dt_formats: set[str] = set()
 
     for val in non_null_values:
-        # Test bool
-        if try_parse_bool(val) is not None:
+        if isinstance(val, bool):
             bool_count += 1
-
-        # Test int
-        if try_parse_int(val) is not None:
+        elif isinstance(val, int):
             int_count += 1
-        # Test float
-        elif try_parse_float(val) is not None:
+        elif isinstance(val, float):
             float_count += 1
+        elif isinstance(val, str):
+            # Test bool
+            if try_parse_bool(val) is not None:
+                bool_count += 1
 
-        # Test datetime
-        dt, fmt, is_date = try_parse_datetime(val)
-        if dt is not None and fmt is not None:
-            dt_count += 1
-            if is_date:
-                date_only_count += 1
-            matched_dt_formats.add(fmt)
+            # Test int
+            if try_parse_int(val) is not None:
+                int_count += 1
+            # Test float
+            elif try_parse_float(val) is not None:
+                float_count += 1
+
+            # Test datetime
+            dt, fmt, is_date = try_parse_datetime(val)
+            if dt is not None and fmt is not None:
+                dt_count += 1
+                if is_date:
+                    date_only_count += 1
+                matched_dt_formats.add(fmt)
 
     distribution = {
         "integer": int_count,
@@ -138,18 +145,18 @@ def infer_column_type(
 
     # Decision tree: 100% threshold for primitive types
     if int_count == total:
-        parsed_ints = [int(v.strip()) for v in non_null_values]
+        parsed_ints = [int(v) if not isinstance(v, str) else int(v.strip()) for v in non_null_values]
         return InferredType.INTEGER, distribution, [], min(parsed_ints), max(parsed_ints)
 
     if (int_count + float_count) == total and (float_count > 0 or int_count > 0):
-        parsed_floats = [float(v.strip()) for v in non_null_values]
+        parsed_floats = [float(v) if not isinstance(v, str) else float(v.strip()) for v in non_null_values]
         return InferredType.FLOAT, distribution, [], min(parsed_floats), max(parsed_floats)
 
     if dt_count == total:
         # Differentiate date vs datetime
         target_type = InferredType.DATE if date_only_count == total else InferredType.DATETIME
         primary_fmt = format_patterns[0] if format_patterns else "%Y-%m-%d"
-        parsed_dts = [datetime.strptime(v.strip(), primary_fmt) for v in non_null_values]
+        parsed_dts = [datetime.strptime(str(v).strip(), primary_fmt) for v in non_null_values]
         min_dt = min(parsed_dts).isoformat()
         max_dt = max(parsed_dts).isoformat()
         return target_type, distribution, format_patterns, min_dt, max_dt
@@ -158,8 +165,7 @@ def infer_column_type(
         return InferredType.BOOLEAN, distribution, [], False, True
 
     # Default fallback: STRING
-    # String min/max by alphabetical order
-    stripped = [v.strip() for v in non_null_values if v.strip()]
+    stripped = [str(v).strip() for v in non_null_values if str(v).strip()]
     min_str = min(stripped) if stripped else None
     max_str = max(stripped) if stripped else None
 

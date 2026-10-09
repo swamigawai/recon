@@ -11,9 +11,13 @@ from recon.profiling.type_inference import infer_column_type
 DEFAULT_NULL_TOKENS = {"", "null", "none", "nan", "n/a", "undefined"}
 
 
-def is_null_value(val: str, null_tokens: set[str]) -> bool:
-    """Checks whether a string value represents a null/missing value."""
-    return val.strip().lower() in null_tokens
+def is_null_value(val: Any, null_tokens: set[str]) -> bool:
+    """Checks whether a value represents a null/missing value."""
+    if val is None:
+        return True
+    if isinstance(val, (int, float, bool)):
+        return False
+    return str(val).strip().lower() in null_tokens
 
 
 def profile_dataset(
@@ -38,7 +42,10 @@ def profile_dataset(
     total_cols = len(dataset.headers)
 
     # 1. Detect exact duplicate rows
-    row_tuples = [tuple(row.get(h, "") for h in dataset.headers) for row in dataset.rows]
+    row_tuples = [
+        tuple(str(row.get(h, "")) if row.get(h) is not None else "" for h in dataset.headers)
+        for row in dataset.rows
+    ]
     unique_rows_count = len(set(row_tuples))
     duplicate_rows_count = total_rows - unique_rows_count
 
@@ -47,7 +54,7 @@ def profile_dataset(
 
     # 2. Profile each column
     for col in dataset.headers:
-        raw_values = [row.get(col, "") for row in dataset.rows]
+        raw_values = [row.get(col) for row in dataset.rows]
 
         null_count = sum(1 for v in raw_values if is_null_value(v, active_null_tokens))
         null_pct = round((null_count / total_rows) * 100.0, 2) if total_rows > 0 else 0.0
@@ -56,7 +63,7 @@ def profile_dataset(
         distinct_vals = set(non_null_values)
         distinct_count = len(distinct_vals)
 
-        has_whitespace = any(v != v.strip() for v in raw_values if v)
+        has_whitespace = any(isinstance(v, str) and v != v.strip() for v in raw_values if v is not None)
 
         # Detect constant columns
         is_constant = distinct_count == 1 and null_count == 0
@@ -64,7 +71,7 @@ def profile_dataset(
             warnings.append(f"Column '{col}' is constant across all {total_rows} rows.")
 
         # Safe sample values: first 5 sorted unique non-null values
-        sample_values = sorted(list(distinct_vals))[:5]
+        sample_values = [str(x) for x in sorted(list(distinct_vals), key=lambda x: str(x))[:5]]
 
         # Type inference & range evaluation
         inferred_type, type_dist, formats, min_val, max_val = infer_column_type(non_null_values)

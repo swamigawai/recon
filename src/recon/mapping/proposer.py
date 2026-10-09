@@ -15,9 +15,15 @@ SYNONYMS: dict[str, list[str]] = {
     "description": ["descriptor", "description", "details", "narrative", "comments"],
     "borough": ["borough", "district", "county"],
     "status": ["status", "state", "current status"],
-    "postal_code": ["incident zip", "postal code", "zip code", "zip", "postcode"],
-    "latitude": ["latitude", "lat"],
-    "longitude": ["longitude", "lon", "lng"],
+    "postal_code": ["incident zip", "postal code", "zip code", "zip", "postcode", "address.zipcode", "zipcode"],
+    "latitude": ["latitude", "lat", "address.geo.lat"],
+    "longitude": ["longitude", "lon", "lng", "address.geo.lng"],
+    "user_id": ["id", "userid", "user_id", "pk"],
+    "full_name": ["name", "fullname", "full_name", "display_name"],
+    "email": ["email", "email_address", "mail"],
+    "city": ["address.city", "city", "town", "municipality"],
+    "company_name": ["company.name", "company", "company_name", "employer"],
+    "website": ["website", "url", "webpage", "web"],
 }
 
 
@@ -40,9 +46,17 @@ def find_matching_source_columns(
 
     for col in available_columns:
         norm_col = normalize_name(col)
-        if norm_col == norm_target:
+        # Check exact or dot-suffix match (e.g. address.city matching city)
+        col_suffix = col.split(".")[-1]
+        norm_suffix = normalize_name(col_suffix)
+
+        if norm_col == norm_target or norm_suffix == norm_target:
             exact_matches.append(col)
-        elif norm_col in norm_synonyms or any(norm_s in norm_col for norm_s in norm_synonyms):
+        elif (
+            norm_col in norm_synonyms
+            or norm_suffix in norm_synonyms
+            or any(norm_s in norm_col for norm_s in norm_synonyms)
+        ):
             synonym_matches.append(col)
 
     if exact_matches:

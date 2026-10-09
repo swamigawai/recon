@@ -53,8 +53,9 @@ def generate_adapter(
         trans_rule = mapping.transformation_rule or ""
 
         block = [f"    # Target: {target_name} <- Source: '{src_field}'"]
-        block.append(f"    val_{target_name} = record.get('{src_field}', '').strip()")
-        block.append(f"    if not val_{target_name} or val_{target_name}.lower() in ('', 'null', 'none', 'nan', 'n/a'):")
+        block.append(f"    raw_val_{target_name} = record.get('{src_field}')")
+        block.append(f"    val_{target_name} = str(raw_val_{target_name}).strip() if raw_val_{target_name} is not None else ''")
+        block.append(f"    if raw_val_{target_name} is None or val_{target_name}.lower() in ('', 'null', 'none', 'nan', 'n/a'):")
         if req and not nullable:
             block.append(f"        errors.append(\"Required non-nullable field '{target_name}' is missing or null (source '{src_field}')\")")
             block.append(f"        output['{target_name}'] = None")
@@ -88,16 +89,16 @@ def generate_adapter(
 
         elif tgt_type == ContractType.INTEGER:
             block.append("        try:")
-            block.append(f"            output['{target_name}'] = int(val_{target_name})")
+            block.append(f"            output['{target_name}'] = int(raw_val_{target_name}) if isinstance(raw_val_{target_name}, (int, float)) else int(val_{target_name})")
             block.append("        except ValueError:")
-            block.append(f"            errors.append(f\"Cannot parse integer for '{target_name}' from '{{val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse integer for '{target_name}' from '{{raw_val_{target_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.FLOAT:
             block.append("        try:")
-            block.append(f"            output['{target_name}'] = float(val_{target_name})")
+            block.append(f"            output['{target_name}'] = float(raw_val_{target_name})")
             block.append("        except ValueError:")
-            block.append(f"            errors.append(f\"Cannot parse float for '{target_name}' from '{{val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse float for '{target_name}' from '{{raw_val_{target_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.DATETIME:
@@ -117,13 +118,14 @@ def generate_adapter(
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.BOOLEAN:
-            block.append(f"        val_lower = val_{target_name}.lower()")
-            block.append("        if val_lower in ('true', 'yes', '1', 't'):")
+            block.append(f"        if isinstance(raw_val_{target_name}, bool):")
+            block.append(f"            output['{target_name}'] = raw_val_{target_name}")
+            block.append(f"        elif val_{target_name}.lower() in ('true', 'yes', '1', 't'):")
             block.append(f"            output['{target_name}'] = True")
-            block.append("        elif val_lower in ('false', 'no', '0', 'f'):")
+            block.append(f"        elif val_{target_name}.lower() in ('false', 'no', '0', 'f'):")
             block.append(f"            output['{target_name}'] = False")
             block.append("        else:")
-            block.append(f"            errors.append(f\"Cannot parse boolean for '{target_name}' from '{{val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse boolean for '{target_name}' from '{{raw_val_{target_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         field_code_blocks.append("\n".join(block))
