@@ -1,0 +1,97 @@
+{
+  "contract_name": "service_request_target_contract",
+  "version": "1.0.0",
+  "description": "Standardized downstream service request ingestion contract",
+  "fields": {
+    "ticket_id": {
+      "name": "ticket_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique identifier for the service ticket"
+    },
+    "created_at": {
+      "name": "created_at",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 timestamp when the request was initiated"
+    },
+    "closed_at": {
+      "name": "closed_at",
+      "target_type": "datetime",
+      "required": false,
+      "nullable": true,
+      "description": "ISO-8601 timestamp when the request was closed, if applicable"
+    },
+    "agency_code": {
+      "name": "agency_code",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Abbreviated agency code handling the request"
+    },
+    "category": {
+      "name": "category",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Primary complaint category"
+    },
+    "description": {
+      "name": "description",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Secondary descriptor or detailed narrative"
+    },
+    "borough": {
+      "name": "borough",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "MANHATTAN",
+        "BROOKLYN",
+        "QUEENS",
+        "BRONX",
+        "STATEN ISLAND"
+      ],
+      "description": "Standardized NYC borough in uppercase"
+    },
+    "status": {
+      "name": "status",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "OPEN",
+        "CLOSED",
+        "PENDING"
+      ],
+      "description": "Current lifecycle status of the ticket"
+    },
+    "postal_code": {
+      "name": "postal_code",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "pattern": "^\\d{5}$",
+      "description": "5-digit US postal ZIP code"
+    },
+    "latitude": {
+      "name": "latitude",
+      "target_type": "float",
+      "required": false,
+      "nullable": true,
+      "description": "WGS84 latitude coordinate"
+    },
+    "longitude": {
+      "name": "longitude",
+      "target_type": "float",
+      "required": false,
+      "nullable": true,
+      "description": "WGS84 longitude coordinate"
+    }
+  }
+}
