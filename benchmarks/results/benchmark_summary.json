@@ -1,0 +1,17 @@
+{
+  "benchmark_timestamp": "2026-10-09T13:34:14Z",
+  "dataset": "NYC 311 Service Requests",
+  "clean_sample_rows": 10,
+  "corrupted_sample_rows": 10,
+  "target_fields_evaluated": 11,
+  "metrics": {
+    "mapping_precision": "100.0% (11/11)",
+    "mapping_recall": "100.0% (11/11)",
+    "risk_recall": "100.0% (5/5 pre-declared fault ledger risks detected)",
+    "risk_false_positives": "0 unexpected flags",
+    "clean_adapter_contract_pass_rate": "100.0% (10/10)",
+    "invalid_record_quarantine_rate": "100.0% (5/5 invalid records quarantined, 0 dropped)",
+    "clean_execution_time_seconds": "0.021s",
+    "manual_baseline_time_estimated": "45\u201360 minutes"
+  }
+}

@@ -1,0 +1,11 @@
+Unique Key,Created Date,Closed Date,Agency,Agency Name,Complaint Type,Descriptor,Location Type,Incident Zip,Incident Address,City,Borough,Status,Latitude,Longitude
+10000001,04/01/2024 12:00:00 AM,04/01/2024 02:30:00 AM,NYPD,New York City Police Department,Noise - Residential,Loud Music/Party,Residential Building/House,10001,123 7TH AVE,NEW YORK,MANHATTAN,Closed,40.7484,-73.9967
+10000001,04/01/2024 12:00:00 AM,04/01/2024 02:30:00 AM,NYPD,New York City Police Department,Noise - Residential,Loud Music/Party,Residential Building/House,10001,123 7TH AVE,NEW YORK,MANHATTAN,Closed,40.7484,-73.9967
+,04/01/2024 01:05:00 AM,,DOT,Department of Transportation,Street Condition,Pothole,Street,11375,70-01 AUSTIN ST,FOREST HILLS,QUEENS,Pending,40.7201,-73.8456
+10000004,04/01/2024 01:20:00 AM,04/01/2024 03:00:00 AM,DEP,Department of Environmental Protection,Noise,Noise: Construction Before/After Hours,Construction Site,10451,200 GRAND CONCOURSE,BRONX,BRONX,Closed,40.8160,-73.9280
+10000005,04/01/2024 01:45:00 AM,,DSNY,Department of Sanitation,Dirty Condition,Trash,Sidewalk,10005,50 BROADWAY,NEW YORK,MANHATTAN,Open,NOT_A_FLOAT,-74.0120
+10000006,99/99/9999 99:99:99,04/01/2024 05:00:00 AM,NYPD,New York City Police Department,Blocked Driveway,No Access,Street/Sidewalk,10301,10 VICTORY BLVD,STATEN ISLAND,STATEN ISLAND,Closed,40.6380,-74.0760
+10000007,04/01/2024 02:30:00 AM,,DOT,Department of Transportation,Traffic Signal Condition,Signal Out,Street,11215,9TH ST & 5TH AVE,BROOKLYN,ATLANTIS,Open,40.6700,-73.9870
+10000008,04/01/2024 03:10:00 AM,04/01/2024 04:00:00 AM,NYPD,New York City Police Department,Noise - Commercial,Loud Music/Party,Club/Bar/Restaurant,ABCDE,100 ORCHARD ST,NEW YORK,MANHATTAN,Closed,40.7180,-73.9890
+10000009,04/01/2024 03:30:00 AM,,HPD,Department of Housing Preservation and Development,HEAT/HOT WATER,ENTIRE BUILDING,RESIDENTIAL BUILDING,10458,2400 CRESTON AVE,BRONX,BRONX,Open,40.8590,-73.8990
+10000010,04/01/2024 04:00:00 AM,,DPR,Department of Parks and Recreation,Damaged Tree,Branch Cracked,Street,11101,48TH AVE,LONG ISLAND CITY,QUEENS,Open,40.7440,-73.9530

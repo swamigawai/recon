@@ -1,0 +1,7 @@
+fault_id,category,row_index,affected_column,expected_rule_id,expected_severity,description
+F001,Missing Required Value,3,Unique Key,R003_NULLABILITY_CONFLICT,CRITICAL,Empty string in non-nullable required Unique Key
+F002,Incompatible Type,5,Latitude,R002_INCOMPATIBLE_TYPES,CRITICAL,Non-numeric string 'NOT_A_FLOAT' in float coordinate column
+F003,Malformed Date,6,Created Date,R004_DATE_PARSING_RISK,HIGH,Unparseable datetime string '99/99/9999 99:99:99' in Created Date
+F004,Invalid Enum Value,7,Borough,R005_ENUM_VIOLATION,HIGH,Unrecognized borough 'ATLANTIS' violating allowed enum domain
+F005,Pattern Mismatch,8,Incident Zip,QUARANTINE_PATTERN,MEDIUM,Non-numeric string 'ABCDE' violating 5-digit postal code pattern
+F006,Duplicate Row,2,ALL,PROFILER_DUPLICATE_CHECK,LOW,Exact duplicate copy of row 1 injected to test duplicate detection
