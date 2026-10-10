@@ -35,6 +35,11 @@ def fixtures_dir() -> Path:
     return Path(__file__).parent.parent / "fixtures"
 
 
+@pytest.fixture
+def benchmarks_dir() -> Path:
+    return Path(__file__).resolve().parents[2] / "benchmarks"
+
+
 def test_ecommerce_gate03_clean_ground_truth(fixtures_dir: Path):
     """Verifies that clean e-commerce orders achieve 100% mapping accuracy and contract pass rate."""
     csv_path = fixtures_dir / "olist_orders_sample.csv"
@@ -95,7 +100,7 @@ def test_ecommerce_gate03_clean_ground_truth(fixtures_dir: Path):
     assert len(report.blocking_reasons) == 0
 
 
-def test_ecommerce_gate03_corrupted_fault_ledger_and_zero_loss(fixtures_dir: Path):
+def test_ecommerce_gate03_corrupted_fault_ledger_and_zero_loss(fixtures_dir: Path, benchmarks_dir: Path):
     """Verifies 100% recall on the 6 pre-declared e-commerce integration faults with zero data loss."""
     csv_path = fixtures_dir / "olist_orders_corrupted.csv"
     contract_path = fixtures_dir / "target_contract_ecommerce_order.json"
@@ -154,7 +159,7 @@ def test_ecommerce_gate03_corrupted_fault_ledger_and_zero_loss(fixtures_dir: Pat
     assert any("does not match pattern" in t and "^[A-Z]{2}$" in t for t in error_texts)
 
     # 6. Export Benchmark Artifacts
-    results_dir = Path("D:/recon/benchmarks/results")
+    results_dir = benchmarks_dir / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     summary_json = {

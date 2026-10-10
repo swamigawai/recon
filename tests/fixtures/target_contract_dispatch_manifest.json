@@ -1,0 +1,70 @@
+{
+  "contract_name": "target_contract_dispatch_manifest",
+  "version": "1.0.0",
+  "description": "Standardized logistics dispatch manifest ingestion contract",
+  "fields": {
+    "consignment_id": {
+      "name": "consignment_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique consignment tracking identifier"
+    },
+    "recipient_code": {
+      "name": "recipient_code",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Destination recipient account identifier"
+    },
+    "dispatch_status": {
+      "name": "dispatch_status",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "STAGED",
+        "IN_TRANSIT",
+        "DELIVERED",
+        "CANCELLED"
+      ],
+      "description": "Lifecycle state of the dispatch"
+    },
+    "departure_time": {
+      "name": "departure_time",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 timestamp of terminal departure"
+    },
+    "gross_weight_kg": {
+      "name": "gross_weight_kg",
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Total parcel weight in kilograms"
+    },
+    "declared_value": {
+      "name": "declared_value",
+      "target_type": "float",
+      "required": false,
+      "nullable": true,
+      "description": "Insured cargo valuation in currency units"
+    },
+    "destination_city": {
+      "name": "destination_city",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Destination city name"
+    },
+    "destination_state": {
+      "name": "destination_state",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z]{2}$",
+      "description": "Two-letter destination state code"
+    }
+  }
+}

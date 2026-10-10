@@ -1,0 +1,24 @@
+{
+  "benchmark": "Unfamiliar Schema Fair Generalization Baseline",
+  "domain": "Logistics Dispatch Manifest",
+  "target_contract": "target_contract_dispatch_manifest",
+  "total_target_fields": 8,
+  "correct_mappings_count": 0,
+  "incorrect_mappings_count": 0,
+  "unresolved_mappings_count": 8,
+  "mapping_precision": 0.0,
+  "mapping_recall": 0.0,
+  "unresolved_fields": [
+    "consignment_id",
+    "recipient_code",
+    "dispatch_status",
+    "departure_time",
+    "gross_weight_kg",
+    "declared_value",
+    "destination_city",
+    "destination_state"
+  ],
+  "incorrect_matches": [],
+  "safe_fail_stop_verified": true,
+  "timestamp": "2026-10-10T15:28:37Z"
+}
