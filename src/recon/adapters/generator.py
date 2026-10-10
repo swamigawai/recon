@@ -83,7 +83,7 @@ def generate_adapter(
             if pattern:
                 pattern_repr = repr(pattern)
                 block.append(f"        if not re.match({pattern_repr}, parsed_{target_name}):")
-                block.append(f"            errors.append(f\"Value '{{parsed_{target_name}}}' for '{target_name}' does not match pattern {pattern_repr}\")")
+                block.append(f"            errors.append(f\"Value '{{parsed_{target_name}}}' for '{target_name}' does not match pattern \" + {pattern_repr})")
 
             block.append(f"        output['{target_name}'] = parsed_{target_name}")
 
@@ -103,8 +103,8 @@ def generate_adapter(
 
         elif tgt_type == ContractType.DATETIME:
             # Datetime parsing
-            # Check format pattern from rule or common formats
-            fmt = "%m/%d/%Y %I:%M:%S %p"
+            # Default to standard ISO-8601 unless non-standard format is captured in transformation rule
+            fmt = "%Y-%m-%dT%H:%M:%SZ"
             if "parse_datetime('" in trans_rule:
                 match = re.search(r"parse_datetime\('([^']+)'\)", trans_rule)
                 if match:

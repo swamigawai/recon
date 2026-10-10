@@ -1,0 +1,12 @@
+{
+  "gate": "Gate 03: Second-Domain Evaluation (E-Commerce)",
+  "domain": "E-Commerce / Retail Order Management",
+  "clean_records_tested": 10,
+  "clean_pass_rate": "100.0%",
+  "corrupted_records_tested": 10,
+  "predeclared_faults_injected": 6,
+  "predeclared_faults_quarantined": 6,
+  "fault_detection_recall": "100.0% (6/6)",
+  "zero_data_loss_verified": true,
+  "timestamp": "2026-10-10T08:29:04Z"
+}

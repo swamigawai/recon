@@ -1,5 +1,5 @@
 {
-  "benchmark_timestamp": "2026-10-09T17:44:50Z",
+  "benchmark_timestamp": "2026-10-10T08:29:04Z",
   "dataset": "NYC 311 Service Requests",
   "clean_sample_rows": 10,
   "corrupted_sample_rows": 10,
@@ -11,7 +11,7 @@
     "risk_false_positives": "0 unexpected flags",
     "clean_adapter_contract_pass_rate": "100.0% (10/10)",
     "invalid_record_quarantine_rate": "100.0% (5/5 invalid records quarantined, 0 dropped)",
-    "clean_execution_time_seconds": "0.046s",
+    "clean_execution_time_seconds": "0.011s",
     "manual_baseline_time_estimated": "45\u201360 minutes"
   }
 }

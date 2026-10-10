@@ -104,7 +104,7 @@ def infer_column_type(
     dt_count = 0
     date_only_count = 0
 
-    matched_dt_formats: set[str] = set()
+    dt_format_counts: dict[str, int] = {}
 
     for val in non_null_values:
         if isinstance(val, bool):
@@ -131,7 +131,7 @@ def infer_column_type(
                 dt_count += 1
                 if is_date:
                     date_only_count += 1
-                matched_dt_formats.add(fmt)
+                dt_format_counts[fmt] = dt_format_counts.get(fmt, 0) + 1
 
     distribution = {
         "integer": int_count,
@@ -141,7 +141,7 @@ def infer_column_type(
         "string": total,
     }
 
-    format_patterns = sorted(list(matched_dt_formats))
+    format_patterns = sorted(dt_format_counts.keys(), key=lambda f: dt_format_counts[f], reverse=True)
 
     # Decision tree: 100% threshold for primitive types
     if int_count == total:
@@ -155,10 +155,17 @@ def infer_column_type(
     if dt_count == total:
         # Differentiate date vs datetime
         target_type = InferredType.DATE if date_only_count == total else InferredType.DATETIME
-        primary_fmt = format_patterns[0] if format_patterns else "%Y-%m-%d"
-        parsed_dts = [datetime.strptime(str(v).strip(), primary_fmt) for v in non_null_values]
-        min_dt = min(parsed_dts).isoformat()
-        max_dt = max(parsed_dts).isoformat()
+        parsed_dts: list[datetime] = []
+        for v in non_null_values:
+            v_clean = str(v).strip()
+            for fmt in format_patterns:
+                try:
+                    parsed_dts.append(datetime.strptime(v_clean, fmt))
+                    break
+                except ValueError:
+                    continue
+        min_dt = min(parsed_dts).isoformat() if parsed_dts else None
+        max_dt = max(parsed_dts).isoformat() if parsed_dts else None
         return target_type, distribution, format_patterns, min_dt, max_dt
 
     if bool_count == total:

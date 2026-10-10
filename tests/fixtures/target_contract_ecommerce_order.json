@@ -1,0 +1,77 @@
+{
+  "contract_name": "target_contract_ecommerce_order",
+  "version": "1.0.0",
+  "description": "Standardized enterprise e-commerce order ingestion contract",
+  "fields": {
+    "order_id": {
+      "name": "order_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique identifier for the e-commerce purchase order"
+    },
+    "customer_id": {
+      "name": "customer_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique identifier for the purchaser"
+    },
+    "order_status": {
+      "name": "order_status",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "DELIVERED",
+        "SHIPPED",
+        "PROCESSING",
+        "CANCELED"
+      ],
+      "description": "Current lifecycle status of the order in uppercase"
+    },
+    "order_purchase_timestamp": {
+      "name": "order_purchase_timestamp",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 timestamp when order was placed"
+    },
+    "order_delivered_customer_date": {
+      "name": "order_delivered_customer_date",
+      "target_type": "datetime",
+      "required": false,
+      "nullable": true,
+      "description": "ISO-8601 timestamp when delivery was completed"
+    },
+    "payment_value": {
+      "name": "payment_value",
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Total payment amount including freight in monetary currency"
+    },
+    "freight_value": {
+      "name": "freight_value",
+      "target_type": "float",
+      "required": false,
+      "nullable": true,
+      "description": "Shipping fee component of transaction"
+    },
+    "customer_city": {
+      "name": "customer_city",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Destination city for the shipment"
+    },
+    "customer_state": {
+      "name": "customer_state",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z]{2}$",
+      "description": "Two-letter postal state code in uppercase"
+    }
+  }
+}

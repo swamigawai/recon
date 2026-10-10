@@ -24,6 +24,15 @@ SYNONYMS: dict[str, list[str]] = {
     "city": ["address.city", "city", "town", "municipality"],
     "company_name": ["company.name", "company", "company_name", "employer"],
     "website": ["website", "url", "webpage", "web"],
+    "order_id": ["order id", "order_id", "order_number", "order_no", "order_key", "id"],
+    "customer_id": ["customer id", "customer_id", "client_id", "buyer_id", "user_id"],
+    "order_status": ["order status", "order_status", "status", "order_state", "state"],
+    "order_purchase_timestamp": ["order purchase timestamp", "purchase timestamp", "order date", "order_purchase_timestamp", "purchased_at", "created_at"],
+    "order_delivered_customer_date": ["order delivered customer date", "delivered date", "delivery date", "delivered_at", "order_delivered_date"],
+    "payment_value": ["payment value", "payment_value", "total amount", "total", "price", "order_amount", "amount", "order_total"],
+    "freight_value": ["freight value", "freight_value", "freight", "shipping", "shipping fee", "delivery fee"],
+    "customer_city": ["customer city", "customer_city", "city", "shipping city"],
+    "customer_state": ["customer state", "customer_state", "state", "shipping state", "province"],
 }
 
 
@@ -128,21 +137,20 @@ def propose_mappings(
 
         # 2. Target DATETIME from Source DATETIME
         elif tgt_type == ContractType.DATETIME:
-            if src_type in (InferredType.DATETIME, InferredType.DATE):
-                fmt = src_col_profile.format_patterns[0] if src_col_profile.format_patterns else "unknown"
-                if fmt != "%Y-%m-%dT%H:%M:%SZ":
-                    mapping_type = MappingType.TRANSFORMATION_REQUIRED
-                    transformation_rule = f"parse_datetime('{fmt}')->iso8601"
-                    evidence.append(
-                        f"Source format '{fmt}' requires parsing to target ISO-8601 timestamp."
-                    )
-                else:
-                    evidence.append("Source timestamp is already in standard ISO-8601 format.")
+            fmt = src_col_profile.format_patterns[0] if src_col_profile.format_patterns else None
+            if fmt and fmt != "%Y-%m-%dT%H:%M:%SZ":
+                mapping_type = MappingType.TRANSFORMATION_REQUIRED
+                transformation_rule = f"parse_datetime('{fmt}')->iso8601"
+                evidence.append(
+                    f"Source format '{fmt}' requires parsing to target ISO-8601 timestamp."
+                )
+            elif fmt == "%Y-%m-%dT%H:%M:%SZ":
+                evidence.append("Source timestamp is already in standard ISO-8601 format.")
             else:
                 mapping_type = MappingType.TRANSFORMATION_REQUIRED
                 transformation_rule = "parse_datetime->iso8601"
                 evidence.append(
-                    f"Source type '{src_type.value}' is not declared datetime; parsing required."
+                    f"Source type '{src_type.value}' has no detected format; standard parsing required."
                 )
 
         # 3. Target STRING with Allowed Values (Enum/Categories)
