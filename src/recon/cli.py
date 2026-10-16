@@ -125,6 +125,17 @@ def cmd_run(args: argparse.Namespace) -> int:
         return 1
 
 
+def cmd_web(args: argparse.Namespace) -> int:
+    """Launches the Recon developer web interface."""
+    import uvicorn
+    from recon.server.app import create_app
+
+    app = create_app()
+    print(f"\nStarting Recon Web Interface at http://{args.host}:{args.port}")
+    uvicorn.run(app, host=args.host, port=args.port)
+    return 0
+
+
 def main() -> None:
     """Main CLI entrypoint."""
     parser = argparse.ArgumentParser(
@@ -152,6 +163,12 @@ def main() -> None:
     p_run.add_argument("contract", help="Path to target contract JSON file")
     p_run.add_argument("--output-dir", default="recon_output", help="Directory to save generated reports and adapters")
     p_run.set_defaults(func=cmd_run)
+
+    # web
+    p_web = subparsers.add_parser("web", help="Start the Recon developer web interface")
+    p_web.add_argument("--host", default="127.0.0.1", help="Host address (default: 127.0.0.1)")
+    p_web.add_argument("--port", type=int, default=8000, help="Port (default: 8000)")
+    p_web.set_defaults(func=cmd_web)
 
     args = parser.parse_args()
     sys.exit(args.func(args))

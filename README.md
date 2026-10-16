@@ -37,6 +37,17 @@ Run the complete test suite with one command:
 pytest
 ```
 
+### Developer Web Interface (Gate 04)
+
+Launch the interactive developer web UI locally:
+
+```bash
+recon web
+# or: python -m recon.cli web --host 127.0.0.1 --port 8000
+```
+
+Open your browser to `http://127.0.0.1:8000` to inspect datasets, review proposed mappings with engine evidence, manually resolve unfamiliar columns, generate reviewable adapters, and download readiness reports.
+
 ---
 
 ## Core Principles

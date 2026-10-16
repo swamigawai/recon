@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recon — Integration Readiness Engine</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo">
+        <span class="logo-badge">RECON</span>
+        <span class="logo-title">Integration Readiness Engine</span>
+      </div>
+      <div class="header-meta">
+        <span class="meta-tag">Gate 04</span>
+        <span class="meta-tag">Deterministic Sandbox</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Intro / Value Prop Banner -->
+    <section class="lead-banner">
+      <h2>Know what will break before you build the integration.</h2>
+      <p>
+        Recon inspects source schemas, proposes deterministic mappings with auditable evidence, evaluates integration risks,
+        enforces human approval, and generates verifiable adapters with zero-loss quarantine accounting.
+      </p>
+    </section>
+
+    <!-- STEP 1 & 2: Input Configuration -->
+    <section class="card config-card" id="step-inputs">
+      <div class="card-header">
+        <span class="step-num">Step 1 &amp; 2</span>
+        <h3>Source Dataset &amp; Target Contract</h3>
+      </div>
+      <div class="card-body grid-2col">
+        <!-- Source Dataset -->
+        <div class="form-group">
+          <label class="form-label" for="source-file">Source Dataset (CSV or JSON)</label>
+          <div class="input-toggle">
+            <input type="file" id="source-file" accept=".csv,.json" class="file-input">
+            <div class="or-divider">OR select preloaded sample:</div>
+            <select id="sample-dataset-select" class="form-select">
+              <option value="">-- Choose sample dataset --</option>
+            </select>
+          </div>
+          <small class="form-hint">Supports CSV files and JSON documents with row arrays.</small>
+        </div>
+
+        <!-- Target Contract -->
+        <div class="form-group">
+          <label class="form-label" for="contract-file">Target Contract (JSON Schema)</label>
+          <div class="contract-mode-tabs">
+            <button type="button" class="tab-btn active" data-tab="sample">Sample Contract</button>
+            <button type="button" class="tab-btn" data-tab="upload">Upload File</button>
+            <button type="button" class="tab-btn" data-tab="paste">Paste JSON</button>
+          </div>
+
+          <div id="tab-sample" class="tab-content active">
+            <select id="sample-contract-select" class="form-select">
+              <option value="">-- Choose sample target contract --</option>
+            </select>
+            <div id="contract-desc-box" class="desc-box"></div>
+          </div>
+
+          <div id="tab-upload" class="tab-content">
+            <input type="file" id="contract-file" accept=".json" class="file-input">
+          </div>
+
+          <div id="tab-paste" class="tab-content">
+            <textarea id="contract-text" class="form-textarea" rows="5" placeholder='{"contract_name": "...", "fields": {...}}'></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button id="btn-assess" class="btn btn-primary" type="button">
+          Assess Integration Readiness
+        </button>
+        <span id="assess-loading" class="spinner-text hidden">Profiling dataset and assessing risks...</span>
+      </div>
+    </section>
+
+    <!-- Error Alert Box -->
+    <div id="error-alert" class="alert alert-error hidden">
+      <strong id="error-title">Error:</strong> <span id="error-message"></span>
+    </div>
+
+    <!-- STEP 3, 4, 5: Assessment Results -->
+    <section id="step-assessment" class="hidden">
+      <!-- Profile & Contract Info Grid -->
+      <div class="grid-2col meta-grid">
+        <div class="card summary-card">
+          <div class="card-header">
+            <h4>Source Profile</h4>
+            <span class="badge" id="source-format-badge">CSV</span>
+          </div>
+          <div class="card-body">
+            <div class="stat-row">
+              <span class="stat-label">File:</span>
+              <span class="stat-val" id="prof-filename">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total Records:</span>
+              <span class="stat-val" id="prof-rows">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Columns:</span>
+              <span class="stat-val" id="prof-cols">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Duplicates:</span>
+              <span class="stat-val" id="prof-dupes">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">SHA-256:</span>
+              <span class="stat-val font-mono" id="prof-fingerprint">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card summary-card">
+          <div class="card-header">
+            <h4>Target Contract</h4>
+            <span class="badge badge-info" id="contract-version-badge">v1.0.0</span>
+          </div>
+          <div class="card-body">
+            <div class="stat-row">
+              <span class="stat-label">Name:</span>
+              <span class="stat-val" id="cont-name">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Required Fields:</span>
+              <span class="stat-val" id="cont-fields">-</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Description:</span>
+              <span class="stat-val" id="cont-desc">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5: Risk Assessment Findings -->
+      <div class="card risk-card">
+        <div class="card-header">
+          <span class="step-num">Step 5</span>
+          <h3>Pre-Integration Risk Assessment</h3>
+          <span id="risk-status-badge" class="badge">STATUS</span>
+        </div>
+        <div class="card-body">
+          <div id="risk-list" class="risk-list">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 & 4: Mapping Proposals & Human Decision -->
+      <div class="card mapping-card">
+        <div class="card-header">
+          <span class="step-num">Step 3 &amp; 4</span>
+          <div>
+            <h3>Field Mapping Proposals &amp; Verification</h3>
+            <p class="section-sub">
+              Deterministic mapping based on name and semantic heuristics.
+              <strong>Unfamiliar fields require human mapping selection.</strong> No invented confidence scores.
+            </p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div id="unresolved-warning" class="alert alert-warning hidden">
+            <strong>Action Required:</strong> <span id="unresolved-count-text"></span>
+            All required contract fields must be mapped before an adapter can be generated.
+          </div>
+
+          <div class="table-responsive">
+            <table class="recon-table" id="mappings-table">
+              <thead>
+                <tr>
+                  <th>Target Contract Field</th>
+                  <th>Type &amp; Rule</th>
+                  <th>Source Column Mapping</th>
+                  <th>Engine Evidence (Auditable)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="mappings-tbody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- STEP 6: Human Approval & Adapter Generation -->
+        <div class="card-footer approval-footer">
+          <div class="approval-form">
+            <div class="form-group inline-group">
+              <label for="reviewer-name">Reviewer Signature:</label>
+              <input type="text" id="reviewer-name" class="form-input" value="lead_engineer">
+            </div>
+            <button id="btn-approve" class="btn btn-success" type="button">
+              Approve Mappings &amp; Generate Adapter
+            </button>
+          </div>
+          <span id="approve-loading" class="spinner-text hidden">Generating adapter and running sandbox tests...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 7: Readiness Results, Sandbox Validation & Downloads -->
+    <section id="step-results" class="hidden">
+      <!-- Readiness Banner -->
+      <div class="readiness-banner" id="readiness-banner">
+        <div class="readiness-icon" id="readiness-icon">✓</div>
+        <div class="readiness-content">
+          <div class="readiness-title-row">
+            <h2 id="readiness-state-text">READINESS STATE</h2>
+            <span class="badge" id="readiness-pass-rate-badge">100% Valid</span>
+          </div>
+          <p id="readiness-rationale-text" class="readiness-rationale"></p>
+          <div id="readiness-reasons-box" class="readiness-reasons"></div>
+        </div>
+      </div>
+
+      <!-- Zero-Loss Accounting Metrics -->
+      <div class="grid-4col metrics-grid">
+        <div class="metric-card">
+          <span class="metric-num" id="metric-total">0</span>
+          <span class="metric-label">Total Input Records</span>
+        </div>
+        <div class="metric-card metric-success">
+          <span class="metric-num" id="metric-valid">0</span>
+          <span class="metric-label">Valid Output Records</span>
+        </div>
+        <div class="metric-card metric-quarantine">
+          <span class="metric-num" id="metric-quarantine">0</span>
+          <span class="metric-label">Quarantined Records</span>
+        </div>
+        <div class="metric-card metric-rate">
+          <span class="metric-num" id="metric-rate">0%</span>
+          <span class="metric-label">Contract Pass Rate</span>
+        </div>
+      </div>
+
+      <div class="accounting-note">
+        <strong>Zero-Loss Integrity Guarantee:</strong> Total Input (<span id="acc-total">0</span>) = Valid Output (<span id="acc-valid">0</span>) + Quarantined (<span id="acc-quarantine">0</span>). No record is silently dropped.
+      </div>
+
+      <!-- Sandbox Test Cases -->
+      <div class="card">
+        <div class="card-header">
+          <h4>Sandbox Verification Test Cases</h4>
+          <span id="tests-summary-badge" class="badge badge-success">Tests Passed</span>
+        </div>
+        <div class="card-body">
+          <ul id="test-cases-list" class="test-list">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Reviewable Generated Adapter Code -->
+      <div class="card">
+        <div class="card-header">
+          <h4>Generated Adapter Code (Reviewable Python)</h4>
+          <div class="header-actions">
+            <button id="btn-copy-code" class="btn btn-sm btn-outline">Copy Code</button>
+            <a id="btn-download-adapter" class="btn btn-sm btn-secondary" href="#" download>Download .py Adapter</a>
+          </div>
+        </div>
+        <div class="card-body code-body">
+          <pre><code id="adapter-code-view"></code></pre>
+        </div>
+      </div>
+
+      <!-- Quarantined Records Table (if any) -->
+      <div class="card" id="quarantine-section">
+        <div class="card-header">
+          <h4>Quarantined Records &amp; Diagnostic Reasons</h4>
+          <span class="badge badge-quarantine" id="quarantine-count-badge">0 Records</span>
+        </div>
+        <div class="card-body">
+          <p class="section-sub">
+            These records violated target contract constraints (e.g. invalid date format, missing required keys, enum violation).
+            They were preserved in quarantine for remediation.
+          </p>
+          <div class="table-responsive">
+            <table class="recon-table" id="quarantine-table">
+              <thead>
+                <tr>
+                  <th>Row #</th>
+                  <th>Contract Violations</th>
+                  <th>Raw Record Data</th>
+                </tr>
+              </thead>
+              <tbody id="quarantine-tbody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Downloadable Readiness Reports -->
+      <div class="card download-card">
+        <div class="card-header">
+          <h4>Download Readiness Package</h4>
+        </div>
+        <div class="card-body download-actions">
+          <a id="btn-download-md" class="btn btn-primary" href="#" download>
+            Download Readiness Report (Markdown .md)
+          </a>
+          <a id="btn-download-json" class="btn btn-secondary" href="#" download>
+            Download Machine-Readable Report (JSON)
+          </a>
+          <a id="btn-download-py" class="btn btn-outline" href="#" download>
+            Download Adapter Code (.py)
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <span>Recon Engine — Verification Before Integration</span>
+      <span class="footer-dim">Deterministic | Auditable | Zero-Loss</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
