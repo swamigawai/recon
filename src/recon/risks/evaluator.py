@@ -32,6 +32,7 @@ def evaluate_risks(
         "R005_ENUM_VIOLATION",
         "R006_WHITESPACE_INCONSISTENCY",
         "R007_CONSTANT_SOURCE_COLUMN",
+        "R008_MAPPING_COLLISION",
     ]
     checks_skipped: list[str] = []
 
@@ -173,6 +174,33 @@ def evaluate_risks(
                     evidence=f"Source column '{src_col.name}' has constant value '{src_col.sample_values[0]}' across all {src_col.total_count} rows.",
                     explanation="Constant source columns may indicate dummy test data, mock inputs, or degenerate columns.",
                     suggested_action="Verify with data owners whether this column represents genuine production variation.",
+                )
+            )
+
+    # -------------------------------------------------------------
+    # Rule R008: Conflicting / Colliding Source Column Mappings
+    # -------------------------------------------------------------
+    source_to_targets: dict[str, list[str]] = {}
+    for target_name, proposal in mapping_plan.proposals.items():
+        if proposal and proposal.source_field:
+            source_to_targets.setdefault(proposal.source_field, []).append(target_name)
+
+    for src_name, tgt_names in sorted(source_to_targets.items()):
+        if len(tgt_names) > 1:
+            has_required = any(
+                contract.fields[t].required for t in tgt_names if t in contract.fields
+            )
+            sev = Severity.HIGH if has_required else Severity.MEDIUM
+            findings.append(
+                RiskFinding(
+                    rule_id="R008_MAPPING_COLLISION",
+                    rule_name="Multiple Target Fields Mapped to Same Source Column",
+                    severity=sev,
+                    status=RiskStatus.CONFIRMED,
+                    affected_fields=tgt_names + [src_name],
+                    evidence=f"Source column '{src_name}' is mapped to multiple target fields: {tgt_names}.",
+                    explanation="Multiple target fields claiming the same source column can indicate ambiguous schema mapping or duplicate assignments.",
+                    suggested_action="Review mapping plan and ensure source column is intentionally shared or provide distinct mappings.",
                 )
             )
 

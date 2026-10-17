@@ -107,3 +107,162 @@ def test_validate_contract_payload_direct():
     # Enum violation
     errs = validate_contract_payload({"zip": "10001", "borough": "QUEENS"}, contract)
     assert any("not in allowed values" in e for e in errs)
+
+
+def test_quarantine_records_contain_structured_metadata(fixtures_dir: Path):
+    """Verifies that quarantined records include row index, raw payload, violated field, failure reason, and error codes."""
+    from recon.adapters.generator import generate_adapter
+    from recon.contracts.loader import load_target_contract
+    from recon.ingestion.csv_loader import load_csv
+    from recon.mapping.approval import approve_mapping_plan
+    from recon.mapping.proposer import propose_mappings
+    from recon.profiling.profiler import profile_dataset
+    from recon.validation.executor import compile_adapter_sandbox
+
+    csv_path = fixtures_dir / "corrupted_nyc_311.csv"
+    contract_path = fixtures_dir / "target_contract_service_request.json"
+
+    dataset = load_csv(csv_path)
+    profile = profile_dataset(dataset)
+    contract = load_target_contract(contract_path)
+    plan = propose_mappings(profile, contract)
+    approved_plan = approve_mapping_plan(plan)
+    adapter = generate_adapter(approved_plan, contract)
+
+    sandbox = compile_adapter_sandbox(adapter.python_code)
+    valid, quarantined = sandbox["transform_dataset"](dataset.rows)
+
+    assert len(quarantined) > 0
+    for q in quarantined:
+        assert "record_index" in q
+        assert isinstance(q["record_index"], int)
+        assert "raw_record" in q
+        assert isinstance(q["raw_record"], dict)
+        assert "errors" in q
+        assert isinstance(q["errors"], list)
+        assert "violated_fields" in q
+        assert isinstance(q["violated_fields"], list)
+        assert "failure_reason" in q
+        assert isinstance(q["failure_reason"], str)
+        assert "error_codes" in q
+        assert isinstance(q["error_codes"], list)
+
+
+def test_sandbox_security_blocks_dangerous_operations():
+    """Verifies that the adapter sandbox execution namespace strictly prevents filesystem and unauthorized module imports."""
+    from recon.validation.executor import compile_adapter_sandbox
+
+    # Test 1: Filesystem access via open() is blocked
+    code_with_open = """
+def transform_record(record):
+    open('malicious.txt', 'w').write('hacked')
+    return {}, []
+
+def transform_dataset(records):
+    return [transform_record(r) for r in records], []
+"""
+    sandbox = compile_adapter_sandbox(code_with_open)
+    with pytest.raises(NameError) as exc_info:
+        sandbox["transform_record"]({})
+    assert "name 'open' is not defined" in str(exc_info.value)
+
+    # Test 2: Unauthorized module import (e.g. os, sys, subprocess) is blocked
+    code_with_os = """
+import os
+def transform_record(record):
+    return {}, []
+"""
+    with pytest.raises(ImportError) as exc_info:
+        compile_adapter_sandbox(code_with_os)
+    assert "disallowed in adapter sandbox" in str(exc_info.value)
+
+    # Test 3: Subprocess import is blocked
+    code_with_subproc = """
+import subprocess
+"""
+    with pytest.raises(ImportError) as exc_info:
+        compile_adapter_sandbox(code_with_subproc)
+    assert "disallowed in adapter sandbox" in str(exc_info.value)
+
+
+def test_adapter_edge_cases_unicode_mixed_nulls_and_extra_fields():
+    """Verifies adapter handles unicode, various null token representations, and ignores extra source columns."""
+    from recon.adapters.generator import generate_adapter
+    from recon.contracts.loader import load_target_contract
+    from recon.mapping.models import ApprovedMappingPlan, FieldMappingProposal, MappingStatus, MappingType
+    from recon.validation.executor import compile_adapter_sandbox
+
+    contract = load_target_contract({
+        "contract_name": "edge_case_contract",
+        "fields": {
+            "name": {"name": "name", "target_type": "string", "required": True},
+            "notes": {"name": "notes", "target_type": "string", "required": False, "nullable": True},
+            "count": {"name": "count", "target_type": "integer", "required": True},
+        },
+    })
+
+    plan = ApprovedMappingPlan(
+        contract_name="edge_case_contract",
+        source_name="edge_test.csv",
+        source_fingerprint="fp123",
+        approved_by="tester",
+        approved_mappings={
+            "name": FieldMappingProposal(
+                target_field="name",
+                target_type="string",
+                target_required=True,
+                target_nullable=False,
+                source_field="raw_name",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.APPROVED,
+            ),
+            "notes": FieldMappingProposal(
+                target_field="notes",
+                target_type="string",
+                target_required=False,
+                target_nullable=True,
+                source_field="raw_notes",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.APPROVED,
+            ),
+            "count": FieldMappingProposal(
+                target_field="count",
+                target_type="integer",
+                target_required=True,
+                target_nullable=False,
+                source_field="raw_count",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.APPROVED,
+            ),
+        },
+    )
+
+    adapter = generate_adapter(plan, contract)
+    sandbox = compile_adapter_sandbox(adapter.python_code)
+    transform_dataset = sandbox["transform_dataset"]
+
+    records = [
+        # Unicode record with non-ASCII characters & extra unmapped field
+        {"raw_name": "Café München 北京 🚀", "raw_notes": "São Paulo", "raw_count": "100", "extra_field": "IGNORED"},
+        # Mixed null representations in optional nullable field
+        {"raw_name": "Alice", "raw_notes": "NULL", "raw_count": "200"},
+        {"raw_name": "Bob", "raw_notes": "n/a", "raw_count": "300"},
+        {"raw_name": "Charlie", "raw_notes": "none", "raw_count": "400"},
+        # Valid null in nullable field
+        {"raw_name": "Dave", "raw_notes": "", "raw_count": "500"},
+    ]
+
+    valid, quarantined = transform_dataset(records)
+    assert len(quarantined) == 0, f"Expected 0 quarantined, got {quarantined}"
+    assert len(valid) == 5
+
+    # Check unicode preserved
+    assert valid[0]["name"] == "Café München 北京 🚀"
+    assert "extra_field" not in valid[0]
+
+    # Check null tokens correctly normalized to None in nullable field
+    assert valid[1]["notes"] is None
+    assert valid[2]["notes"] is None
+    assert valid[3]["notes"] is None
+    assert valid[4]["notes"] is None
+

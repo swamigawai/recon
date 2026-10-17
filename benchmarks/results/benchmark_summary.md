@@ -1,6 +1,6 @@
 # Recon Empirical Benchmark Results
 
-**Evaluation Date:** 2026-10-16T16:18:39Z  
+**Evaluation Date:** 2026-10-17T15:32:07Z  
 **Primary Benchmark Dataset:** NYC 311 Service Requests  
 **Clean Fixture Rows:** 10  
 **Corrupted Fixture Rows:** 10  
@@ -17,7 +17,7 @@
 | **False Positives** | **0 unexpected flags** | $0$ | **PASS** |
 | **Contract Pass Rate (Clean)** | **100.0% (10/10)** | $100\%$ | **PASS** |
 | **Invalid Input Quarantine Rate** | **100.0% (5/5 invalid records quarantined, 0 dropped)** | $100\%$ (0 dropped) | **PASS** |
-| **Execution Latency** | **0.016s** | $< 5.0\text{s}$ | **PASS** |
+| **Execution Latency** | **0.043s** | $< 5.0\text{s}$ | **PASS** |
 | **Manual Baseline Time** | **45–60 minutes** | Benchmark comparison | **PASS** |
 
 ---

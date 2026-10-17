@@ -1,0 +1,104 @@
+{
+  "scenario": "healthcare_clinical_encounters",
+  "total_input_records": 10,
+  "expected_valid_count": 4,
+  "expected_quarantined_count": 6,
+  "valid_records": [
+    {
+      "encounter_id": "ENC-1001",
+      "patient_id": "PAT-8801",
+      "encounter_date": "2024-10-01T09:30:00Z",
+      "department": "CARDIOLOGY",
+      "clinician_notes": "Patient presents for annual routine review.",
+      "copay_amount": 25.5,
+      "visit_duration_minutes": 45,
+      "billing_code": "I10.0",
+      "emergency_flag": false,
+      "facility_code": "FAC-EAST",
+      "insurance_provider": "Aetna"
+    },
+    {
+      "encounter_id": "ENC-1002",
+      "patient_id": "PAT-8802",
+      "encounter_date": "2024-10-01T10:15:00Z",
+      "department": "NEUROLOGY",
+      "clinician_notes": "None of the above symptoms reported; patient clear.",
+      "copay_amount": 0.0,
+      "visit_duration_minutes": 30,
+      "billing_code": "G43.9",
+      "emergency_flag": false,
+      "facility_code": "FAC-WEST",
+      "insurance_provider": "Blue Cross"
+    },
+    {
+      "encounter_id": "ENC-1003",
+      "patient_id": "PAT-8803",
+      "encounter_date": "2024-10-01T11:00:00Z",
+      "department": "PEDIATRICS",
+      "clinician_notes": null,
+      "copay_amount": null,
+      "visit_duration_minutes": 60,
+      "billing_code": "J06.9",
+      "emergency_flag": true,
+      "facility_code": "FAC-CENTRAL",
+      "insurance_provider": "Medicaid"
+    },
+    {
+      "encounter_id": "ENC-1004",
+      "patient_id": "PAT-8804",
+      "encounter_date": "2024-10-01T14:45:00Z",
+      "department": "EMERGENCY",
+      "clinician_notes": "N/A - see chart notes from EMT",
+      "copay_amount": 50.0,
+      "visit_duration_minutes": 90,
+      "billing_code": "R07.9",
+      "emergency_flag": true,
+      "facility_code": "FAC-MAIN",
+      "insurance_provider": "Not Applicable Inc."
+    }
+  ],
+  "quarantined_fault_ledger": [
+    {
+      "record_index": 5,
+      "fault_id": "FAULT-01",
+      "description": "Missing required non-nullable encounter_id",
+      "error_code": "ERR_REQUIRED_FIELD_MISSING",
+      "expected_error_substring": "Required non-nullable field 'encounter_id' is missing or null"
+    },
+    {
+      "record_index": 6,
+      "fault_id": "FAULT-02",
+      "description": "Illegal enum department value DERMATOLOGY",
+      "error_code": "ERR_ENUM_VIOLATION",
+      "expected_error_substring": "Value 'DERMATOLOGY' for 'department' not in allowed values"
+    },
+    {
+      "record_index": 7,
+      "fault_id": "FAULT-03",
+      "description": "Pattern violation on ICD-10 billing code INVALID_CODE_999",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 8,
+      "fault_id": "FAULT-04",
+      "description": "Currency formatting symbol $ in numeric float copay_amount",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse float for 'copay_amount' from '$35.00'"
+    },
+    {
+      "record_index": 9,
+      "fault_id": "FAULT-05",
+      "description": "Non-standard US datetime format 10/01/2024 03:30:00 PM",
+      "error_code": "ERR_DATETIME_PARSE",
+      "expected_error_substring": "Cannot parse datetime for 'encounter_date'"
+    },
+    {
+      "record_index": 10,
+      "fault_id": "FAULT-06",
+      "description": "Non-integer string forty-five in integer duration",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse integer for 'visit_duration_minutes'"
+    }
+  ]
+}

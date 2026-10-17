@@ -11,12 +11,53 @@ from recon.logging import log_safe_event
 from recon.validation.models import TestCaseResult, ValidationResult
 
 
+ALLOWED_SANDBOX_MODULES = {"re", "datetime", "typing", "time", "_strptime", "math"}
+
+
+def _sandbox_import(name: str, *args: Any, **kwargs: Any) -> Any:
+    """Restricted import hook allowing only approved safe utility modules."""
+    if name in ALLOWED_SANDBOX_MODULES:
+        return __import__(name, *args, **kwargs)
+    raise ImportError(f"Import of module '{name}' is disallowed in adapter sandbox.")
+
+
 def compile_adapter_sandbox(python_code: str) -> dict[str, Any]:
-    """Compiles adapter code in a restricted execution namespace without access to dangerous builtins or network."""
-    safe_builtins = dict(__builtins__) if isinstance(__builtins__, dict) else dict(__builtins__.__dict__)
-    # Disallow arbitrary execution hooks
-    safe_builtins.pop("exec", None)
-    safe_builtins.pop("eval", None)
+    """Compiles adapter code in a restricted execution namespace without access to dangerous builtins, filesystem, or OS hooks."""
+    safe_builtins: dict[str, Any] = {
+        "abs": abs,
+        "all": all,
+        "any": any,
+        "bool": bool,
+        "dict": dict,
+        "enumerate": enumerate,
+        "float": float,
+        "int": int,
+        "isinstance": isinstance,
+        "len": len,
+        "list": list,
+        "max": max,
+        "min": min,
+        "range": range,
+        "repr": repr,
+        "round": round,
+        "set": set,
+        "str": str,
+        "sum": sum,
+        "tuple": tuple,
+        "zip": zip,
+        "None": None,
+        "True": True,
+        "False": False,
+        "ValueError": ValueError,
+        "TypeError": TypeError,
+        "KeyError": KeyError,
+        "IndexError": IndexError,
+        "AttributeError": AttributeError,
+        "Exception": Exception,
+        "NameError": NameError,
+        "ImportError": ImportError,
+        "__import__": _sandbox_import,
+    }
 
     restricted_globals = {
         "__builtins__": safe_builtins,

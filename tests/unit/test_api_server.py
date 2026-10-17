@@ -306,3 +306,128 @@ def test_invalid_requests(client: TestClient) -> None:
         },
     )
     assert res_bad_override.status_code == 400
+
+
+def test_unsupported_file_extension_rejected(client: TestClient) -> None:
+    """Verifies that uploading an unsupported executable or script is rejected."""
+    import io
+    exe_content = io.BytesIO(b"MZ\x90\x00\x03\x00\x00\x00")
+    res = client.post(
+        "/api/assess",
+        files={"source_file": ("malicious.exe", exe_content, "application/octet-stream")},
+        data={"sample_contract_id": "target_contract_service_request"},
+    )
+    assert res.status_code == 400
+    assert "Unsupported file format" in res.json()["detail"]
+
+
+def test_empty_or_dot_filename_rejected(client: TestClient) -> None:
+    """Verifies that dangerous or empty filenames (e.g. '.') are rejected gracefully with 400."""
+    import io
+    csv_bytes = io.BytesIO(b"id,name\n1,alice\n")
+    res = client.post(
+        "/api/assess",
+        files={"source_file": (".", csv_bytes, "text/csv")},
+        data={"sample_contract_id": "target_contract_service_request"},
+    )
+    assert res.status_code == 400
+    assert "Invalid source file name" in res.json()["detail"]
+
+
+def test_path_traversal_in_sample_ids_rejected(client: TestClient) -> None:
+    """Verifies that path traversal in sample dataset or contract IDs is blocked."""
+    res_d = client.post(
+        "/api/assess",
+        data={"sample_dataset_id": "../../src/recon/cli", "sample_contract_id": "target_contract_service_request"},
+    )
+    assert res_d.status_code == 400
+    assert "Invalid sample_dataset_id format" in res_d.json()["detail"]
+
+    res_c = client.post(
+        "/api/assess",
+        data={"sample_dataset_id": "synthetic_nyc_311", "sample_contract_id": "../../src/recon/cli"},
+    )
+    assert res_c.status_code == 400
+    assert "Invalid sample_contract_id format" in res_c.json()["detail"]
+
+
+def test_non_json_contract_file_rejected(client: TestClient) -> None:
+    """Verifies that non-JSON contract files are rejected."""
+    import io
+    txt_content = io.BytesIO(b"contract schema in text")
+    res = client.post(
+        "/api/assess",
+        data={"sample_dataset_id": "synthetic_nyc_311"},
+        files={"contract_file": ("contract.txt", txt_content, "text/plain")},
+    )
+    assert res.status_code == 400
+    assert "Target contract file must be a .json file" in res.json()["detail"]
+
+
+def test_download_before_approval_rejected(client: TestClient) -> None:
+    """Verifies that requesting downloads before adapter generation returns 404."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    sid = res_assess.json()["session_id"]
+    res_md = client.get(f"/api/download/report/{sid}?format=md")
+    assert res_md.status_code == 404
+    assert "Run approval and validation first" in res_md.json()["detail"]
+
+    res_py = client.get(f"/api/download/adapter/{sid}")
+    assert res_py.status_code == 404
+    assert "Adapter code not generated yet" in res_py.json()["detail"]
+
+
+def test_json_workflow_end_to_end(client: TestClient) -> None:
+    """Verifies complete JSON dataset workflow through API."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "jsonplaceholder_users",
+            "sample_contract_id": "target_contract_user_profile",
+        },
+    )
+    assert res_assess.status_code == 200
+    data = res_assess.json()
+    assert data["source"]["format"] == "json"
+    assert data["source"]["total_rows"] == 5
+    assert data["has_unresolved_required"] is False
+    sid = data["session_id"]
+
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={"session_id": sid, "reviewer": "api_user", "overrides": {}},
+    )
+    assert res_approve.status_code == 200
+    data_app = res_approve.json()
+    assert data_app["validation"]["total_input_records"] == 5
+    assert data_app["validation"]["valid_records_count"] == 5
+    assert data_app["validation"]["quarantined_records_count"] == 0
+    assert data_app["validation"]["all_tests_passed"] is True
+
+
+def test_session_lifecycle_and_deletion(client: TestClient) -> None:
+    """Verifies explicit session termination and artifact cleanup."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    sid = res_assess.json()["session_id"]
+
+    # Delete session
+    res_del = client.delete(f"/api/session/{sid}")
+    assert res_del.status_code == 200
+    assert res_del.json()["status"] == "cleaned"
+
+    # Subsequent access fails with 404
+    res_retry = client.get(f"/api/download/report/{sid}?format=md")
+    assert res_retry.status_code == 404
+

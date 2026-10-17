@@ -40,6 +40,19 @@ function bindEvents() {
   document.getElementById("btn-assess").addEventListener("click", handleAssess);
   document.getElementById("btn-approve").addEventListener("click", handleApproveAndGenerate);
   document.getElementById("btn-copy-code").addEventListener("click", handleCopyCode);
+
+  const sourceFileInput = document.getElementById("source-file");
+  const sampleDatasetSelect = document.getElementById("sample-dataset-select");
+  sourceFileInput.addEventListener("change", () => {
+    if (sourceFileInput.files.length > 0) {
+      sampleDatasetSelect.value = "";
+    }
+  });
+  sampleDatasetSelect.addEventListener("change", () => {
+    if (sampleDatasetSelect.value) {
+      sourceFileInput.value = "";
+    }
+  });
 }
 
 // -----------------------------------------------------------------------------

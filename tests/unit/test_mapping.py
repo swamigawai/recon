@@ -149,3 +149,108 @@ def test_approve_plan_rejects_missing_required_field():
             overrides={"required_field": {"status": MappingStatus.APPROVED, "source_field": None}},
         )
     assert "Cannot approve required target field" in str(exc_info.value)
+
+
+def test_generic_tokens_do_not_cause_false_positive_substring_matches():
+    """Verifies that short generic tokens like 'id' or 'pk' do not match arbitrary substrings in unrelated column names."""
+    from recon.mapping.proposer import find_matching_source_columns
+
+    unrelated_columns = [
+        "provider_name",      # contains 'id' inside 'provider'
+        "rapid_transit",      # contains 'id' inside 'rapid'
+        "middle_name",        # contains 'id' inside 'middle'
+        "incident_address",   # contains 'id' inside 'incident'
+        "consideration",      # contains 'id' inside 'consideration'
+        "shopkeeper",         # contains 'pk' inside 'shopkeeper'
+    ]
+
+    # Neither ticket_id nor user_id should match any of these unrelated columns
+    ticket_primary, ticket_alts = find_matching_source_columns("ticket_id", unrelated_columns)
+    assert ticket_primary is None, f"ticket_id falsely matched {ticket_primary}"
+    assert len(ticket_alts) == 0
+
+    user_primary, user_alts = find_matching_source_columns("user_id", unrelated_columns)
+    assert user_primary is None, f"user_id falsely matched {user_primary}"
+    assert len(user_alts) == 0
+
+
+def test_exact_id_matches_user_id():
+    """Verifies that exact column names 'id', 'user_id', or dot-suffix 'user.id' match correctly."""
+    from recon.mapping.proposer import find_matching_source_columns
+
+    primary, alts = find_matching_source_columns("user_id", ["created_at", "email", "id"])
+    assert primary == "id"
+
+    primary, alts = find_matching_source_columns("user_id", ["user.id", "email"])
+    assert primary == "user.id"
+
+
+def test_collision_rule_r008_triggered_on_duplicate_mappings():
+    """Verifies that Rule R008 triggers when multiple target fields claim the same source column."""
+    from recon.profiling.models import SourceProfile, ColumnProfile, InferredType
+    from recon.risks.evaluator import evaluate_risks
+
+    contract = load_target_contract({
+        "contract_name": "test_collision_contract",
+        "fields": {
+            "ticket_id": {"name": "ticket_id", "target_type": "string", "required": True},
+            "user_id": {"name": "user_id", "target_type": "string", "required": True},
+        },
+    })
+
+    # Source dataset with only one 'id' column
+    profile = SourceProfile(
+        source_name="collision_test.csv",
+        fingerprint="dummy_fp",
+        total_rows=5,
+        total_columns=1,
+        duplicate_rows_count=0,
+        columns={
+            "id": ColumnProfile(
+                name="id",
+                inferred_type=InferredType.INTEGER,
+                total_count=5,
+                null_count=0,
+                null_percentage=0.0,
+                distinct_count=5,
+            )
+        },
+    )
+
+    # Propose mappings where both target fields claim 'id'
+    plan = MappingPlan(
+        contract_name="test_collision_contract",
+        source_name="collision_test.csv",
+        source_fingerprint="dummy_fp",
+        proposals={
+            "ticket_id": FieldMappingProposal(
+                target_field="ticket_id",
+                target_type="string",
+                target_required=True,
+                target_nullable=False,
+                source_field="id",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.PROPOSED,
+            ),
+            "user_id": FieldMappingProposal(
+                target_field="user_id",
+                target_type="string",
+                target_required=True,
+                target_nullable=False,
+                source_field="id",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.PROPOSED,
+            ),
+        },
+    )
+
+    assessment = evaluate_risks(profile, contract, plan)
+    assert "R008_MAPPING_COLLISION" in assessment.checks_run
+
+    r008_findings = [f for f in assessment.findings if f.rule_id == "R008_MAPPING_COLLISION"]
+    assert len(r008_findings) == 1
+    finding = r008_findings[0]
+    assert "id" in finding.evidence
+    assert "ticket_id" in finding.affected_fields
+    assert "user_id" in finding.affected_fields
+

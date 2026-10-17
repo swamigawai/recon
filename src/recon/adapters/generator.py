@@ -89,15 +89,15 @@ def generate_adapter(
 
         elif tgt_type == ContractType.INTEGER:
             block.append("        try:")
-            block.append(f"            output['{target_name}'] = int(raw_val_{target_name}) if isinstance(raw_val_{target_name}, (int, float)) else int(val_{target_name})")
-            block.append("        except ValueError:")
+            block.append(f"            output['{target_name}'] = int(raw_val_{target_name}) if isinstance(raw_val_{target_name}, (int, float)) and not isinstance(raw_val_{target_name}, bool) else int(val_{target_name})")
+            block.append("        except (ValueError, TypeError):")
             block.append(f"            errors.append(f\"Cannot parse integer for '{target_name}' from '{{raw_val_{target_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.FLOAT:
             block.append("        try:")
-            block.append(f"            output['{target_name}'] = float(raw_val_{target_name})")
-            block.append("        except ValueError:")
+            block.append(f"            output['{target_name}'] = float(raw_val_{target_name}) if isinstance(raw_val_{target_name}, (int, float)) and not isinstance(raw_val_{target_name}, bool) else float(val_{target_name})")
+            block.append("        except (ValueError, TypeError):")
             block.append(f"            errors.append(f\"Cannot parse float for '{target_name}' from '{{raw_val_{target_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
@@ -113,7 +113,7 @@ def generate_adapter(
             block.append("        try:")
             block.append(f"            dt = datetime.strptime(val_{target_name}, '{fmt}')")
             block.append(f"            output['{target_name}'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')")
-            block.append("        except ValueError:")
+            block.append("        except (ValueError, TypeError):")
             block.append(f"            errors.append(f\"Cannot parse datetime for '{target_name}' using format '{fmt}' from '{{val_{target_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
@@ -173,10 +173,38 @@ def transform_dataset(records: List[Dict[str, str]]) -> Tuple[List[Dict[str, Any
     for idx, rec in enumerate(records, start=1):
         transformed, errors = transform_record(rec)
         if errors:
+            violated_fields = []
+            error_codes = []
+            for err in errors:
+                if "Required non-nullable field" in err:
+                    code = "ERR_REQUIRED_FIELD_MISSING"
+                elif "cannot be null" in err or "non-nullable" in err:
+                    code = "ERR_NULL_VIOLATION"
+                elif "Cannot parse integer" in err or "Cannot parse float" in err:
+                    code = "ERR_TYPE_CONVERSION"
+                elif "Cannot parse datetime" in err:
+                    code = "ERR_DATETIME_PARSE"
+                elif "Cannot parse boolean" in err:
+                    code = "ERR_BOOLEAN_PARSE"
+                elif "not in allowed values" in err:
+                    code = "ERR_ENUM_VIOLATION"
+                elif "does not match pattern" in err:
+                    code = "ERR_PATTERN_VIOLATION"
+                else:
+                    code = "ERR_CONTRACT_VALIDATION"
+                error_codes.append(code)
+
+                match = re.search(r"'(.*?)'", err)
+                if match and match.group(1) not in violated_fields:
+                    violated_fields.append(match.group(1))
+
             quarantined.append({{
                 "record_index": idx,
                 "raw_record": rec,
                 "errors": errors,
+                "violated_fields": violated_fields,
+                "failure_reason": "; ".join(errors),
+                "error_codes": error_codes,
             }})
         else:
             valid.append(transformed)

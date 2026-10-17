@@ -33,7 +33,12 @@ def build_readiness_report(
         blocking_reasons.append(f"[{crit.rule_id}] {crit.rule_name} on {crit.affected_fields}: {crit.evidence}")
 
     # 2. Evaluate Unresolved Mappings
-    unresolved_props = mapping_plan.unresolved_proposals()
+    active_mappings = approved_plan.approved_mappings if approved_plan else mapping_plan.proposals
+    unresolved_props = [
+        p for p in active_mappings.values()
+        if p.mapping_type in (MappingType.AMBIGUOUS, MappingType.MISSING_SOURCE, MappingType.UNSUPPORTED)
+        or p.status == MappingStatus.UNRESOLVED
+    ]
     for p in unresolved_props:
         msg = f"Target field '{p.target_field}' has status '{p.mapping_type.value}'"
         if p.target_required:

@@ -1,0 +1,11 @@
+visit_ref,subject_id,encounter_date,department,clinician_notes,copay_amount,duration_min,billing_code,emergency_flag,facility_code_primary,facility_code_billing,insurance_provider,room_number
+ENC-1001,PAT-8801,2024-10-01T09:30:00Z,cardiology,"Patient presents for annual routine review.",25.50,45,I10.0,false,FAC-EAST,FAC-BILL-01,Aetna,302
+ENC-1002,PAT-8802,2024-10-01T10:15:00Z,NEUROLOGY,"None of the above symptoms reported; patient clear.",0.00,30,G43.9,0,FAC-WEST,FAC-BILL-02,Blue Cross,108
+ENC-1003,PAT-8803,2024-10-01T11:00:00Z,PEDIATRICS,"",NULL,60,J06.9,true,FAC-CENTRAL,FAC-BILL-03,Medicaid,204
+ENC-1004,PAT-8804,2024-10-01T14:45:00Z,EMERGENCY,"N/A - see chart notes from EMT",50.00,90,R07.9,1,FAC-MAIN,FAC-BILL-04,"Not Applicable Inc.",ER-3
+,PAT-8805,2024-10-01T15:00:00Z,ONCOLOGY,"Follow up appointment",0.00,45,C50.9,false,FAC-EAST,FAC-BILL-01,Medicare,401
+ENC-1006,PAT-8806,2024-10-01T15:30:00Z,DERMATOLOGY,"Skin lesion check",15.00,20,L70.0,false,FAC-NORTH,FAC-BILL-05,UnitedHealthcare,112
+ENC-1007,PAT-8807,2024-10-01T16:00:00Z,CARDIOLOGY,"ECG review",30.00,30,INVALID_CODE_999,false,FAC-EAST,FAC-BILL-01,Cigna,305
+ENC-1008,PAT-8808,2024-10-01T16:30:00Z,NEUROLOGY,"Migraine consultation","$35.00",40,G43.0,false,FAC-WEST,FAC-BILL-02,Humana,110
+ENC-1009,PAT-8809,"10/01/2024 03:30:00 PM",PEDIATRICS,"Well child check",20.00,30,Z00.1,false,FAC-CENTRAL,FAC-BILL-03,Kaiser,208
+ENC-1010,PAT-8810,2024-10-01T17:15:00Z,EMERGENCY,"Acute sprain evaluation",50.00,forty-five,S93.4,true,FAC-MAIN,FAC-BILL-04,Self-Pay,ER-5

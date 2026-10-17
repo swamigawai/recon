@@ -36,9 +36,20 @@ SYNONYMS: dict[str, list[str]] = {
 }
 
 
+GENERIC_IDENTIFIER_TOKENS: set[str] = {
+    "id", "pk", "key", "no", "num", "code", "type", "date", "time",
+    "val", "value", "state", "status", "data", "text", "name",
+}
+
+
 def normalize_name(name: str) -> str:
     """Normalizes field name by lower-casing and stripping non-alphanumeric characters."""
     return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def tokenize(name: str) -> list[str]:
+    """Tokenizes field name into alphanumeric words."""
+    return [w for w in re.split(r"[^a-z0-9]+", name.lower()) if w]
 
 
 def find_matching_source_columns(
@@ -48,7 +59,7 @@ def find_matching_source_columns(
     """Identifies primary candidate source column and alternative candidates using deterministic heuristics."""
     norm_target = normalize_name(target_name)
     synonym_candidates = SYNONYMS.get(target_name, [target_name])
-    norm_synonyms = [normalize_name(s) for s in synonym_candidates]
+    norm_synonyms = {normalize_name(s) for s in synonym_candidates}
 
     exact_matches: list[str] = []
     synonym_matches: list[str] = []
@@ -58,15 +69,42 @@ def find_matching_source_columns(
         # Check exact or dot-suffix match (e.g. address.city matching city)
         col_suffix = col.split(".")[-1]
         norm_suffix = normalize_name(col_suffix)
+        col_tokens = tokenize(col)
 
+        # 1. Exact match against target name
         if norm_col == norm_target or norm_suffix == norm_target:
             exact_matches.append(col)
-        elif (
-            norm_col in norm_synonyms
-            or norm_suffix in norm_synonyms
-            or any(norm_s in norm_col for norm_s in norm_synonyms)
-        ):
+            continue
+
+        # 2. Exact match against synonym or synonym dot-suffix
+        if norm_col in norm_synonyms or norm_suffix in norm_synonyms:
             synonym_matches.append(col)
+            continue
+
+        # 3. Token-aware phrase match or non-generic token match
+        # Prevents short generic tokens like 'id' or 'pk' from matching inside arbitrary words (e.g., 'provider_name', 'rapid_transit')
+        matched_by_token = False
+        for s in synonym_candidates:
+            s_tokens = tokenize(s)
+            if not s_tokens:
+                continue
+            if len(s_tokens) > 1:
+                # Contiguous sub-sequence token match (e.g., 'incident_zip_code' matching 'zip code')
+                s_len = len(s_tokens)
+                for i in range(len(col_tokens) - s_len + 1):
+                    if col_tokens[i : i + s_len] == s_tokens:
+                        synonym_matches.append(col)
+                        matched_by_token = True
+                        break
+            else:
+                # Single token match allowed only if NOT a generic identifier token
+                t = s_tokens[0]
+                if t not in GENERIC_IDENTIFIER_TOKENS and t in col_tokens:
+                    synonym_matches.append(col)
+                    matched_by_token = True
+                    break
+            if matched_by_token:
+                break
 
     if exact_matches:
         primary = exact_matches[0]
@@ -74,7 +112,6 @@ def find_matching_source_columns(
         return primary, alternatives
 
     if synonym_matches:
-        # Prioritize exact synonym phrase over substring
         primary = synonym_matches[0]
         alternatives = synonym_matches[1:]
         return primary, alternatives
@@ -158,7 +195,8 @@ def propose_mappings(
             # Check if casing conversion is needed
             allowed_set = set(target_field.allowed_values)
             sample_vals = src_col_profile.sample_values
-            needs_uppercase = any(
+            has_uppercase_targets = any(v.isupper() for v in target_field.allowed_values)
+            needs_uppercase = has_uppercase_targets or any(
                 s.upper() in allowed_set and s not in allowed_set for s in sample_vals
             )
             if needs_uppercase:

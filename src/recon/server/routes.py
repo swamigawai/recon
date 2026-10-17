@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 import tempfile
 from typing import Any
 import uuid
@@ -33,6 +34,11 @@ router = APIRouter(prefix="/api")
 # Session storage for in-flight evaluations
 SESSIONS: dict[str, dict[str, Any]] = {}
 TEMP_DIRS: dict[str, tempfile.TemporaryDirectory] = {}
+
+MAX_SOURCE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
+MAX_CONTRACT_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+ALLOWED_SOURCE_EXTENSIONS = {".csv", ".tsv", ".txt", ".json", ".jsonl"}
+IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 class ApprovalRequest(BaseModel):
@@ -113,63 +119,100 @@ async def assess_integration(
 
     fixtures = _find_fixtures_dir()
 
-    # 1. Resolve Source Dataset
-    if source_file and source_file.filename:
-        safe_source_name = Path(source_file.filename).name
-        source_path = dir_path / safe_source_name
-        content = await source_file.read()
-        with open(source_path, "wb") as f:
-            f.write(content)
-    elif sample_dataset_id:
-        matching = list(fixtures.glob(f"{sample_dataset_id}.*"))
-        if not matching:
-            raise HTTPException(status_code=400, detail=f"Sample dataset '{sample_dataset_id}' not found.")
-        source_path = matching[0]
-    else:
-        raise HTTPException(status_code=400, detail="Must provide either 'source_file' or 'sample_dataset_id'.")
-
-    # 2. Resolve Target Contract
-    if contract_file and contract_file.filename:
-        safe_contract_name = Path(contract_file.filename).name
-        contract_path = dir_path / safe_contract_name
-        c_bytes = await contract_file.read()
-        with open(contract_path, "wb") as f:
-            f.write(c_bytes)
-    elif contract_text and contract_text.strip():
-        contract_path = dir_path / "custom_contract.json"
-        try:
-            # Validate JSON syntax
-            json_obj = json.loads(contract_text)
-            with open(contract_path, "w", encoding="utf-8") as f:
-                json.dump(json_obj, f, indent=2)
-        except json.JSONDecodeError as exc:
-            raise HTTPException(status_code=400, detail=f"Contract text is invalid JSON: {exc}")
-    elif sample_contract_id:
-        target_file = fixtures / f"{sample_contract_id}.json"
-        if not target_file.is_file():
-            # Try prefix
-            matching = list(fixtures.glob(f"*{sample_contract_id}*.json"))
-            if not matching:
-                raise HTTPException(status_code=400, detail=f"Sample contract '{sample_contract_id}' not found.")
-            target_file = matching[0]
-        contract_path = target_file
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="Must provide 'contract_file', 'contract_text', or 'sample_contract_id'."
-        )
-
-    # 3. Execute Engine Pipeline (Ingestion -> Profiling -> Mapping -> Risks)
     try:
-        dataset: RawDataset = load_dataset(source_path)
-        profile: SourceProfile = profile_dataset(dataset)
-        contract: TargetContract = load_target_contract(contract_path)
-        plan: MappingPlan = propose_mappings(profile, contract)
-        risks: RiskAssessment = evaluate_risks(profile, contract, plan)
-    except ReconError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Internal profiling error: {exc}")
+        # 1. Resolve Source Dataset
+        if source_file and source_file.filename:
+            safe_source_name = Path(source_file.filename).name.strip()
+            if not safe_source_name or safe_source_name in (".", ".."):
+                raise HTTPException(status_code=400, detail="Invalid source file name.")
+            suffix = Path(safe_source_name).suffix.lower()
+            if suffix not in ALLOWED_SOURCE_EXTENSIONS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unsupported file format '{suffix}'. Supported formats: {', '.join(sorted(ALLOWED_SOURCE_EXTENSIONS))}",
+                )
+            source_path = dir_path / safe_source_name
+            content = await source_file.read(MAX_SOURCE_SIZE_BYTES + 1)
+            if len(content) > MAX_SOURCE_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"Source file exceeds maximum allowed size of {MAX_SOURCE_SIZE_BYTES // (1024 * 1024)} MB.",
+                )
+            with open(source_path, "wb") as f:
+                f.write(content)
+        elif sample_dataset_id:
+            if not IDENTIFIER_PATTERN.match(sample_dataset_id):
+                raise HTTPException(status_code=400, detail="Invalid sample_dataset_id format.")
+            matching = list(fixtures.glob(f"{sample_dataset_id}.*"))
+            if not matching:
+                raise HTTPException(status_code=400, detail=f"Sample dataset '{sample_dataset_id}' not found.")
+            source_path = matching[0]
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either 'source_file' or 'sample_dataset_id'.")
+
+        # 2. Resolve Target Contract
+        if contract_file and contract_file.filename:
+            safe_contract_name = Path(contract_file.filename).name.strip()
+            if not safe_contract_name or safe_contract_name in (".", ".."):
+                raise HTTPException(status_code=400, detail="Invalid contract file name.")
+            suffix = Path(safe_contract_name).suffix.lower()
+            if suffix != ".json":
+                raise HTTPException(status_code=400, detail="Target contract file must be a .json file.")
+            contract_path = dir_path / safe_contract_name
+            c_bytes = await contract_file.read(MAX_CONTRACT_SIZE_BYTES + 1)
+            if len(c_bytes) > MAX_CONTRACT_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"Contract file exceeds maximum allowed size of {MAX_CONTRACT_SIZE_BYTES // (1024 * 1024)} MB.",
+                )
+            with open(contract_path, "wb") as f:
+                f.write(c_bytes)
+        elif contract_text and contract_text.strip():
+            contract_path = dir_path / "custom_contract.json"
+            try:
+                # Validate JSON syntax
+                json_obj = json.loads(contract_text)
+                with open(contract_path, "w", encoding="utf-8") as f:
+                    json.dump(json_obj, f, indent=2)
+            except json.JSONDecodeError as exc:
+                raise HTTPException(status_code=400, detail=f"Contract text is invalid JSON: {exc}")
+        elif sample_contract_id:
+            if not IDENTIFIER_PATTERN.match(sample_contract_id):
+                raise HTTPException(status_code=400, detail="Invalid sample_contract_id format.")
+            target_file = fixtures / f"{sample_contract_id}.json"
+            if not target_file.is_file():
+                # Try prefix
+                matching = list(fixtures.glob(f"*{sample_contract_id}*.json"))
+                if not matching:
+                    raise HTTPException(status_code=400, detail=f"Sample contract '{sample_contract_id}' not found.")
+                target_file = matching[0]
+            contract_path = target_file
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Must provide 'contract_file', 'contract_text', or 'sample_contract_id'."
+            )
+
+        # 3. Execute Engine Pipeline (Ingestion -> Profiling -> Mapping -> Risks)
+        try:
+            dataset: RawDataset = load_dataset(source_path)
+            profile: SourceProfile = profile_dataset(dataset)
+            contract: TargetContract = load_target_contract(contract_path)
+            plan: MappingPlan = propose_mappings(profile, contract)
+            risks: RiskAssessment = evaluate_risks(profile, contract, plan)
+        except ReconError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Internal profiling error: {exc}")
+
+    except Exception:
+        # Clean up temporary directory on failure to avoid leaking disk resources
+        try:
+            temp_dir.cleanup()
+        except Exception:
+            pass
+        TEMP_DIRS.pop(session_id, None)
+        raise
 
     # Store in session
     SESSIONS[session_id] = {
@@ -326,13 +369,21 @@ def approve_and_generate(request: ApprovalRequest) -> dict[str, Any]:
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Adapter sandbox validation error: {exc}")
 
-    # 5. Build Readiness Report
+    # 5. Re-evaluate risks on approved plan and build Readiness Report
     try:
+        active_plan = MappingPlan(
+            contract_name=approved_plan.contract_name,
+            source_name=approved_plan.source_name,
+            source_fingerprint=approved_plan.source_fingerprint,
+            proposals=dict(approved_plan.approved_mappings),
+        )
+        active_risks = evaluate_risks(profile, contract, active_plan)
+
         report: ReadinessReport = build_readiness_report(
             profile=profile,
             contract=contract,
-            mapping_plan=plan,
-            risk_assessment=risks,
+            mapping_plan=active_plan,
+            risk_assessment=active_risks,
             approved_plan=approved_plan,
             validation_result=validation,
         )
@@ -429,3 +480,18 @@ def download_adapter(session_id: str) -> Response:
         media_type="text/x-python",
         headers={"Content-Disposition": f"attachment; filename={adapter.adapter_name}.py"}
     )
+
+
+@router.delete("/session/{session_id}")
+def delete_session(session_id: str) -> dict[str, str]:
+    """Explicitly terminates a session and cleans up its temporary directory and artifacts."""
+    session = SESSIONS.pop(session_id, None)
+    temp_dir = TEMP_DIRS.pop(session_id, None)
+    if temp_dir:
+        try:
+            temp_dir.cleanup()
+        except Exception:
+            pass
+    if not session and not temp_dir:
+        raise HTTPException(status_code=404, detail="Session not found.")
+    return {"status": "cleaned", "session_id": session_id}
