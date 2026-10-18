@@ -1,0 +1,97 @@
+{
+  "valid_records_count": 4,
+  "quarantined_records_count": 6,
+  "total_records_count": 10,
+  "valid_records": [
+    {
+      "invoice_number": "INV-2024-001",
+      "vendor_gstin": "27AAPFU0939F1ZV",
+      "buyer_pan": "AAACG0561D",
+      "invoice_date": "2024-10-15T10:30:00Z",
+      "total_amount": 150000.0,
+      "tax_amount": 27000.0,
+      "hsn_sac_code": "8471",
+      "destination_pincode": "400001",
+      "bank_ifsc": "HDFC0001234",
+      "payment_status": "PAID",
+      "vendor_notes": "Dispatched via freight corridor"
+    },
+    {
+      "invoice_number": "INV-2024-002",
+      "vendor_gstin": "29AAACG0561D1ZW",
+      "buyer_pan": "AABCT3518Q",
+      "invoice_date": "2024-10-16T14:15:00Z",
+      "total_amount": 85000.5,
+      "tax_amount": 15300.0,
+      "hsn_sac_code": "998314",
+      "destination_pincode": "560001",
+      "bank_ifsc": "ICIC0000002",
+      "payment_status": "PENDING",
+      "vendor_notes": "Payment due in 30 days"
+    },
+    {
+      "invoice_number": "INV-2024-003",
+      "vendor_gstin": "07AABCS1429B1Z1",
+      "buyer_pan": "AABCS1429B",
+      "invoice_date": "2024-10-17T09:00:00Z",
+      "total_amount": 4200.0,
+      "tax_amount": null,
+      "hsn_sac_code": "851762",
+      "destination_pincode": "110001",
+      "bank_ifsc": "SBIN0000691",
+      "payment_status": "DISPUTED",
+      "vendor_notes": null
+    },
+    {
+      "invoice_number": "INV-2024-004",
+      "vendor_gstin": "33AABCT3518Q1ZK",
+      "buyer_pan": "AAPFU0939F",
+      "invoice_date": "2024-10-18T16:45:00Z",
+      "total_amount": 234000.0,
+      "tax_amount": 42120.0,
+      "hsn_sac_code": "84713010",
+      "destination_pincode": "600001",
+      "bank_ifsc": "KKBK0000958",
+      "payment_status": "PAID",
+      "vendor_notes": "None of the items were returned during inspection"
+    }
+  ],
+  "quarantined_fault_ledger": [
+    {
+      "record_index": 5,
+      "fault": "Missing required invoice_number (bill_no is empty)",
+      "error_code": "ERR_REQUIRED_FIELD_MISSING",
+      "expected_error_substring": "Required non-nullable field 'invoice_number' is missing or null"
+    },
+    {
+      "record_index": 6,
+      "fault": "Invalid GSTIN pattern (14th char is 9 instead of Z)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 7,
+      "fault": "Invalid PAN pattern (9 characters instead of 10)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 8,
+      "fault": "Invalid 5-digit PIN code (must be 6 digits)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 9,
+      "fault": "Invalid IFSC code (5th character is 1 instead of 0)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 10,
+      "fault": "Currency text string in float amount ('₹ 1,50,000.00')",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse float for 'total_amount'"
+    }
+  ]
+}
