@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=5.4">
+  <link rel="stylesheet" href="style.css?v=5.5">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -13,10 +13,22 @@
          ==================================================================== -->
     <header class="recon-header">
       <div class="recon-header-left">
-        <div class="recon-brand">
-          <span class="recon-status-pulse active" id="header-pulse"></span>
-          <span>RECON // 01</span>
-        </div>
+        <a href="#screen-ingest" class="recon-brand" id="brand-home-link" title="Recon — The Integration Readiness Engine">
+          <svg class="recon-brand-mark" width="34" height="21" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Recon Mark">
+            <rect class="circuit-node-pad" x="8" y="9" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <rect class="circuit-node-pad" x="8" y="47" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <rect class="circuit-node-pad" x="90" y="9" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <rect class="circuit-node-pad" x="90" y="47" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <path class="circuit-trace" d="M 30 17 H 38 C 45 17 44 36 49 36" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="circuit-trace" d="M 30 55 H 38 C 45 55 44 36 49 36" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="circuit-trace" d="M 71 36 C 76 36 75 17 82 17 H 90" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="circuit-trace" d="M 71 36 C 76 36 75 55 82 55 H 90" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect class="circuit-hub" x="49" y="24" width="22" height="24" rx="5"/>
+            <path class="circuit-hub-check" d="M 54 36.5 L 58.5 41 L 66 31.5" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="recon-brand-title">recon</span>
+          <span class="badge badge-indigo" style="font-size: 9px; padding: 2px 6px; font-weight: 700; letter-spacing: 0.05em;">RECON // 01</span>
+        </a>
       </div>
 
       <div class="recon-header-center">
@@ -105,6 +117,27 @@
              Screen A: Source & Contract Cockpit (01 INGEST)
              ================================================================ -->
         <section id="screen-ingest" class="recon-screen">
+          <!-- Welcome Hero Banner (Brand Identity & Mission) -->
+          <div class="recon-hero-banner" id="ingest-hero-banner">
+            <div class="recon-hero-badge-wrap">
+              <svg class="recon-hero-circuit-mark" width="96" height="58" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Recon Logo Mark">
+                <rect class="circuit-node-pad" x="8" y="9" width="22" height="16" rx="4" stroke-width="2.6" fill="none"/>
+                <rect class="circuit-node-pad" x="8" y="47" width="22" height="16" rx="4" stroke-width="2.6" fill="none"/>
+                <rect class="circuit-node-pad" x="90" y="9" width="22" height="16" rx="4" stroke-width="2.6" fill="none"/>
+                <rect class="circuit-node-pad" x="90" y="47" width="22" height="16" rx="4" stroke-width="2.6" fill="none"/>
+                <path class="circuit-trace" d="M 30 17 H 38 C 45 17 44 36 49 36" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="circuit-trace" d="M 30 55 H 38 C 45 55 44 36 49 36" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="circuit-trace" d="M 71 36 C 76 36 75 17 82 17 H 90" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="circuit-trace" d="M 71 36 C 76 36 75 55 82 55 H 90" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect class="circuit-hub" x="49" y="24" width="22" height="24" rx="5"/>
+                <path class="circuit-hub-check" d="M 54 36.5 L 58.5 41 L 66 31.5" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h1 class="recon-hero-wordmark">recon</h1>
+            <p class="recon-hero-subtitle">The Integration Readiness Engine</p>
+            <p class="recon-hero-tagline">Know what will break before you build the integration.</p>
+          </div>
+
           <div class="section-header">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
               <div>
@@ -1092,6 +1125,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=5.4"></script>
+  <script src="app.js?v=5.5"></script>
 </body>
 </html>

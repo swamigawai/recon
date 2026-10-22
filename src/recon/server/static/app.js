@@ -1088,6 +1088,14 @@ function updatePreflightStatus() {
 // =============================================================================
 
 function bindActions() {
+  const brandHomeLink = document.getElementById("brand-home-link");
+  if (brandHomeLink) {
+    brandHomeLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigateToStep(1);
+    });
+  }
+
   document.getElementById("btn-assess").addEventListener("click", handleAssessIntegration);
   document.getElementById("btn-approve").addEventListener("click", handleApproveAndGenerate);
   document.getElementById("btn-copy-code").addEventListener("click", handleCopyCode);
