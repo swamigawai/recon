@@ -100,6 +100,15 @@ function initTheme() {
       const next = current === "dark" ? "light" : "dark";
       applyTheme(next);
       localStorage.setItem("recon-theme-v4", next);
+      SoundEngine.playClick();
+    });
+  }
+
+  const soundBtn = document.getElementById("btn-sound-toggle");
+  if (soundBtn) {
+    updateSoundButtonUI();
+    soundBtn.addEventListener("click", () => {
+      SoundEngine.toggleMute();
     });
   }
 }
@@ -671,6 +680,9 @@ function initShell() {
 
   // Global error bar close
   document.getElementById("btn-close-error").addEventListener("click", hideGlobalError);
+
+  // Initialize Preflight Quick Peek
+  initPreflightPeek();
 }
 
 function isStepAvailable(targetStep) {
@@ -683,6 +695,15 @@ function isStepAvailable(targetStep) {
 function navigateToStep(stepNumber) {
   if (!isStepAvailable(stepNumber)) return;
   currentStep = stepNumber;
+  SoundEngine.playClick();
+
+  // If navigating to certified dossier with passing state, fire confetti & celebration
+  if (stepNumber === 7 && currentResults && String(currentResults.readiness_state).toLowerCase() === "pass") {
+    setTimeout(() => {
+      triggerConfettiCelebration();
+      SoundEngine.playCelebration();
+    }, 180);
+  }
 
   // Update stepper UI
   for (let s = 1; s <= 7; s++) {
@@ -756,10 +777,248 @@ function toggleShortcutsModal() {
 }
 
 // =============================================================================
+// Web Audio Synthesizer Engine (Zero-Latency UI Micro-Acoustics)
+// =============================================================================
+
+let audioCtx = null;
+let isAudioMuted = localStorage.getItem("recon_audio_muted") === "true";
+
+function getAudioContext() {
+  if (isAudioMuted) return null;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!audioCtx) {
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  } catch (_) {
+    return null;
+  }
+}
+
+const SoundEngine = {
+  isMuted: () => isAudioMuted,
+
+  toggleMute: () => {
+    isAudioMuted = !isAudioMuted;
+    localStorage.setItem("recon_audio_muted", isAudioMuted ? "true" : "false");
+    updateSoundButtonUI();
+    if (!isAudioMuted) {
+      SoundEngine.playClick();
+    }
+    return isAudioMuted;
+  },
+
+  playClick: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.035);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } catch (_) {}
+  },
+
+  playError: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = "triangle";
+      osc1.frequency.setValueAtTime(140, now);
+      osc1.frequency.exponentialRampToValueAtTime(55, now + 0.16);
+
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(95, now);
+      osc2.frequency.exponentialRampToValueAtTime(40, now + 0.16);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.18);
+      osc2.stop(now + 0.18);
+    } catch (_) {}
+  },
+
+  playSuccess: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + idx * 0.06;
+        const dur = 0.22;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.045, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + dur);
+      });
+    } catch (_) {}
+  },
+
+  playCelebration: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + idx * 0.08;
+        const dur = 0.38;
+        osc.type = idx === 3 ? "triangle" : "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.06, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + dur);
+      });
+    } catch (_) {}
+  }
+};
+
+function updateSoundButtonUI() {
+  const btn = document.getElementById("btn-sound-toggle");
+  const icon = document.getElementById("sound-toggle-icon");
+  const text = document.getElementById("sound-toggle-text");
+  if (!btn) return;
+  btn.classList.toggle("is-muted", isAudioMuted);
+  if (isAudioMuted) {
+    if (text) text.textContent = "Muted";
+    if (icon) {
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="2,5 5,5 9,2 9,14 5,11 2,11" fill="currentColor"/><line x1="12" y1="6" x2="15" y2="10"/><line x1="15" y1="6" x2="12" y2="10"/></svg>`;
+    }
+  } else {
+    if (text) text.textContent = "Sound";
+    if (icon) {
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="2,5 5,5 9,2 9,14 5,11 2,11" fill="currentColor"/><path d="M11.5 5.5 C13 7 13 9 11.5 10.5"/></svg>`;
+    }
+  }
+}
+
+// =============================================================================
+// Confetti & Particle Celebration Engine (Screen 07 Dossier)
+// =============================================================================
+
+let confettiAnimId = null;
+
+function triggerConfettiCelebration() {
+  const canvas = document.getElementById("recon-confetti-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  if (confettiAnimId) {
+    cancelAnimationFrame(confettiAnimId);
+  }
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.classList.remove("hidden");
+
+  const colors = ["#10B981", "#3B82F6", "#6366F1", "#F59E0B", "#EC4899", "#14B8A6"];
+  const particles = [];
+  const count = 75;
+
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: canvas.width * 0.5 + (Math.random() - 0.5) * 160,
+      y: canvas.height * 0.45 + (Math.random() - 0.5) * 80,
+      vx: (Math.random() - 0.5) * 14,
+      vy: -(Math.random() * 8 + 6),
+      size: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      vRot: (Math.random() - 0.5) * 10,
+      alpha: 1,
+      gravity: 0.32,
+      drag: 0.985,
+    });
+  }
+
+  let startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = (now - startTime) / 1000;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let activeCount = 0;
+    particles.forEach(p => {
+      p.vx *= p.drag;
+      p.vy += p.gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.vRot;
+
+      if (elapsed > 1.4) {
+        p.alpha = Math.max(0, p.alpha - 0.025);
+      }
+
+      if (p.alpha > 0.01 && p.y < canvas.height + 40) {
+        activeCount++;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size * 0.5, -p.size * 0.5, p.size, p.size * 0.6);
+        ctx.restore();
+      }
+    });
+
+    if (activeCount > 0 && elapsed < 3.2) {
+      confettiAnimId = requestAnimationFrame(animate);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.classList.add("hidden");
+      confettiAnimId = null;
+    }
+  }
+
+  confettiAnimId = requestAnimationFrame(animate);
+}
+
+// =============================================================================
 // Haptic Feedback Engine (Physical Vibration & Micro-Jitter Visuals)
 // =============================================================================
 
 function triggerHapticFeedback(element = null, pattern = [45, 35, 55]) {
+  // 0. Audio synthesizer low resonant error thud
+  SoundEngine.playError();
+
   // 1. Hardware physical vibration via Web Vibration API
   try {
     if (typeof navigator !== "undefined" && "vibrate" in navigator && typeof navigator.vibrate === "function") {
@@ -1134,6 +1393,163 @@ function updatePreflightStatus() {
   }
 
   updateDynamicIsland();
+  updatePreflightPeek();
+}
+
+// =============================================================================
+// Feature: Instant Pre-flight Quick Peek (Screen 01)
+// =============================================================================
+
+function initPreflightPeek() {
+  const toggleBtn = document.getElementById("btn-toggle-preflight-peek");
+  const card = document.getElementById("preflight-peek-container");
+  if (toggleBtn && card) {
+    toggleBtn.addEventListener("click", () => {
+      card.classList.toggle("is-collapsed");
+      SoundEngine.playClick();
+    });
+  }
+}
+
+function updatePreflightPeek() {
+  const container = document.getElementById("preflight-peek-container");
+  if (!container) return;
+
+  const dsSelect = document.getElementById("sample-dataset-select");
+  const cSelect = document.getElementById("sample-contract-select");
+  const cText = document.getElementById("contract-text-area");
+
+  const hasSource = Boolean(stagedSourceFile || (dsSelect && dsSelect.value));
+  const hasContract = Boolean(
+    stagedContractFile ||
+    (cSelect && cSelect.value) ||
+    (cText && cText.value.trim())
+  );
+
+  if (!hasSource && !hasContract) {
+    container.classList.add("hidden");
+    return;
+  }
+
+  container.classList.remove("hidden");
+
+  // Render Source Quick Peek
+  renderPreflightSourcePeek();
+  // Render Contract Quick Peek
+  renderPreflightContractPeek();
+}
+
+function renderPreflightSourcePeek() {
+  const wrap = document.getElementById("peek-source-table-wrap");
+  if (!wrap) return;
+
+  if (stagedSourceFile) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      renderSampleTextInPeek(text, stagedSourceFile.name);
+    };
+    reader.readAsText(stagedSourceFile.slice(0, 8192));
+  } else {
+    const dsSelect = document.getElementById("sample-dataset-select");
+    const dsId = dsSelect ? dsSelect.value : "";
+    if (dsId && sampleDatasetsMap[dsId]) {
+      const ds = sampleDatasetsMap[dsId];
+      wrap.innerHTML = `
+        <div style="padding: 10px; font-size: 11px; font-family: var(--font-mono); color: var(--recon-text-secondary);">
+          <div style="font-weight: 600; color: var(--recon-text-primary); margin-bottom: 4px;">Fixture: ${escapeHtml(ds.file_name)}</div>
+          <div>Format: <span class="badge badge-indigo">${escapeHtml(ds.format.toUpperCase())}</span> • Ready for profiling</div>
+          <div style="margin-top: 6px; font-size: 10px; color: var(--recon-text-muted);">First 3 records and statistical distributions will be computed during assessment.</div>
+        </div>
+      `;
+    } else {
+      wrap.innerHTML = `<span class="text-muted font-mono" style="padding: 10px; display: block; font-size: 11px;">Waiting for source staging...</span>`;
+    }
+  }
+}
+
+function renderSampleTextInPeek(rawText, fileName) {
+  const wrap = document.getElementById("peek-source-table-wrap");
+  if (!wrap || !rawText) return;
+
+  const lines = rawText.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length > 0) {
+    const headerLine = lines[0];
+    const isJson = headerLine.startsWith("{") || headerLine.startsWith("[");
+
+    if (isJson) {
+      wrap.innerHTML = `<pre style="margin: 0; padding: 8px; font-size: 10px; color: var(--recon-text-secondary); max-height: 120px; overflow: auto;">${escapeHtml(lines.slice(0, 3).join("\n"))}</pre>`;
+    } else {
+      const delim = headerLine.includes("\t") ? "\t" : ",";
+      const headers = headerLine.split(delim).map(h => h.trim().replace(/^["']|["']$/g, ""));
+      const rows = lines.slice(1, 4).map(l => l.split(delim).map(c => c.trim().replace(/^["']|["']$/g, "")));
+
+      let tableHtml = `<table class="peek-mini-table"><thead><tr>`;
+      headers.slice(0, 6).forEach(h => {
+        tableHtml += `<th>${escapeHtml(h)}</th>`;
+      });
+      if (headers.length > 6) tableHtml += `<th>+${headers.length - 6} more</th>`;
+      tableHtml += `</tr></thead><tbody>`;
+
+      rows.forEach(r => {
+        tableHtml += `<tr>`;
+        r.slice(0, 6).forEach(val => {
+          tableHtml += `<td>${escapeHtml(val || "-")}</td>`;
+        });
+        if (headers.length > 6) tableHtml += `<td>...</td>`;
+        tableHtml += `</tr>`;
+      });
+      tableHtml += `</tbody></table>`;
+      wrap.innerHTML = tableHtml;
+    }
+  }
+}
+
+function renderPreflightContractPeek() {
+  const wrap = document.getElementById("peek-target-pills-wrap");
+  if (!wrap) return;
+
+  let contractObj = null;
+
+  if (activeContractTab === "sample") {
+    const cSelect = document.getElementById("sample-contract-select");
+    const cId = cSelect ? cSelect.value : "";
+    if (cId && sampleContractsMap[cId] && sampleContractsMap[cId].content) {
+      try { contractObj = JSON.parse(sampleContractsMap[cId].content); } catch (_) {}
+    }
+  } else if (activeContractTab === "paste") {
+    const text = (document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "";
+    if (text) {
+      try { contractObj = JSON.parse(text); } catch (_) {}
+    }
+  }
+
+  if (contractObj) {
+    if (contractObj.fields) {
+      const entries = Object.entries(contractObj.fields);
+      let pillsHtml = entries.map(([name, f]) => {
+        const isReq = Boolean(f.required);
+        const type = f.type || "any";
+        return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
+      }).join("");
+      wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 fields defined</span>`;
+      return;
+    }
+
+    if (contractObj.properties) {
+      const requiredList = Array.isArray(contractObj.required) ? contractObj.required : [];
+      const entries = Object.entries(contractObj.properties);
+      let pillsHtml = entries.map(([name, f]) => {
+        const isReq = requiredList.includes(name);
+        const type = f.type || "any";
+        return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
+      }).join("");
+      wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 properties</span>`;
+      return;
+    }
+  }
+
+  wrap.innerHTML = `<span class="text-muted font-mono" style="font-size: 11px;">Waiting for contract schema...</span>`;
 }
 
 // =============================================================================
@@ -1247,6 +1663,9 @@ async function handleAssessIntegration() {
     renderProfileMatrix(data);
     renderMappingStudio(data);
     renderRiskRadar(data);
+
+    // Audio success feedback
+    SoundEngine.playSuccess();
 
     // Navigate to Profile Matrix (Step 02)
     navigateToStep(2);
@@ -2735,6 +3154,9 @@ async function handleApproveAndGenerate() {
     renderValidationLab(data);
     renderReadinessDossier(data);
 
+    // Audio success feedback
+    SoundEngine.playSuccess();
+
     // Navigate to Step 05 Adapter
     navigateToStep(5);
   } catch (err) {
@@ -2941,21 +3363,28 @@ function renderReadinessDossier(data) {
   const rationale = document.getElementById("dossier-rationale-text");
   const badge = document.getElementById("dossier-state-badge");
 
+  const seal = document.getElementById("dossier-holographic-seal");
+
   if (state === "pass") {
     banner.className = "radar-status-card ready";
     heading.textContent = `READINESS: PASS (${data.validation.contract_pass_rate}% Yield)`;
-    badge.className = "badge badge-emerald";
-    badge.textContent = "CERTIFIED";
+    badge.className = "badge badge-emerald holographic-pill";
+    badge.textContent = "CERTIFIED READY";
+    if (seal) seal.classList.remove("hidden");
+    SoundEngine.playCelebration();
+    triggerConfettiCelebration();
   } else if (state === "needs_review") {
     banner.className = "radar-status-card warning";
     heading.textContent = `READINESS: NEEDS REVIEW (${data.validation.contract_pass_rate}% Yield)`;
     badge.className = "badge badge-amber";
     badge.textContent = "REVIEW NEEDED";
+    if (seal) seal.classList.add("hidden");
   } else {
     banner.className = "radar-status-card blocked";
     heading.textContent = `READINESS: BLOCKED (${data.validation.contract_pass_rate}% Yield)`;
     badge.className = "badge badge-rose";
     badge.textContent = "BLOCKED";
+    if (seal) seal.classList.add("hidden");
   }
 
   rationale.textContent = data.readiness_rationale;
@@ -3572,6 +4001,21 @@ function bindKeyboardNavigation() {
       return;
     }
 
+    // Space: Toggle contextual inspector drawer
+    if (e.key === " " && !["INPUT", "TEXTAREA", "SELECT"].includes(activeTag)) {
+      e.preventDefault();
+      toggleInspectorDrawerPin();
+      SoundEngine.playClick();
+      return;
+    }
+
+    // Audio Mute Toggle: M / m
+    if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !["INPUT", "TEXTAREA", "SELECT"].includes(activeTag)) {
+      e.preventDefault();
+      SoundEngine.toggleMute();
+      return;
+    }
+
     // Table row navigation: J / K or Down / Up
     if (currentStep === 2) {
       // Screen B: Profile Matrix
@@ -3582,11 +4026,13 @@ function bindKeyboardNavigation() {
         selectedProfileIndex = Math.min(rows.length - 1, selectedProfileIndex + 1);
         rows[selectedProfileIndex].click();
         rows[selectedProfileIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
       } else if (e.key === "k" || e.key === "ArrowUp") {
         e.preventDefault();
         selectedProfileIndex = Math.max(0, selectedProfileIndex - 1);
         rows[selectedProfileIndex].click();
         rows[selectedProfileIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
       }
     } else if (currentStep === 3) {
       // Screen C: Mapping Studio
@@ -3597,11 +4043,13 @@ function bindKeyboardNavigation() {
         selectedMappingIndex = Math.min(rows.length - 1, selectedMappingIndex + 1);
         rows[selectedMappingIndex].click();
         rows[selectedMappingIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
       } else if (e.key === "k" || e.key === "ArrowUp") {
         e.preventDefault();
         selectedMappingIndex = Math.max(0, selectedMappingIndex - 1);
         rows[selectedMappingIndex].click();
         rows[selectedMappingIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
       }
     } else if (currentStep === 6) {
       // Screen F: Quarantine Ledger
@@ -3612,11 +4060,13 @@ function bindKeyboardNavigation() {
         selectedQuarantineIndex = Math.min(rows.length - 1, selectedQuarantineIndex + 1);
         rows[selectedQuarantineIndex].click();
         rows[selectedQuarantineIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
       } else if (e.key === "k" || e.key === "ArrowUp") {
         e.preventDefault();
         selectedQuarantineIndex = Math.max(0, selectedQuarantineIndex - 1);
         rows[selectedQuarantineIndex].click();
         rows[selectedQuarantineIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
       }
     }
   } catch (err) {
@@ -3877,6 +4327,18 @@ function renderPaletteResults(query) {
     action: () => {
       const themeBtn = document.getElementById("btn-theme-toggle");
       if (themeBtn) themeBtn.click();
+    }
+  });
+
+  allItems.push({
+    id: "toggle-sound",
+    category: "Interface & Tools",
+    icon: svgIcons.theme,
+    title: "Toggle Audio Synthesizer Feedback",
+    sub: isAudioMuted ? "Currently Muted — Unmute click & chimes" : "Currently Active — Mute audio feedback",
+    shortcut: "M",
+    action: () => {
+      SoundEngine.toggleMute();
     }
   });
 

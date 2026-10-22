@@ -4228,6 +4228,247 @@ button:active:not(:disabled),
   animation: hapticVibrateSubtle 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
 }
 
+/* =============================================================================
+   Header Audio Toggle Button
+   ============================================================================= */
+
+#btn-sound-toggle.is-muted {
+  opacity: 0.65;
+  color: var(--recon-text-muted);
+}
+
+#btn-sound-toggle.is-muted svg {
+  opacity: 0.6;
+}
+
+/* =============================================================================
+   Feature: Instant Pre-flight Quick Peek (Screen 01)
+   ============================================================================= */
+
+.preflight-peek-card {
+  margin-top: 16px;
+  background-color: var(--recon-bg-surface);
+  border: 1px solid var(--recon-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preflight-peek-header {
+  padding: 10px 14px;
+  background-color: var(--recon-bg-subtle);
+  border-bottom: 1px solid var(--recon-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.preflight-peek-header:hover {
+  background-color: var(--recon-bg-elevated);
+}
+
+.peek-chevron {
+  font-size: 10px;
+  color: var(--recon-text-muted);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preflight-peek-card.is-collapsed .peek-chevron {
+  transform: rotate(-90deg);
+}
+
+.preflight-peek-card.is-collapsed .preflight-peek-body {
+  display: none;
+}
+
+.preflight-peek-body {
+  padding: 14px;
+}
+
+.preflight-peek-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .preflight-peek-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.peek-col-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--recon-text-muted);
+  margin-bottom: 8px;
+}
+
+.peek-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--recon-border-subtle);
+  border-radius: var(--radius-sm);
+  background-color: var(--recon-bg-root);
+  max-height: 160px;
+}
+
+.peek-mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+.peek-mini-table th {
+  background-color: var(--recon-bg-subtle);
+  color: var(--recon-text-muted);
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--recon-border-subtle);
+  white-space: nowrap;
+}
+
+.peek-mini-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--recon-border-subtle);
+  color: var(--recon-text-secondary);
+  white-space: nowrap;
+}
+
+.peek-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background-color: var(--recon-bg-root);
+  border: 1px solid var(--recon-border-subtle);
+  border-radius: var(--radius-sm);
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.peek-field-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--recon-bg-surface);
+  border: 1px solid var(--recon-border-subtle);
+  color: var(--recon-text-primary);
+}
+
+.peek-field-pill.is-required {
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: var(--recon-rose-surface);
+  color: var(--recon-rose-text);
+}
+
+/* =============================================================================
+   Feature: Holographic Production Seal & Confetti Celebration (Screen 07)
+   ============================================================================= */
+
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99999;
+}
+
+.holographic-seal {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 30% 30%, #34d399, #059669, #047857);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.holographic-seal::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  transform: rotate(30deg);
+  animation: sealHoloSweep 3.6s infinite ease-in-out;
+}
+
+@keyframes sealHoloSweep {
+  0% { transform: translateY(-100%) rotate(30deg); }
+  35%, 100% { transform: translateY(100%) rotate(30deg); }
+}
+
+.seal-svg {
+  width: 30px;
+  height: 30px;
+}
+
+.holographic-pill {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.holographic-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  animation: pillSheen 2.5s infinite linear;
+}
+
+@keyframes pillSheen {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* =============================================================================
+   Keyboard Navigation (J/K) Active Row Highlight
+   ============================================================================= */
+
+.keyboard-active-row {
+  outline: 2px solid var(--recon-primary-base) !important;
+  outline-offset: -2px;
+  background-color: var(--recon-indigo-surface) !important;
+}
+
+.keyboard-active-row td:first-child {
+  border-left: 3px solid var(--recon-primary-base);
+}
+
 /* Accessibility: Respect Reduced Motion Preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
