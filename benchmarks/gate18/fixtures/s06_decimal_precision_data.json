@@ -1,0 +1,14 @@
+[
+  {
+    "asset_id": "EUR_USD",
+    "exchange_rate": "1.082456"
+  },
+  {
+    "asset_id": "BTC_USD",
+    "exchange_rate": "0.00001234"
+  },
+  {
+    "asset_id": "WHALE_ACC",
+    "exchange_rate": "99999999.98765432"
+  }
+]

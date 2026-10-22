@@ -253,6 +253,8 @@ def validate_adapter(
         contract_pass_rate=pass_rate,
         sample_valid_output=valid_records[:3],
         sample_quarantined_records=quarantined[:3],
+        all_valid_records=valid_records,
+        all_quarantined_records=quarantined,
         test_case_results=test_cases,
         all_tests_passed=all_tests_passed,
         is_contract_valid=is_contract_valid,

@@ -1,0 +1,22 @@
+[
+  {
+    "account_id": "ACC1",
+    "balance": "150.25"
+  },
+  {
+    "account_id": "ACC2",
+    "balance": "0.0"
+  },
+  {
+    "account_id": "ACC3",
+    "balance": "999.99"
+  },
+  {
+    "account_id": "ACC4",
+    "balance": "PENDING_AUDIT"
+  },
+  {
+    "account_id": "ACC5",
+    "balance": "N/A"
+  }
+]

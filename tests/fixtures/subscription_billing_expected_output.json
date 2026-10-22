@@ -1,0 +1,73 @@
+{
+  "valid_records_count": 4,
+  "quarantined_records_count": 4,
+  "total_records_count": 8,
+  "valid_records": [
+    {
+      "subscription_id": "SUB-ABC12345",
+      "customer_account_id": "CUST-10001",
+      "plan_tier": "ENTERPRISE",
+      "billing_interval": "ANNUAL",
+      "mrr_amount": 2400.0,
+      "renewal_date": "2025-01-01T00:00:00Z",
+      "auto_renew": true,
+      "cancellation_reason": null
+    },
+    {
+      "subscription_id": "SUB-XYZ67890",
+      "customer_account_id": "CUST-10002",
+      "plan_tier": "STARTER",
+      "billing_interval": "MONTHLY",
+      "mrr_amount": 29.0,
+      "renewal_date": "2025-02-01T00:00:00Z",
+      "auto_renew": true,
+      "cancellation_reason": null
+    },
+    {
+      "subscription_id": "SUB-DEF11223",
+      "customer_account_id": "CUST-10003",
+      "plan_tier": "PROFESSIONAL",
+      "billing_interval": "MONTHLY",
+      "mrr_amount": 199.0,
+      "renewal_date": "2025-03-01T00:00:00Z",
+      "auto_renew": false,
+      "cancellation_reason": null
+    },
+    {
+      "subscription_id": "SUB-GHI44556",
+      "customer_account_id": "CUST-10004",
+      "plan_tier": "FREE",
+      "billing_interval": "ANNUAL",
+      "mrr_amount": 0.0,
+      "renewal_date": "2025-04-01T00:00:00Z",
+      "auto_renew": true,
+      "cancellation_reason": "None of the competitors offer this"
+    }
+  ],
+  "quarantined_fault_ledger": [
+    {
+      "record_index": 5,
+      "fault": "Missing required subscription_id",
+      "error_code": "ERR_REQUIRED_FIELD_MISSING",
+      "expected_error_substring": "Required non-nullable field 'subscription_id' is missing or null"
+    },
+    {
+      "record_index": 6,
+      "fault": "Illegal plan_tier enum value CUSTOM_VIP",
+      "error_code": "ERR_ENUM_VIOLATION",
+      "expected_error_substring": "not in allowed values"
+    },
+    {
+      "record_index": 7,
+      "fault": "Non-float value 'forty-nine' in mrr_amount",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse float for 'mrr_amount'"
+    },
+    {
+      "record_index": 8,
+      "fault": "Non-boolean value 'undecided' in auto_renew",
+      "error_code": "ERR_BOOLEAN_PARSE",
+      "expected_error_substring": "Cannot parse boolean for 'auto_renew'"
+    }
+  ]
+}

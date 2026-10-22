@@ -266,3 +266,73 @@ def test_adapter_edge_cases_unicode_mixed_nulls_and_extra_fields():
     assert valid[3]["notes"] is None
     assert valid[4]["notes"] is None
 
+
+def test_adapter_handles_dotted_and_hyphenated_field_names():
+    """Regression test for Gate 18: Ensures adapter AST synthesis sanitizes variable names for dotted/hyphenated target fields."""
+    from recon.adapters.generator import generate_adapter
+    from recon.contracts.loader import load_target_contract
+    from recon.mapping.models import ApprovedMappingPlan, FieldMappingProposal, MappingStatus, MappingType
+    from recon.validation.executor import compile_adapter_sandbox
+
+    contract = load_target_contract({
+        "contract_name": "dotted_fields_contract",
+        "fields": {
+            "meta.source_system": {"name": "meta.source_system", "target_type": "string", "required": True},
+            "user-profile.id": {"name": "user-profile.id", "target_type": "string", "required": True},
+            "payload.amount": {"name": "payload.amount", "target_type": "float", "required": True},
+        },
+    })
+
+    plan = ApprovedMappingPlan(
+        contract_name="dotted_fields_contract",
+        source_name="dotted_test.csv",
+        source_fingerprint="fp_dotted_123",
+        approved_by="qa_tester",
+        approved_mappings={
+            "meta.source_system": FieldMappingProposal(
+                target_field="meta.source_system",
+                target_type="string",
+                target_required=True,
+                target_nullable=False,
+                source_field="src_system",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.APPROVED,
+            ),
+            "user-profile.id": FieldMappingProposal(
+                target_field="user-profile.id",
+                target_type="string",
+                target_required=True,
+                target_nullable=False,
+                source_field="src_user",
+                mapping_type=MappingType.DIRECT,
+                status=MappingStatus.APPROVED,
+            ),
+            "payload.amount": FieldMappingProposal(
+                target_field="payload.amount",
+                target_type="float",
+                target_required=True,
+                target_nullable=False,
+                source_field="src_amount",
+                mapping_type=MappingType.TRANSFORMATION_REQUIRED,
+                status=MappingStatus.APPROVED,
+            ),
+        },
+    )
+
+    adapter = generate_adapter(plan, contract)
+    sandbox = compile_adapter_sandbox(adapter.python_code)
+    transform_dataset = sandbox["transform_dataset"]
+
+    records = [
+        {"src_system": "SAP", "src_user": "USR_999", "src_amount": "123.45"},
+        {"src_system": "ORACLE", "src_user": "USR_888", "src_amount": "999.00"},
+    ]
+
+    valid, quarantined = transform_dataset(records)
+    assert len(quarantined) == 0
+    assert len(valid) == 2
+    assert valid[0]["meta.source_system"] == "SAP"
+    assert valid[0]["user-profile.id"] == "USR_999"
+    assert valid[0]["payload.amount"] == 123.45
+
+

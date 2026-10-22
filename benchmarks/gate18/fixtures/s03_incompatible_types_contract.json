@@ -1,0 +1,18 @@
+{
+  "contract_name": "s03_incompatible_types",
+  "version": "1.0.0",
+  "fields": {
+    "account_id": {
+      "name": "account_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "balance": {
+      "name": "balance",
+      "target_type": "float",
+      "required": true,
+      "nullable": false
+    }
+  }
+}

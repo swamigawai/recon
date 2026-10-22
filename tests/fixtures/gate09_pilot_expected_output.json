@@ -1,0 +1,116 @@
+{
+  "valid_records_count": 5,
+  "quarantined_records_count": 7,
+  "total_records_count": 12,
+  "valid_records": [
+    {
+      "invoice_id": "INV-00042",
+      "supplier_gstin": "27AAPFU0939F1ZV",
+      "buyer_pan": "AAACG0561D",
+      "billing_date": "2024-10-15T10:30:00Z",
+      "net_amount": 150000.5,
+      "tax_amount": 27000.09,
+      "hsn_sac_code": "8471",
+      "destination_pin": "400001",
+      "bank_ifsc": "HDFC0001234",
+      "invoice_status": "SETTLED",
+      "dispatch_notes": "Standard road logistics"
+    },
+    {
+      "invoice_id": "INV-00042",
+      "supplier_gstin": "27AAPFU0939F1ZV",
+      "buyer_pan": "AAACG0561D",
+      "billing_date": "2024-10-15T10:30:00Z",
+      "net_amount": 150000.5,
+      "tax_amount": 27000.09,
+      "hsn_sac_code": "8471",
+      "destination_pin": "400001",
+      "bank_ifsc": "HDFC0001234",
+      "invoice_status": "SETTLED",
+      "dispatch_notes": "Standard road logistics"
+    },
+    {
+      "invoice_id": "INV-00043",
+      "supplier_gstin": "27AAPFU0939F1ZV",
+      "buyer_pan": "AAACG0561D",
+      "billing_date": "2024-10-16T11:00:00Z",
+      "net_amount": 3500.0,
+      "tax_amount": 630.0,
+      "hsn_sac_code": "8471",
+      "destination_pin": "400001",
+      "bank_ifsc": "HDFC0001234",
+      "invoice_status": "SETTLED",
+      "dispatch_notes": "ERROR: Client reported damaged outer box but contents verified intact and accepted"
+    },
+    {
+      "invoice_id": "INV-00044",
+      "supplier_gstin": "29AAACG0561D1ZW",
+      "buyer_pan": "AABCT3518Q",
+      "billing_date": "2024-10-16T14:15:00Z",
+      "net_amount": 85000.75,
+      "tax_amount": null,
+      "hsn_sac_code": "998314",
+      "destination_pin": "560001",
+      "bank_ifsc": "ICIC0000002",
+      "invoice_status": "PENDING",
+      "dispatch_notes": null
+    },
+    {
+      "invoice_id": "INV-00045",
+      "supplier_gstin": "33AABCT3518Q1ZK",
+      "buyer_pan": "AAPFU0939F",
+      "billing_date": "2024-10-17T16:45:00Z",
+      "net_amount": 234000.0,
+      "tax_amount": 42120.0,
+      "hsn_sac_code": "84713010",
+      "destination_pin": "600001",
+      "bank_ifsc": "KKBK0000958",
+      "invoice_status": "SETTLED",
+      "dispatch_notes": "None of the items were returned during inspection"
+    }
+  ],
+  "quarantined_fault_ledger": [
+    {
+      "record_index": 6,
+      "fault": "Missing required non-nullable invoice_id",
+      "error_code": "ERR_REQUIRED_FIELD_MISSING",
+      "expected_error_substring": "Required non-nullable field 'invoice_id' is missing or null"
+    },
+    {
+      "record_index": 7,
+      "fault": "Pattern violation on GSTIN (14th char 9 instead of Z)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 8,
+      "fault": "Pattern violation on PAN (9 chars instead of 10)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 9,
+      "fault": "Pattern violation on postal PIN code (5 digits instead of 6)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 10,
+      "fault": "Pattern violation on IFSC code (5th char 1 instead of 0)",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 11,
+      "fault": "Non-numeric currency string in net_amount",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse float for 'net_amount'"
+    },
+    {
+      "record_index": 12,
+      "fault": "Illegal invoice_status enum value WRITTEN_OFF",
+      "error_code": "ERR_ENUM_VIOLATION",
+      "expected_error_substring": "not in allowed values"
+    }
+  ]
+}

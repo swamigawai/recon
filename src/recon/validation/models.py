@@ -24,6 +24,8 @@ class ValidationResult(BaseModel):
     contract_pass_rate: float
     sample_valid_output: list[dict[str, Any]] = Field(default_factory=list)
     sample_quarantined_records: list[dict[str, Any]] = Field(default_factory=list)
+    all_valid_records: list[dict[str, Any]] = Field(default_factory=list, exclude=True)
+    all_quarantined_records: list[dict[str, Any]] = Field(default_factory=list, exclude=True)
     test_case_results: list[TestCaseResult] = Field(default_factory=list)
     all_tests_passed: bool = False
     is_contract_valid: bool = False

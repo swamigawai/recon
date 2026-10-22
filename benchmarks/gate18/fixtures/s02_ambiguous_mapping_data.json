@@ -1,0 +1,17 @@
+[
+  {
+    "customer_id": "CUST01",
+    "billing_postal_code": "10001",
+    "shipping_postal_code": "90210"
+  },
+  {
+    "customer_id": "CUST02",
+    "billing_postal_code": "10002",
+    "shipping_postal_code": "90211"
+  },
+  {
+    "customer_id": "CUST03",
+    "billing_postal_code": "10003",
+    "shipping_postal_code": "90212"
+  }
+]

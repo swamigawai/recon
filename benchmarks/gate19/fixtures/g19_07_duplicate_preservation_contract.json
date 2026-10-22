@@ -1,0 +1,18 @@
+{
+  "contract_name": "g19_07_duplicate_preservation",
+  "version": "1.0.0",
+  "fields": {
+    "event_id": {
+      "name": "event_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "status": {
+      "name": "status",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    }
+  }
+}

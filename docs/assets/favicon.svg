@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Recon Logo">
+  <title>Recon Favicon</title>
+  <defs>
+    <linearGradient id="reconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Shield -->
+  <rect width="32" height="32" rx="7" fill="#0F172A" />
+  <rect x="0.5" y="0.5" width="31" height="31" rx="6.5" fill="none" stroke="#334155" stroke-width="1" />
+  
+  <!-- Interlocking Preflight Geometric Nodes -->
+  <path d="M 8 16 L 14 10 L 20 16 L 14 22 Z" fill="none" stroke="url(#reconGrad)" stroke-width="2.2" stroke-linejoin="round" />
+  <circle cx="8" cy="16" r="2.2" fill="#6366F1" />
+  <circle cx="14" cy="10" r="2.2" fill="#6366F1" />
+  <circle cx="14" cy="22" r="2.2" fill="#06B6D4" />
+  <circle cx="20" cy="16" r="2.5" fill="#10B981" />
+  <path d="M 20 16 L 25 16" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" />
+</svg>

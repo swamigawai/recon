@@ -20,6 +20,11 @@ from recon.ingestion.models import RawDataset
 from recon.mapping.approval import approve_mapping_plan
 from recon.mapping.models import MappingPlan, MappingStatus, MappingType
 from recon.mapping.proposer import propose_mappings
+from recon.mapping.specification import (
+    export_mapping_spec,
+    load_mapping_spec,
+    validate_and_apply_mapping_spec,
+)
 from recon.profiling.models import SourceProfile
 from recon.profiling.profiler import profile_dataset
 from recon.reporting.generator import build_readiness_report, render_markdown_report
@@ -110,6 +115,8 @@ async def assess_integration(
     contract_file: UploadFile | None = File(None),
     contract_text: str | None = Form(None),
     sample_contract_id: str | None = Form(None),
+    schema_name: str | None = Form(None),
+    mapping_spec_file: UploadFile | None = File(None),
 ) -> dict[str, Any]:
     """Uploads source data and contract; profiles, proposes mappings, and assesses integration risks."""
     session_id = str(uuid.uuid4())
@@ -197,8 +204,21 @@ async def assess_integration(
         try:
             dataset: RawDataset = load_dataset(source_path)
             profile: SourceProfile = profile_dataset(dataset)
-            contract: TargetContract = load_target_contract(contract_path)
+            contract: TargetContract = load_target_contract(contract_path, schema_name=schema_name)
             plan: MappingPlan = propose_mappings(profile, contract)
+
+            # Apply mapping specification if provided
+            if mapping_spec_file and mapping_spec_file.filename:
+                spec_bytes = await mapping_spec_file.read(MAX_CONTRACT_SIZE_BYTES + 1)
+                if len(spec_bytes) > MAX_CONTRACT_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Mapping specification exceeds maximum size of {MAX_CONTRACT_SIZE_BYTES // (1024 * 1024)} MB.",
+                    )
+                spec_dict = json.loads(spec_bytes.decode("utf-8"))
+                spec = load_mapping_spec(spec_dict)
+                plan, _ = validate_and_apply_mapping_spec(spec, contract, profile, plan)
+
             risks: RiskAssessment = evaluate_risks(profile, contract, plan)
         except ReconError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
@@ -480,6 +500,158 @@ def download_adapter(session_id: str) -> Response:
         media_type="text/x-python",
         headers={"Content-Disposition": f"attachment; filename={adapter.adapter_name}.py"}
     )
+
+
+@router.get("/download/valid-records/{session_id}")
+def download_valid_records(session_id: str) -> Response:
+    """Downloads valid transformed records in JSONL format."""
+    session = SESSIONS.get(session_id)
+    if not session or "validation" not in session:
+        raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
+
+    val = session["validation"]
+    records = val.all_valid_records if getattr(val, "all_valid_records", None) else val.sample_valid_output
+    lines = [json.dumps(rec) for rec in records]
+    content = "\n".join(lines)
+    return PlainTextResponse(
+        content=content,
+        media_type="application/x-jsonlines",
+        headers={"Content-Disposition": f"attachment; filename=valid_records_{session_id[:8]}.jsonl"}
+    )
+
+
+@router.get("/download/quarantine-records/{session_id}")
+def download_quarantine_records(session_id: str) -> Response:
+    """Downloads quarantined records with diagnostics in JSONL format."""
+    session = SESSIONS.get(session_id)
+    if not session or "validation" not in session:
+        raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
+
+    val = session["validation"]
+    records = val.all_quarantined_records if getattr(val, "all_quarantined_records", None) else val.sample_quarantined_records
+    lines = [json.dumps(rec) for rec in records]
+    content = "\n".join(lines)
+    return PlainTextResponse(
+        content=content,
+        media_type="application/x-jsonlines",
+        headers={"Content-Disposition": f"attachment; filename=quarantine_records_{session_id[:8]}.jsonl"}
+    )
+
+
+@router.get("/download/mapping-spec/{session_id}")
+def download_mapping_spec(session_id: str) -> Response:
+    """Downloads versioned mapping specification JSON generated from current session mapping state."""
+    session = SESSIONS.get(session_id)
+    if not session or "plan" not in session or "contract" not in session or "profile" not in session:
+        raise HTTPException(status_code=404, detail="Mapping plan not found for session.")
+
+    plan_to_export = session.get("approved_plan") or session["plan"]
+    spec = export_mapping_spec(
+        contract=session["contract"],
+        profile=session["profile"],
+        plan=plan_to_export,
+        reviewer=session.get("reviewer", "web_user"),
+    )
+
+    return Response(
+        content=spec.to_json(),
+        media_type="application/json",
+        headers={"Content-Disposition": 'attachment; filename="recon_mapping_spec.json"'},
+    )
+
+
+@router.post("/upload-mapping-spec")
+async def upload_mapping_spec(
+    session_id: str = Form(...),
+    spec_file: UploadFile | None = File(None),
+    spec_json: str | None = Form(None),
+) -> dict[str, Any]:
+    """Uploads, validates, and applies a reusable mapping specification to an active session."""
+    session = SESSIONS.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found or expired.")
+
+    if spec_file and spec_file.filename:
+        content_bytes = await spec_file.read(MAX_CONTRACT_SIZE_BYTES + 1)
+        if len(content_bytes) > MAX_CONTRACT_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail="Mapping specification file exceeds size limit.")
+        try:
+            spec_dict = json.loads(content_bytes.decode("utf-8"))
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON in mapping specification: {exc}")
+    elif spec_json and spec_json.strip():
+        try:
+            spec_dict = json.loads(spec_json)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON in mapping specification: {exc}")
+    else:
+        raise HTTPException(status_code=400, detail="Must provide either 'spec_file' or 'spec_json'.")
+
+    try:
+        spec = load_mapping_spec(spec_dict)
+        updated_plan, val_result = validate_and_apply_mapping_spec(
+            spec=spec,
+            contract=session["contract"],
+            profile=session["profile"],
+            base_plan=session["plan"],
+        )
+        updated_risks = evaluate_risks(session["profile"], session["contract"], updated_plan)
+    except ReconError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error applying mapping specification: {exc}")
+
+    session["plan"] = updated_plan
+    session["risks"] = updated_risks
+
+    proposals_summary: list[dict[str, Any]] = []
+    unresolved_fields: list[str] = []
+    unresolved_required_fields: list[str] = []
+
+    for target_name, target_field in session["contract"].fields.items():
+        prop = updated_plan.proposals.get(target_name)
+        is_unresolved = (
+            prop is None
+            or prop.status == MappingStatus.UNRESOLVED
+            or not prop.source_field
+        )
+        if is_unresolved:
+            unresolved_fields.append(target_name)
+            if target_field.required:
+                unresolved_required_fields.append(target_name)
+
+        proposals_summary.append({
+            "target_field": target_name,
+            "target_type": target_field.target_type.value,
+            "required": target_field.required,
+            "nullable": target_field.nullable,
+            "allowed_values": target_field.allowed_values,
+            "pattern": target_field.pattern,
+            "description": target_field.description,
+            "source_field": prop.source_field if prop else None,
+            "source_inferred_type": prop.source_inferred_type.value if prop and prop.source_inferred_type else None,
+            "mapping_type": prop.mapping_type.value if prop else MappingType.MISSING_SOURCE.value,
+            "status": prop.status.value if prop else MappingStatus.UNRESOLVED.value,
+            "transformation_rule": prop.transformation_rule if prop else None,
+            "evidence": prop.evidence if prop else [],
+            "alternative_candidates": prop.alternative_candidates if prop else [],
+            "human_notes": prop.human_notes if prop else None,
+        })
+
+    return {
+        "session_id": session_id,
+        "validation_result": val_result.model_dump(),
+        "proposals_summary": proposals_summary,
+        "unresolved_fields": unresolved_fields,
+        "unresolved_required_fields": unresolved_required_fields,
+        "risks_summary": {
+            "findings_count": len(updated_risks.findings),
+            "critical_count": len(updated_risks.critical_findings),
+            "high_count": len(updated_risks.high_findings),
+            "is_blocked": updated_risks.is_blocked,
+        },
+        "can_proceed_to_adapter": len(unresolved_required_fields) == 0,
+    }
 
 
 @router.delete("/session/{session_id}")

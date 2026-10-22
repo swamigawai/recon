@@ -1,0 +1,24 @@
+{
+  "contract_name": "g19_10_schema_drift",
+  "version": "2.0.0",
+  "fields": {
+    "lead_id": {
+      "name": "lead_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "source_channel": {
+      "name": "source_channel",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "compliance_jurisdiction": {
+      "name": "compliance_jurisdiction",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    }
+  }
+}

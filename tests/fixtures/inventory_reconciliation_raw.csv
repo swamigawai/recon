@@ -1,0 +1,9 @@
+item_tag,storage_bay,audit_timestamp,book_stock,physical_count,discrepancy_category,reconciled_flag,auditor_comments,scanner_device_id
+SKU-100200,WH-01,2024-11-01T08:00:00Z,50,50,MATCHED,true,All counts verified,SCAN-7
+SKU-100201,WH-02,2024-11-01T08:30:00Z,100,95,damaged,false,5 units broken in aisle,SCAN-7
+SKU-100202,WH-03,2024-11-01T09:00:00Z,200,198,SHRINKAGE,true,,SCAN-8
+SKU-100203,WH-04,2024-11-01T09:30:00Z,10,10,MATCHED,true,None of the cartons were opened,SCAN-8
+,WH-05,2024-11-01T10:00:00Z,30,30,MATCHED,true,Missing SKU barcode,SCAN-9
+SKU-100205,ZONE_A,2024-11-01T10:30:00Z,40,40,MATCHED,true,Pattern mismatch in warehouse zone,SCAN-9
+SKU-100206,WH-07,2024-11-01T11:00:00Z,50,twenty,MATCHED,true,Non-integer in physical count,SCAN-9
+SKU-100207,WH-08,2024-11-01T11:30:00Z,60,55,STOLEN_MYSTERY,false,Illegal enum category,SCAN-9

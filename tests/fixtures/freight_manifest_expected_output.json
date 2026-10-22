@@ -1,0 +1,77 @@
+{
+  "valid_records_count": 4,
+  "quarantined_records_count": 4,
+  "total_records_count": 8,
+  "valid_records": [
+    {
+      "waybill_number": "AWB-12345678",
+      "carrier_iata_code": "BA",
+      "origin_airport": "LHR",
+      "destination_airport": "JFK",
+      "gross_weight_kg": 1250.5,
+      "dispatch_datetime": "2024-12-01T12:00:00Z",
+      "hazardous_goods": false,
+      "clearance_status": "CLEARED",
+      "handling_notes": "Fragile medical equipment"
+    },
+    {
+      "waybill_number": "AWB-87654321",
+      "carrier_iata_code": "EK",
+      "origin_airport": "DXB",
+      "destination_airport": "BOM",
+      "gross_weight_kg": 420.0,
+      "dispatch_datetime": "2024-12-01T15:30:00Z",
+      "hazardous_goods": true,
+      "clearance_status": "INSPECTION_REQUIRED",
+      "handling_notes": "Dry ice containers"
+    },
+    {
+      "waybill_number": "AWB-11223344",
+      "carrier_iata_code": "SQ",
+      "origin_airport": "SIN",
+      "destination_airport": "SYD",
+      "gross_weight_kg": 85.25,
+      "dispatch_datetime": "2024-12-01T18:00:00Z",
+      "hazardous_goods": false,
+      "clearance_status": "CLEARED",
+      "handling_notes": null
+    },
+    {
+      "waybill_number": "AWB-55667788",
+      "carrier_iata_code": "LH",
+      "origin_airport": "FRA",
+      "destination_airport": "ORD",
+      "gross_weight_kg": 3100.0,
+      "dispatch_datetime": "2024-12-01T21:15:00Z",
+      "hazardous_goods": false,
+      "clearance_status": "CLEARED",
+      "handling_notes": "Not Applicable - general dry cargo"
+    }
+  ],
+  "quarantined_fault_ledger": [
+    {
+      "record_index": 5,
+      "fault": "Missing required waybill_number",
+      "error_code": "ERR_REQUIRED_FIELD_MISSING",
+      "expected_error_substring": "Required non-nullable field 'waybill_number' is missing or null"
+    },
+    {
+      "record_index": 6,
+      "fault": "Pattern violation on origin_airport 'LONDON'",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 7,
+      "fault": "Non-float value 'ONE_TON' in gross_weight_kg",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse float for 'gross_weight_kg'"
+    },
+    {
+      "record_index": 8,
+      "fault": "Illegal clearance_status enum value CONFISCATED",
+      "error_code": "ERR_ENUM_VIOLATION",
+      "expected_error_substring": "not in allowed values"
+    }
+  ]
+}

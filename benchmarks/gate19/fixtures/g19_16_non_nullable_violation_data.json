@@ -1,0 +1,14 @@
+[
+  {
+    "device_id": "DEV01",
+    "sensor_reading": "24.5"
+  },
+  {
+    "device_id": "DEV02",
+    "sensor_reading": null
+  },
+  {
+    "device_id": "DEV03",
+    "sensor_reading": "26.1"
+  }
+]

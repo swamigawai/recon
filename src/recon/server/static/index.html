@@ -1,337 +1,1097 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recon — Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Recon — The Integration Readiness Engine</title>
+  <link rel="stylesheet" href="style.css?v=5.4">
 </head>
 <body>
-  <header class="header">
-    <div class="container header-container">
-      <div class="logo">
-        <span class="logo-badge">RECON</span>
-        <span class="logo-title">Integration Readiness Engine</span>
-      </div>
-      <div class="header-meta">
-        <span class="meta-tag">Gate 04</span>
-        <span class="meta-tag">Deterministic Sandbox</span>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <!-- Intro / Value Prop Banner -->
-    <section class="lead-banner">
-      <h2>Know what will break before you build the integration.</h2>
-      <p>
-        Recon inspects source schemas, proposes deterministic mappings with auditable evidence, evaluates integration risks,
-        enforces human approval, and generates verifiable adapters with zero-loss quarantine accounting.
-      </p>
-    </section>
-
-    <!-- STEP 1 & 2: Input Configuration -->
-    <section class="card config-card" id="step-inputs">
-      <div class="card-header">
-        <span class="step-num">Step 1 &amp; 2</span>
-        <h3>Source Dataset &amp; Target Contract</h3>
-      </div>
-      <div class="card-body grid-2col">
-        <!-- Source Dataset -->
-        <div class="form-group">
-          <label class="form-label" for="source-file">Source Dataset (CSV or JSON)</label>
-          <div class="input-toggle">
-            <input type="file" id="source-file" accept=".csv,.json" class="file-input">
-            <div class="or-divider">OR select preloaded sample:</div>
-            <select id="sample-dataset-select" class="form-select">
-              <option value="">-- Choose sample dataset --</option>
-            </select>
-          </div>
-          <small class="form-hint">Supports CSV files and JSON documents with row arrays.</small>
-        </div>
-
-        <!-- Target Contract -->
-        <div class="form-group">
-          <label class="form-label" for="contract-file">Target Contract (JSON Schema)</label>
-          <div class="contract-mode-tabs">
-            <button type="button" class="tab-btn active" data-tab="sample">Sample Contract</button>
-            <button type="button" class="tab-btn" data-tab="upload">Upload File</button>
-            <button type="button" class="tab-btn" data-tab="paste">Paste JSON</button>
-          </div>
-
-          <div id="tab-sample" class="tab-content active">
-            <select id="sample-contract-select" class="form-select">
-              <option value="">-- Choose sample target contract --</option>
-            </select>
-            <div id="contract-desc-box" class="desc-box"></div>
-          </div>
-
-          <div id="tab-upload" class="tab-content">
-            <input type="file" id="contract-file" accept=".json" class="file-input">
-          </div>
-
-          <div id="tab-paste" class="tab-content">
-            <textarea id="contract-text" class="form-textarea" rows="5" placeholder='{"contract_name": "...", "fields": {...}}'></textarea>
-          </div>
+  <div class="recon-app-shell">
+    <!-- ====================================================================
+         1. Global Application Header
+         ==================================================================== -->
+    <header class="recon-header">
+      <div class="recon-header-left">
+        <div class="recon-brand">
+          <span class="recon-status-pulse active" id="header-pulse"></span>
+          <span>RECON // 01</span>
         </div>
       </div>
 
-      <div class="card-footer">
-        <button id="btn-assess" class="btn btn-primary" type="button">
-          Assess Integration Readiness
+      <div class="recon-header-center">
+        <div class="recon-capsule" id="session-capsule">
+          <span class="recon-capsule-tag">Session</span>
+          <span id="session-id-display">sess_empty</span>
+          <span class="recon-capsule-tag">In-Memory</span>
+        </div>
+        <div class="recon-capsule hidden" id="contract-capsule">
+          <span class="recon-capsule-tag">Target</span>
+          <span id="contract-name-display">-</span>
+          <span class="badge badge-indigo" id="contract-version-pill">v1.0.0</span>
+        </div>
+      </div>
+
+      <div class="recon-header-right">
+        <button id="btn-command-palette" class="btn btn-ghost btn-sm" title="Command Palette [⌘K / Ctrl+K]" aria-label="Open Command Palette">
+          <span style="font-size: 13px;">⌘</span> <span>Command</span> <kbd>⌘K</kbd>
         </button>
-        <span id="assess-loading" class="spinner-text hidden">Profiling dataset and assessing risks...</span>
+        <button id="btn-guide" class="btn btn-secondary btn-sm" title="Interactive Workflow Guide & Tour [G]">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-primary-base);"><circle cx="8" cy="8" r="6"/><polygon points="8,4.5 9.5,8 8,11.5 6.5,8" fill="currentColor"/></svg> <strong>Guide</strong>
+        </button>
+        <button id="btn-theme-toggle" class="btn btn-ghost btn-sm" title="Toggle Theme (Light / Dark)">
+          <span id="theme-toggle-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 0 12V2z" fill="currentColor"/></svg></span> <span id="theme-toggle-text">Theme</span>
+        </button>
+        <button id="btn-shortcuts" class="btn btn-ghost btn-sm" title="Keyboard Shortcuts [?]">
+          <kbd>?</kbd>
+        </button>
+        <button id="btn-reset-session" class="btn btn-danger btn-sm" title="Purge current session">
+          Reset Session
+        </button>
       </div>
-    </section>
+    </header>
 
-    <!-- Error Alert Box -->
-    <div id="error-alert" class="alert alert-error hidden">
-      <strong id="error-title">Error:</strong> <span id="error-message"></span>
+    <!-- ====================================================================
+         2. Persistent Engineering Workflow Stepper (01 to 07)
+         ==================================================================== -->
+    <nav class="recon-stepper" id="workflow-stepper">
+      <div class="recon-step-item active" data-step="1" id="step-nav-1" title="Step 01: Dual-Port Ingest Cockpit (Active)">
+        <span class="recon-step-num">01</span>
+        <span class="recon-step-label">INGEST</span>
+      </div>
+      <div class="recon-step-item" data-step="2" id="step-nav-2" title="Step 02: Source Dataset Profile Matrix (Unlocks after Ingest Inspection)">
+        <span class="recon-step-num">02</span>
+        <span class="recon-step-label">PROFILE</span>
+      </div>
+      <div class="recon-step-item" data-step="3" id="step-nav-3" title="Step 03: Mapping Review Studio (Unlocks after Ingest Inspection)">
+        <span class="recon-step-num">03</span>
+        <span class="recon-step-label">MAP</span>
+      </div>
+      <div class="recon-step-item" data-step="4" id="step-nav-4" title="Step 04: Risk Radar & Approval Gate (Unlocks after Ingest Inspection)">
+        <span class="recon-step-num">04</span>
+        <span class="recon-step-label">AUDIT</span>
+        <span class="recon-step-dot hidden" id="step-audit-dot"></span>
+      </div>
+      <div class="recon-step-item" data-step="5" id="step-nav-5" title="Step 05: Adapter Code Review (Unlocks after Approval)">
+        <span class="recon-step-num">05</span>
+        <span class="recon-step-label">ADAPTER</span>
+      </div>
+      <div class="recon-step-item" data-step="6" id="step-nav-6" title="Step 06: Validation & Quarantine Ledger (Unlocks after Approval)">
+        <span class="recon-step-num">06</span>
+        <span class="recon-step-label">VALIDATE</span>
+      </div>
+      <div class="recon-step-item" data-step="7" id="step-nav-7" title="Step 07: Readiness Dossier & Downloads (Unlocks after Validation)">
+        <span class="recon-step-num">07</span>
+        <span class="recon-step-label">DOSSIER</span>
+      </div>
+    </nav>
+
+    <!-- Error Banner Area -->
+    <div id="global-error-bar" class="hidden" style="background-color: var(--recon-rose-surface); border-bottom: 1px solid var(--recon-rose-border); padding: 10px 20px; font-family: var(--font-mono); font-size: 12px; color: var(--recon-rose-text); display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <strong id="global-error-title">[ERROR]</strong> <span id="global-error-msg"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btn-close-error" style="color: var(--recon-rose-text);">✕</button>
     </div>
 
-    <!-- STEP 3, 4, 5: Assessment Results -->
-    <section id="step-assessment" class="hidden">
-      <!-- Profile & Contract Info Grid -->
-      <div class="grid-2col meta-grid">
-        <div class="card summary-card">
-          <div class="card-header">
-            <h4>Source Profile</h4>
-            <span class="badge" id="source-format-badge">CSV</span>
-          </div>
-          <div class="card-body">
-            <div class="stat-row">
-              <span class="stat-label">File:</span>
-              <span class="stat-val" id="prof-filename">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Total Records:</span>
-              <span class="stat-val" id="prof-rows">0</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Columns:</span>
-              <span class="stat-val" id="prof-cols">0</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Duplicates:</span>
-              <span class="stat-val" id="prof-dupes">0</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">SHA-256:</span>
-              <span class="stat-val font-mono" id="prof-fingerprint">-</span>
-            </div>
-          </div>
-        </div>
+    <!-- ====================================================================
+         3. Main Workspace Layout & Contextual Drawer
+         ==================================================================== -->
+    <div class="recon-main-layout">
+      <!-- Primary Workspace Canvas -->
+      <main class="recon-workspace-canvas" id="workspace-canvas">
 
-        <div class="card summary-card">
-          <div class="card-header">
-            <h4>Target Contract</h4>
-            <span class="badge badge-info" id="contract-version-badge">v1.0.0</span>
-          </div>
-          <div class="card-body">
-            <div class="stat-row">
-              <span class="stat-label">Name:</span>
-              <span class="stat-val" id="cont-name">-</span>
+        <!-- ================================================================
+             Screen A: Source & Contract Cockpit (01 INGEST)
+             ================================================================ -->
+        <section id="screen-ingest" class="recon-screen">
+          <div class="section-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+              <div>
+                <h2 class="section-title">01 Ingest Cockpit</h2>
+                <p class="section-desc">Stage raw source records and target contract schema to evaluate integration readiness.</p>
+              </div>
+              <div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-quick-demo">
+                  Load Pilot Benchmark (B2B)
+                </button>
+              </div>
             </div>
-            <div class="stat-row">
-              <span class="stat-label">Required Fields:</span>
-              <span class="stat-val" id="cont-fields">-</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Description:</span>
-              <span class="stat-val" id="cont-desc">-</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 5: Risk Assessment Findings -->
-      <div class="card risk-card">
-        <div class="card-header">
-          <span class="step-num">Step 5</span>
-          <h3>Pre-Integration Risk Assessment</h3>
-          <span id="risk-status-badge" class="badge">STATUS</span>
-        </div>
-        <div class="card-body">
-          <div id="risk-list" class="risk-list">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 3 & 4: Mapping Proposals & Human Decision -->
-      <div class="card mapping-card">
-        <div class="card-header">
-          <span class="step-num">Step 3 &amp; 4</span>
-          <div>
-            <h3>Field Mapping Proposals &amp; Verification</h3>
-            <p class="section-sub">
-              Deterministic mapping based on name and semantic heuristics.
-              <strong>Unfamiliar fields require human mapping selection.</strong> No invented confidence scores.
-            </p>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div id="unresolved-warning" class="alert alert-warning hidden">
-            <strong>Action Required:</strong> <span id="unresolved-count-text"></span>
-            All required contract fields must be mapped before an adapter can be generated.
           </div>
 
-          <div class="table-responsive">
+          <div class="dual-port-container">
+            <!-- Port 1: Source Dataset -->
+            <div class="port-card port-source" id="port-source-card">
+              <div class="port-header">
+                <span class="port-title">Port 1: Source Dataset</span>
+                <span class="badge badge-muted" id="source-format-pill">CSV / JSON</span>
+              </div>
+              <div class="port-dropzone" id="source-dropzone" role="button" tabindex="0" aria-label="Drop raw source dataset or click to browse">
+                <div class="port-dropzone-icon">↑</div>
+                <div style="font-weight: 600; margin-bottom: 4px;">Drop raw source dataset or click to browse</div>
+                <div class="text-muted" style="font-size: 11px;">Supported: .csv, .tsv, .txt, .json, .jsonl (Max 100MB)</div>
+                <input type="file" id="source-file-input" accept=".csv,.tsv,.txt,.json,.jsonl" class="hidden">
+              </div>
+
+              <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+                <label class="form-label" for="sample-dataset-select">Or choose preloaded test fixture:</label>
+                <select id="sample-dataset-select" class="form-select">
+                  <option value="">-- Select Preloaded Sample Dataset --</option>
+                </select>
+              </div>
+
+              <div class="port-status-box" id="source-status-box">
+                <span id="source-status-text" class="text-muted">No source file staged.</span>
+                <span id="source-status-meta" class="font-mono text-muted"></span>
+              </div>
+            </div>
+
+            <!-- Port 2: Target Schema Contract -->
+            <div class="port-card port-target" id="port-target-card">
+              <div class="port-header">
+                <span class="port-title">Port 2: Target Schema Contract</span>
+                <span class="badge badge-indigo">Governing Standard</span>
+              </div>
+
+              <!-- Contract Tabs -->
+              <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                <button type="button" class="filter-btn active" data-ctab="sample" id="ctab-btn-sample">Preloaded Sample</button>
+                <button type="button" class="filter-btn" data-ctab="upload" id="ctab-btn-upload">Upload .json</button>
+                <button type="button" class="filter-btn" data-ctab="paste" id="ctab-btn-paste">Paste JSON</button>
+              </div>
+
+              <div id="ctab-content-sample">
+                <select id="sample-contract-select" class="form-select">
+                  <option value="">-- Choose Target Schema Contract --</option>
+                </select>
+                <div id="contract-desc-box" class="text-muted" style="font-size: 11px; margin-top: 6px; min-height: 28px;"></div>
+              </div>
+
+              <div id="ctab-content-upload" class="hidden">
+                <div class="port-dropzone" id="contract-dropzone" role="button" tabindex="0" aria-label="Drop target contract schema or click to browse">
+                  <div class="port-dropzone-icon">↑</div>
+                  <div style="font-weight: 600; margin-bottom: 4px;">Drop target contract schema (.json)</div>
+                  <div class="text-muted" style="font-size: 11px;">Supported: Native Recon, JSON Schema (Draft-07/2020-12), OpenAPI 3.x</div>
+                  <input type="file" id="contract-file-input" accept=".json" class="hidden">
+                </div>
+              </div>
+
+              <div id="ctab-content-paste" class="hidden">
+                <textarea id="contract-text-area" class="form-textarea" rows="4" placeholder='{"$schema": "https://json-schema.org/draft/2020-12/schema", ...} or {"openapi": "3.0.0", ...}'></textarea>
+                <div id="contract-json-syntax-error" class="text-rose font-mono hidden" style="font-size: 11px; margin-top: 4px;"></div>
+              </div>
+
+              <!-- Optional OpenAPI Schema Model Selector -->
+              <div class="form-group hidden" id="openapi-schema-group" style="margin-top: 8px;">
+                <label class="form-label" for="openapi-schema-select">Select OpenAPI Model / Schema:</label>
+                <select id="openapi-schema-select" class="form-select">
+                  <option value="">-- Auto-detect or Choose Model --</option>
+                </select>
+              </div>
+
+              <div class="port-status-box" id="contract-status-box" style="margin-top: 10px;">
+                <span id="contract-status-text" class="text-muted">No contract schema staged.</span>
+                <span id="contract-status-meta" class="font-mono text-muted"></span>
+              </div>
+
+              <!-- Reusable Mapping Specification Loader (Screen 01) -->
+              <div style="margin-top: 10px; padding: 8px 12px; background: var(--recon-bg-surface); border: 1px dashed var(--recon-border-subtle); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <label class="btn btn-ghost btn-sm" style="font-family: var(--font-mono); font-size: 11px; cursor: pointer; color: var(--recon-indigo-text);">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M2 4a1 1 0 0 1 1-1h3.5l1.5 2H13a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z"/></svg> Load Existing Mapping Spec (.json)
+                  <input type="file" id="ingest-mapping-spec-input" accept=".json" class="hidden">
+                </label>
+                <span id="ingest-mapping-spec-name" class="font-mono text-muted" style="font-size: 11px;">None staged</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingest Footer & Readiness Status -->
+          <div class="ingest-footer-bar">
+            <div class="ingest-readiness-indicator" id="ingest-readiness-indicator">
+              <span class="status-dot" id="ingest-status-dot"></span>
+              <span id="ingest-status-label" class="text-muted" style="font-size: 13px;">Stage a source dataset and target contract schema to continue</span>
+              <!-- Hidden compatibility hooks for existing script logic -->
+              <span id="pf-source-encoding" class="hidden"></span>
+              <span id="pf-target-schema" class="hidden"></span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <span id="assess-spinner" class="font-mono text-muted hidden" style="font-size: 12px;">Evaluating integration readiness...</span>
+              <button id="btn-assess" class="btn btn-primary" type="button" disabled>
+                Analyze Integration →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Screen B: Source Profile Matrix (02 PROFILE)
+             ================================================================ -->
+        <section id="screen-profile" class="recon-screen hidden">
+          <div class="section-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h2 class="section-title">02 Source Dataset Profile Matrix</h2>
+                <p class="section-desc" id="profile-summary-line">Type discovery, nullity micro-bars, distinct cardinality, and data quality flags.</p>
+              </div>
+              <div style="text-align: right; font-family: var(--font-mono); font-size: 11px; color: var(--recon-text-muted);">
+                Fingerprint: <span id="prof-sha-display" class="font-mono text-primary"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="recon-table" id="profile-table">
+              <thead>
+                <tr>
+                  <th>Field Name</th>
+                  <th>Type (Inferred)</th>
+                  <th>Nullity Micro-Bar</th>
+                  <th>Null Count (%)</th>
+                  <th>Distinct</th>
+                  <th>Sample Values</th>
+                  <th>Quality / Anomaly Flag</th>
+                </tr>
+              </thead>
+              <tbody id="profile-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="recon-card-footer" style="margin-top: 20px; background: none; border: none; padding: 0;">
+            <button class="btn btn-secondary" onclick="navigateToStep(1)">← Back to Ingest</button>
+            <button class="btn btn-primary" onclick="navigateToStep(3)">PROCEED TO MAPPING STUDIO (03) →</button>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Screen C: Mapping Review Studio (03 MAP)
+             ================================================================ -->
+        <section id="screen-map" class="recon-screen hidden">
+          <div class="section-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+              <div>
+                <h2 class="section-title">03 Mapping Review Studio</h2>
+                <p class="section-desc">Audit heuristic source-to-target field alignments across 6 explicit visual states.</p>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <label class="btn btn-secondary btn-sm" style="font-family: var(--font-mono); cursor: pointer;" title="Import reviewed mapping decisions from recon_mapping_spec.json">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M2 4a1 1 0 0 1 1-1h3.5l1.5 2H13a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z"/></svg> Load Existing Mapping Spec
+                  <input type="file" id="map-spec-upload-input" accept=".json" class="hidden">
+                </label>
+                <!-- View Mode Toggle: Table Matrix vs Schema Flow Graph -->
+                <div class="mapping-view-toggle" id="mapping-view-toggle" role="group" aria-label="Mapping View Mode">
+                  <button type="button" class="view-toggle-btn active" id="btn-view-flow" title="Interactive Schema Flow Graph"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><circle cx="3" cy="5" r="2"/><circle cx="13" cy="3" r="2"/><circle cx="13" cy="13" r="2"/><path d="M5 5h3a3 3 0 0 1 3 3v2a3 3 0 0 0 2 2"/></svg> <span>Flow Graph</span></button>
+                  <button type="button" class="view-toggle-btn" id="btn-view-matrix" title="Standard Tabular Matrix View"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><rect x="2" y="3" width="12" height="10" rx="1.5"/><line x1="2" y1="6.5" x2="14" y2="6.5"/><line x1="6.5" y1="3" x2="6.5" y2="13"/></svg> <span>Table</span></button>
+                </div>
+                <div class="mapping-filter-bar">
+                  <button type="button" class="filter-btn active" data-mapfilter="all" id="mf-all">All (<span id="mf-cnt-all">0</span>)</button>
+                  <button type="button" class="filter-btn" data-mapfilter="approved" id="mf-approved">Approved (<span id="mf-cnt-approved">0</span>)</button>
+                  <button type="button" class="filter-btn" data-mapfilter="action" id="mf-action">Requires Action (<span id="mf-cnt-action">0</span>)</button>
+                </div>
+              </div>
+            </div>
+            <!-- Mapping Spec Notification Banner -->
+            <div id="mapping-spec-banner" class="hidden" style="background-color: var(--recon-indigo-surface); border: 1px solid var(--recon-indigo-border); border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 12px; font-size: 12px; font-family: var(--font-mono); color: var(--recon-indigo-text); display: flex; justify-content: space-between; align-items: center;">
+              <span id="mapping-spec-banner-text"></span>
+              <button class="btn btn-ghost btn-sm" id="btn-dismiss-spec-banner" style="color: var(--recon-indigo-text);">✕</button>
+            </div>
+          </div>
+
+          <!-- View 1: Standard Tabular Matrix View -->
+          <div class="table-container hidden" id="mapping-table-view">
             <table class="recon-table" id="mappings-table">
               <thead>
                 <tr>
-                  <th>Target Contract Field</th>
-                  <th>Type &amp; Rule</th>
-                  <th>Source Column Mapping</th>
-                  <th>Engine Evidence (Auditable)</th>
-                  <th>Status</th>
+                  <th style="width: 28%;">Target Contract Field</th>
+                  <th style="width: 5%; text-align: center;"></th>
+                  <th style="width: 32%;">Source Field Decision / Override</th>
+                  <th style="width: 15%;">Heuristic</th>
+                  <th style="width: 20%;" class="status-col">State / Action</th>
                 </tr>
               </thead>
-              <tbody id="mappings-tbody">
-                <!-- Populated via JS -->
-              </tbody>
+              <tbody id="mappings-tbody"></tbody>
             </table>
           </div>
-        </div>
 
-        <!-- STEP 6: Human Approval & Adapter Generation -->
-        <div class="card-footer approval-footer">
-          <div class="approval-form">
-            <div class="form-group inline-group">
-              <label for="reviewer-name">Reviewer Signature:</label>
-              <input type="text" id="reviewer-name" class="form-input" value="lead_engineer">
+          <!-- View 2: Schema Flow Graph (Visual Lines, Beams & Confidence Bars) [Default View] -->
+          <div class="recon-card" id="mapping-flow-view" style="margin-bottom: 24px; padding: 0; overflow: visible;">
+            <!-- Flow Graph Toolbar / Legend -->
+            <div class="flow-graph-toolbar">
+              <div class="flow-graph-legend">
+                <span class="flow-legend-item"><span class="legend-dot dot-blue"></span> 1:1 Direct (<span id="fl-cnt-direct">0</span>)</span>
+                <span class="flow-legend-item"><span class="legend-dot dot-amber"></span> Transform (<span id="fl-cnt-transform">0</span>)</span>
+                <span class="flow-legend-item"><span class="legend-dot dot-rose"></span> Blocker (<span id="fl-cnt-blocker">0</span>)</span>
+                <span class="flow-legend-item"><span class="legend-dot dot-gray"></span> Discarded (<span id="fl-cnt-discard">0</span>)</span>
+              </div>
+              <div class="text-muted" style="font-size: 11px; font-family: var(--font-mono);">
+                Hover or click any node to trace connection &amp; confidence metrics
+              </div>
             </div>
-            <button id="btn-approve" class="btn btn-success" type="button">
-              Approve Mappings &amp; Generate Adapter
-            </button>
+
+            <!-- Dual-Column Stage with SVG Connector Stream -->
+            <div class="flow-stage-container" id="flow-stage-container">
+              <!-- Left Column: Source Fields -->
+              <div class="flow-column flow-source-col" id="flow-source-col">
+                <div class="flow-col-header">
+                  <span>Source Dataset (Raw)</span>
+                  <span class="badge badge-muted" id="flow-src-count-badge">0 Fields</span>
+                </div>
+                <div class="flow-nodes-list" id="flow-source-nodes"></div>
+              </div>
+
+              <!-- Center Column: SVG Canvas & Transformer Chips -->
+              <div class="flow-svg-column" id="flow-svg-column">
+                <svg class="flow-svg-canvas" id="flow-svg-canvas"></svg>
+                <div class="flow-chips-layer" id="flow-chips-layer"></div>
+              </div>
+
+              <!-- Right Column: Target Contract Fields -->
+              <div class="flow-column flow-target-col" id="flow-target-col">
+                <div class="flow-col-header">
+                  <span>Target Contract Schema</span>
+                  <span class="badge badge-indigo" id="flow-tgt-count-badge">0 Fields</span>
+                </div>
+                <div class="flow-nodes-list" id="flow-target-nodes"></div>
+              </div>
+
+              <!-- Xcode-Style Ambient Gutter Health Minimap -->
+              <div class="flow-minimap-gutter" id="flow-minimap-gutter" title="Xcode Gutter Health Minimap — Click marker to navigate">
+                <div class="minimap-header">MAP</div>
+                <div class="minimap-track" id="minimap-track"></div>
+              </div>
+            </div>
+
+            <!-- Bottom Interactive Confidence Breakdown Bar -->
+            <div class="flow-meter-panel" id="flow-meter-panel">
+              <div class="flow-meter-header">
+                <div class="flow-meter-title-wrap">
+                  <span class="font-mono text-muted" style="font-size: 11px;">TRACE INSPECTOR:</span>
+                  <span class="font-mono" style="font-weight: 600; font-size: 12px; color: var(--recon-text-primary);" id="flow-meter-connection">Select any node above</span>
+                </div>
+                <div class="flow-meter-score-wrap">
+                  <div id="flow-meter-override-wrap" class="hidden" style="display: flex; align-items: center; gap: 8px;">
+                    <label for="flow-meter-source-select" class="font-mono text-muted" style="font-size: 11px;">Change Source:</label>
+                    <select id="flow-meter-source-select" class="form-select font-mono" style="font-size: 11px; padding: 3px 8px; height: 28px; width: auto; min-width: 170px;"></select>
+                  </div>
+                  <span class="badge badge-indigo font-mono" id="flow-meter-type-badge">DIRECT MATCH</span>
+                  <span class="font-mono text-primary font-bold" style="font-size: 13px;" id="flow-meter-overall-score">Confidence: --</span>
+                </div>
+              </div>
+
+              <!-- 3 Segmented Micro-Bars -->
+              <div class="flow-bars-grid">
+                <div class="flow-bar-card">
+                  <div class="flow-bar-label">
+                    <span>Name Similarity</span>
+                    <span class="font-mono font-bold" id="fbar-name-val">--%</span>
+                  </div>
+                  <div class="flow-bar-track">
+                    <div class="flow-bar-fill bar-blue" id="fbar-name-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <div class="flow-bar-card">
+                  <div class="flow-bar-label">
+                    <span>Type Compatibility</span>
+                    <span class="font-mono font-bold" id="fbar-type-val">--%</span>
+                  </div>
+                  <div class="flow-bar-track">
+                    <div class="flow-bar-fill bar-emerald" id="fbar-type-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <div class="flow-bar-card">
+                  <div class="flow-bar-label">
+                    <span>Value Pattern Match</span>
+                    <span class="font-mono font-bold" id="fbar-pattern-val">--%</span>
+                  </div>
+                  <div class="flow-bar-track">
+                    <div class="flow-bar-fill bar-purple" id="fbar-pattern-fill" style="width: 0%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Real Grounded Engine Evidence -->
+              <div id="flow-meter-evidence" class="font-mono text-secondary" style="font-size: 11px; margin-top: 10px; line-height: 1.4; padding-top: 8px; border-top: 1px dashed var(--recon-border-subtle);"></div>
+            </div>
           </div>
-          <span id="approve-loading" class="spinner-text hidden">Generating adapter and running sandbox tests...</span>
-        </div>
-      </div>
-    </section>
 
-    <!-- STEP 7: Readiness Results, Sandbox Validation & Downloads -->
-    <section id="step-results" class="hidden">
-      <!-- Readiness Banner -->
-      <div class="readiness-banner" id="readiness-banner">
-        <div class="readiness-icon" id="readiness-icon">✓</div>
-        <div class="readiness-content">
-          <div class="readiness-title-row">
-            <h2 id="readiness-state-text">READINESS STATE</h2>
-            <span class="badge" id="readiness-pass-rate-badge">100% Valid</span>
+          <div class="recon-card-footer" style="margin-top: 20px; background: none; border: none; padding: 0;">
+            <button class="btn btn-secondary" onclick="navigateToStep(2)">← Back to Profile</button>
+            <button class="btn btn-primary" onclick="navigateToStep(4)">PROCEED TO RISK AUDIT (04) →</button>
           </div>
-          <p id="readiness-rationale-text" class="readiness-rationale"></p>
-          <div id="readiness-reasons-box" class="readiness-reasons"></div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Zero-Loss Accounting Metrics -->
-      <div class="grid-4col metrics-grid">
-        <div class="metric-card">
-          <span class="metric-num" id="metric-total">0</span>
-          <span class="metric-label">Total Input Records</span>
-        </div>
-        <div class="metric-card metric-success">
-          <span class="metric-num" id="metric-valid">0</span>
-          <span class="metric-label">Valid Output Records</span>
-        </div>
-        <div class="metric-card metric-quarantine">
-          <span class="metric-num" id="metric-quarantine">0</span>
-          <span class="metric-label">Quarantined Records</span>
-        </div>
-        <div class="metric-card metric-rate">
-          <span class="metric-num" id="metric-rate">0%</span>
-          <span class="metric-label">Contract Pass Rate</span>
-        </div>
-      </div>
+        <!-- ================================================================
+             Screen D: Risk Radar & Approval Gate (04 AUDIT)
+             ================================================================ -->
+        <section id="screen-audit" class="recon-screen hidden">
+          <div class="section-header">
+            <h2 class="section-title">04 Risk Radar &amp; Approval Gate</h2>
+            <p class="section-desc">Pre-flight risk assessment and mandatory human sign-off boundary before adapter code generation.</p>
+          </div>
 
-      <div class="accounting-note">
-        <strong>Zero-Loss Integrity Guarantee:</strong> Total Input (<span id="acc-total">0</span>) = Valid Output (<span id="acc-valid">0</span>) + Quarantined (<span id="acc-quarantine">0</span>). No record is silently dropped.
-      </div>
+          <!-- Overall Readiness Status Banner -->
+          <div class="radar-status-card blocked" id="radar-status-banner">
+            <div>
+              <div style="font-weight: 700; font-size: 14px; font-family: var(--font-mono);" id="radar-status-heading">BLOCKED — ACTION REQUIRED</div>
+              <div style="font-size: 12px; margin-top: 4px;" id="radar-status-sub">Unresolved required fields must be mapped before compilation.</div>
+            </div>
+            <span class="badge badge-rose" id="radar-status-badge">BLOCKED</span>
+          </div>
 
-      <!-- Sandbox Test Cases -->
-      <div class="card">
-        <div class="card-header">
-          <h4>Sandbox Verification Test Cases</h4>
-          <span id="tests-summary-badge" class="badge badge-success">Tests Passed</span>
-        </div>
-        <div class="card-body">
-          <ul id="test-cases-list" class="test-list">
-            <!-- Populated via JS -->
-          </ul>
-        </div>
-      </div>
+          <!-- Hard Blockers -->
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--recon-rose-text); margin-bottom: 10px;">
+              Hard Blockers (Prevents Adapter Generation)
+            </h3>
+            <div id="radar-blockers-container"></div>
+          </div>
 
-      <!-- Reviewable Generated Adapter Code -->
-      <div class="card">
-        <div class="card-header">
-          <h4>Generated Adapter Code (Reviewable Python)</h4>
-          <div class="header-actions">
-            <button id="btn-copy-code" class="btn btn-sm btn-outline">Copy Code</button>
-            <a id="btn-download-adapter" class="btn btn-sm btn-secondary" href="#" download>Download .py Adapter</a>
+          <!-- Warnings / Quality Risks -->
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--recon-amber-text); margin-bottom: 10px;">
+              Warnings (Compiles, but records may quarantine)
+            </h3>
+            <div id="radar-warnings-container"></div>
+          </div>
+
+          <!-- Explicit Approval Ceremony Card -->
+          <div class="recon-card" style="border-color: var(--recon-border-strong);">
+            <div class="recon-card-header">
+              <span style="font-weight: 600; font-size: 13px;">Explicit Human Approval Ceremony</span>
+              <span class="badge badge-muted">Irreversible In-Memory Commit</span>
+            </div>
+            <div class="recon-card-body">
+              <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: center; margin-bottom: 16px;">
+                <div>
+                  <label class="form-label" for="reviewer-name-input">Reviewer Engineering Handle:</label>
+                  <input type="text" id="reviewer-name-input" class="form-input" value="lead_engineer" placeholder="e.g. s_gawai">
+                </div>
+                <div>
+                  <label class="form-checkbox-label">
+                    <input type="checkbox" id="ack-checkbox" style="width: 16px; height: 16px; accent-color: var(--recon-emerald-base);">
+                    <span>I have verified the schema mappings, acknowledged known risk warnings, and authorize adapter generation.</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="recon-card-footer">
+              <button class="btn btn-secondary" onclick="navigateToStep(3)">← Edit Mappings in Step 03</button>
+              <button id="btn-approve" class="btn btn-emerald" type="button" disabled>
+                CANNOT APPROVE (Resolve Hard Blockers)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Screen E: Adapter Code Workbench (05 ADAPTER)
+             ================================================================ -->
+        <section id="screen-adapter" class="recon-screen hidden">
+          <div class="section-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h2 class="section-title">05 Adapter Code Workbench</h2>
+                <p class="section-desc">Inspect generated reviewable Python adapter code synthesized from the approved mapping plan.</p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary btn-sm" id="btn-copy-code"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h8"/></svg> Copy Code</button>
+                <a class="btn btn-secondary btn-sm" id="btn-download-adapter-py" download><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M8 2v9m-4-4l4 4 4-4M3 14h10"/></svg> Download .py</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-workbench">
+            <div class="code-workbench-header">
+              <span class="font-mono text-muted" id="adapter-artifact-title">adapter.py | Python 3.11</span>
+              <span class="badge badge-emerald">AST Synthesized</span>
+            </div>
+            <div class="code-container">
+              <div class="code-gutter" id="code-gutter"></div>
+              <div class="code-lines" id="adapter-code-display"></div>
+            </div>
+          </div>
+
+          <div class="security-notice-banner">
+            <span style="font-weight: bold;">SECURITY NOTICE:</span>
+            <span>Local execution sandboxed via in-process restrictions. No OS-level container isolation. Review generated code before production execution.</span>
+          </div>
+
+          <div class="recon-card-footer" style="margin-top: 20px; background: none; border: none; padding: 0;">
+            <button class="btn btn-secondary" onclick="navigateToStep(4)">← Back to Audit Gate</button>
+            <button class="btn btn-primary" onclick="navigateToStep(6)">PROCEED TO VALIDATION RUN (06) →</button>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Screen F: Validation Lab & Quarantine Forensics (06 VALIDATE)
+             ================================================================ -->
+        <section id="screen-validate" class="recon-screen hidden">
+          <div class="section-header">
+            <h2 class="section-title">06 Validation Lab &amp; Quarantine Forensics</h2>
+            <p class="section-desc">Isolated test execution results, ledger accounting identity verification, and quarantine forensics.</p>
+          </div>
+
+          <!-- Accounting Metric Cards -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-val" id="metric-total-records">0</span>
+              <span class="metric-lbl">Total Input Records</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-val text-emerald" id="metric-valid-records">0</span>
+              <span class="metric-lbl">Passed Validation (<span id="metric-valid-pct">0%</span>)</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-val text-rose" id="metric-quarantined-records">0</span>
+              <span class="metric-lbl">Quarantined Records (<span id="metric-quarantined-pct">0%</span>)</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-val text-indigo" id="metric-pass-rate">0%</span>
+              <span class="metric-lbl">Contract Pass Rate</span>
+            </div>
+          </div>
+
+          <!-- Zero-Loss Accounting Balance Bar -->
+          <div class="ledger-balance-bar balanced" id="ledger-balance-bar">
+            <span>[✓ LEDGER BALANCED]</span>
+            <span id="ledger-balance-equation">N_total (0) = N_valid (0) + N_quarantine (0). Zero data loss verified.</span>
+          </div>
+
+          <!-- Synthetic Test Suite Outcome -->
+          <div class="recon-card" style="margin-bottom: 20px;">
+            <div class="recon-card-header">
+              <span style="font-weight: 600;">Synthetic Adapter Test Suite</span>
+              <span class="badge badge-emerald" id="tests-pass-badge">Tests Passing</span>
+            </div>
+            <div class="recon-card-body" style="padding: 10px 18px;">
+              <div id="test-cases-container"></div>
+            </div>
+          </div>
+
+          <!-- Quarantine Diagnostic Ledger -->
+          <div class="recon-card">
+            <div class="recon-card-header">
+              <div>
+                <span style="font-weight: 600;">Quarantine Diagnostic Ledger</span>
+                <span class="badge badge-rose" id="quarantine-count-badge" style="margin-left: 8px;">0 Quarantined</span>
+              </div>
+              <span class="text-muted" style="font-size: 11px;">Click row to inspect forensic payload</span>
+            </div>
+            <div class="table-container" style="border: none; border-radius: 0;">
+              <table class="recon-table">
+                <thead>
+                  <tr>
+                    <th style="width: 12%;">Row Index</th>
+                    <th style="width: 38%;">Failed Target Rule / Contract</th>
+                    <th style="width: 50%;">Error Reason &amp; Diagnostic</th>
+                  </tr>
+                </thead>
+                <tbody id="quarantine-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="recon-card-footer" style="margin-top: 20px; background: none; border: none; padding: 0;">
+            <button class="btn btn-secondary" onclick="navigateToStep(5)">← Back to Adapter</button>
+            <button class="btn btn-primary" onclick="navigateToStep(7)">PROCEED TO READINESS DOSSIER (07) →</button>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             Screen G: Readiness Dossier & Artifact Export (07 DOSSIER)
+             ================================================================ -->
+        <section id="screen-dossier" class="recon-screen hidden">
+          <div class="section-header">
+            <h2 class="section-title">07 Readiness Dossier &amp; Certified Artifacts</h2>
+            <p class="section-desc">Download complete integration deliverables, audit report, and quarantine ledger.</p>
+          </div>
+
+          <!-- Readiness Certification Banner -->
+          <div class="radar-status-card ready" id="dossier-status-banner">
+            <div>
+              <div style="font-weight: 700; font-size: 15px; font-family: var(--font-mono);" id="dossier-state-heading">READINESS: PASS</div>
+              <div style="font-size: 12px; margin-top: 4px;" id="dossier-rationale-text">All required fields mapped and contract validated.</div>
+            </div>
+            <span class="badge badge-emerald" id="dossier-state-badge">CERTIFIED</span>
+          </div>
+
+          <!-- Certified Artifacts Grid -->
+          <div class="dossier-card-grid">
+            <!-- 1. Adapter -->
+            <div class="artifact-card">
+              <div>
+                <div class="artifact-title">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polyline points="5 4 1 8 5 12"/><polyline points="11 4 15 8 11 12"/><line x1="10" y1="2" x2="6" y2="14"/></svg>
+                  <span>Generated Python Adapter</span>
+                </div>
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
+                  Compiled AST adapter with validated regex and type casts ready for pipeline execution.
+                </p>
+                <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-adapter-name">adapter.py</div>
+              </div>
+              <a class="btn btn-secondary btn-sm" id="art-dl-adapter" download>Download Script (.py)</a>
+            </div>
+
+            <!-- 2. Report -->
+            <div class="artifact-card">
+              <div>
+                <div class="artifact-title">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M3 2h7l4 4v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4"/></svg>
+                  <span>Readiness Dossier Report</span>
+                </div>
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
+                  Executive summary, schema diff, mapping evidence, and complete risk log.
+                </p>
+                <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;">readiness_report.md / .json</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <a class="btn btn-secondary btn-sm" id="art-dl-report-md" download>Download .md</a>
+                <a class="btn btn-secondary btn-sm" id="art-dl-report-json" download>Download .json</a>
+              </div>
+            </div>
+
+            <!-- 3. Valid Output Records -->
+            <div class="artifact-card">
+              <div>
+                <div class="artifact-title">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-emerald-base);"><circle cx="8" cy="8" r="6"/><polyline points="5 8 7 10 11 6"/></svg>
+                  <span>Transformed Valid Output</span>
+                </div>
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
+                  Transformed records conforming strictly to target schema contract.
+                </p>
+                <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-valid-count">0 valid records</div>
+              </div>
+              <a class="btn btn-secondary btn-sm" id="art-dl-valid" download>Download Output (.jsonl)</a>
+            </div>
+
+            <!-- 4. Quarantine Diagnostic Log -->
+            <div class="artifact-card">
+              <div>
+                <div class="artifact-title">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-amber-base);"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><circle cx="8" cy="12" r="0.75" fill="currentColor"/></svg>
+                  <span>Quarantine Diagnostic Log</span>
+                </div>
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
+                  Quarantined records with attached schema violation error codes.
+                </p>
+                <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-quarantine-count">0 quarantined records</div>
+              </div>
+              <a class="btn btn-secondary btn-sm" id="art-dl-quarantine" download>Download Quarantine (.jsonl)</a>
+            </div>
+
+            <!-- 5. Mapping Specification (.json) -->
+            <div class="artifact-card">
+              <div>
+                <div class="artifact-title">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><line x1="3" y1="4" x2="13" y2="4"/><circle cx="6" cy="4" r="1.5" fill="currentColor"/><line x1="3" y1="8" x2="13" y2="8"/><circle cx="10" cy="8" r="1.5" fill="currentColor"/><line x1="3" y1="12" x2="13" y2="12"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
+                  <span>Mapping Specification</span>
+                </div>
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
+                  Versioned JSON mapping specification with contract fingerprint for reuse in CI/CD.
+                </p>
+                <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;">recon_mapping_spec.json</div>
+              </div>
+              <a class="btn btn-secondary btn-sm" id="art-dl-mapping-spec" download>Download Spec (.json)</a>
+            </div>
+          </div>
+
+          <!-- Session Termination -->
+          <div class="recon-card" style="border-color: var(--recon-rose-border);">
+            <div class="recon-card-header">
+              <span style="font-weight: 600; color: var(--recon-rose-text);">Session Termination &amp; Memory Purge</span>
+            </div>
+            <div class="recon-card-body">
+              <p class="text-muted" style="font-size: 12px; margin-bottom: 14px;">
+                Purges in-memory session records, deletes temporary working directories, and resets workspace back to Screen A.
+              </p>
+              <button class="btn btn-danger" id="btn-purge-session">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V4"/></svg> Purge Session &amp; Memory
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Sleek Side-of-Screen Inspector Edge Tab (Search Logo Pop-Out) -->
+      <button class="recon-inspector-edge-tab" id="inspector-edge-tab" title="Contextual Inspector (Hover to peek, click to pin open)" aria-label="Toggle Contextual Inspector">
+        <span class="edge-tab-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg></span>
+        <span class="edge-tab-text">INSPECTOR</span>
+      </button>
+
+      <!-- ====================================================================
+           4. Contextual Inspector / Diagnostic Drawer (Width: 360px)
+           ==================================================================== -->
+      <aside class="recon-inspector-drawer collapsed" id="contextual-drawer" aria-label="Contextual Inspector">
+        <div class="recon-drawer-header">
+          <div class="recon-drawer-title">
+            <span id="drawer-target-field">Select a field</span>
+            <span class="badge badge-muted" id="drawer-field-badge">-</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btn-close-drawer" title="Close Drawer (Esc)">✕</button>
+        </div>
+
+        <div class="recon-drawer-tabs">
+          <button class="recon-drawer-tab-btn active" data-dtab="evidence" id="dtab-btn-evidence">Evidence</button>
+          <button class="recon-drawer-tab-btn" data-dtab="samples" id="dtab-btn-samples">Samples</button>
+          <button class="recon-drawer-tab-btn" data-dtab="ast" id="dtab-btn-ast">Transform AST</button>
+          <button class="recon-drawer-tab-btn" data-dtab="meta" id="dtab-btn-meta">Schema Meta</button>
+        </div>
+
+        <div class="recon-drawer-content" id="drawer-content-pane">
+          <!-- Evidence Tab -->
+          <div id="dtab-pane-evidence">
+            <div class="recon-drawer-section">
+              <div class="recon-drawer-section-title">Mapping Evidence Trace</div>
+              <div id="drawer-evidence-list" class="text-secondary" style="line-height: 1.6;">
+                Click any row in the Mapping Studio or Profile Matrix to inspect evidence.
+              </div>
+            </div>
+            <div class="recon-drawer-section">
+              <div class="recon-drawer-section-title">Heuristic Rule</div>
+              <div id="drawer-heuristic-rule" class="font-mono text-muted" style="font-size: 11px;">-</div>
+            </div>
+          </div>
+
+          <!-- Sample Values Tab (Before ⟷ After Morphing Diff Inspector) -->
+          <div id="dtab-pane-samples" class="hidden">
+            <div class="recon-drawer-section">
+              <div class="recon-drawer-section-title">Before ⟷ After Morphing Diff</div>
+              <div id="morphing-diff-view" class="morph-diff-container">
+                <!-- Interactive Scrub Slider -->
+                <div class="morph-scrub-wrap">
+                  <div class="morph-scrub-header">
+                    <span style="font-weight: 600; color: var(--recon-text-primary);">Interactive Morph Wipe</span>
+                    <span id="morph-scrub-pct" class="text-primary font-bold">50%</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="50" class="morph-scrub-slider" id="diff-scrub-input" aria-label="Before-After Diff Scrub" />
+                  <div class="morph-scrub-labels">
+                    <span>Source (Raw)</span>
+                    <span>Split Morph</span>
+                    <span>Target (Clean)</span>
+                  </div>
+                  <div class="morph-wipe-card" id="morph-wipe-card">
+                    <div class="morph-wipe-source" id="morph-wipe-source">Select a mapping</div>
+                    <div class="morph-wipe-target" id="morph-wipe-target" style="clip-path: inset(0 0 0 50%);">Select a mapping</div>
+                  </div>
+                </div>
+
+                <!-- Observed Sample Value Mutation Cards -->
+                <div class="recon-drawer-section-title" style="margin-top: 6px;">Sample Mutations</div>
+                <div id="drawer-samples-list"></div>
+              </div>
+            </div>
+            <div class="recon-drawer-section">
+              <div class="recon-drawer-section-title">Cardinality &amp; Nullity</div>
+              <div id="drawer-cardinality-meta" class="font-mono text-muted" style="font-size: 11px;"></div>
+            </div>
+          </div>
+
+          <!-- Transform AST Tab -->
+          <div id="dtab-pane-ast" class="hidden">
+            <div class="recon-drawer-section">
+              <div class="recon-drawer-section-title">Synthesized Transform Formula</div>
+              <pre id="drawer-ast-code" class="font-mono" style="background-color: var(--recon-bg-root); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--recon-border-subtle); font-size: 11px; overflow-x: auto; color: var(--recon-syntax-function);"></pre>
+            </div>
+          </div>
+
+          <!-- Schema Meta Tab -->
+          <div id="dtab-pane-meta" class="hidden">
+            <div class="recon-drawer-section">
+              <div class="recon-drawer-section-title">Target Schema Specification</div>
+              <div id="drawer-schema-meta" class="font-mono" style="font-size: 11px; line-height: 1.8;"></div>
+            </div>
           </div>
         </div>
-        <div class="card-body code-body">
-          <pre><code id="adapter-code-view"></code></pre>
-        </div>
-      </div>
-
-      <!-- Quarantined Records Table (if any) -->
-      <div class="card" id="quarantine-section">
-        <div class="card-header">
-          <h4>Quarantined Records &amp; Diagnostic Reasons</h4>
-          <span class="badge badge-quarantine" id="quarantine-count-badge">0 Records</span>
-        </div>
-        <div class="card-body">
-          <p class="section-sub">
-            These records violated target contract constraints (e.g. invalid date format, missing required keys, enum violation).
-            They were preserved in quarantine for remediation.
-          </p>
-          <div class="table-responsive">
-            <table class="recon-table" id="quarantine-table">
-              <thead>
-                <tr>
-                  <th>Row #</th>
-                  <th>Contract Violations</th>
-                  <th>Raw Record Data</th>
-                </tr>
-              </thead>
-              <tbody id="quarantine-tbody">
-                <!-- Populated via JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Downloadable Readiness Reports -->
-      <div class="card download-card">
-        <div class="card-header">
-          <h4>Download Readiness Package</h4>
-        </div>
-        <div class="card-body download-actions">
-          <a id="btn-download-md" class="btn btn-primary" href="#" download>
-            Download Readiness Report (Markdown .md)
-          </a>
-          <a id="btn-download-json" class="btn btn-secondary" href="#" download>
-            Download Machine-Readable Report (JSON)
-          </a>
-          <a id="btn-download-py" class="btn btn-outline" href="#" download>
-            Download Adapter Code (.py)
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container footer-content">
-      <span>Recon Engine — Verification Before Integration</span>
-      <span class="footer-dim">Deterministic | Auditable | Zero-Loss</span>
+      </aside>
     </div>
-  </footer>
 
-  <script src="app.js"></script>
+    <!-- ====================================================================
+         Floating Dynamic Health Island (Apple Dynamic Island / Control Center)
+         ==================================================================== -->
+    <div class="recon-dynamic-island" id="recon-dynamic-island">
+      <!-- Expanded Control Tray (macOS Control Center style) -->
+      <div class="island-expanded-tray hidden" id="island-expanded-tray">
+        <div class="island-tray-header">
+          <span class="island-tray-heading">Integration Health &amp; Pipeline Control</span>
+          <span class="badge badge-indigo" id="island-tray-step-badge">Step 01 / Ingest</span>
+        </div>
+        <div class="island-tray-grid">
+          <div class="island-card">
+            <span class="island-card-label">Yield Forecast</span>
+            <span class="island-card-val" id="island-tray-yield">- %</span>
+          </div>
+          <div class="island-card">
+            <span class="island-card-label">Mapped Fields</span>
+            <span class="island-card-val" id="island-tray-mapped">- / -</span>
+          </div>
+          <div class="island-card">
+            <span class="island-card-label">Blockers / Risks</span>
+            <span class="island-card-val" id="island-tray-risks">0</span>
+          </div>
+          <div class="island-card">
+            <span class="island-card-label">Quarantine Yield</span>
+            <span class="island-card-val" id="island-tray-quarantine">0 Records</span>
+          </div>
+        </div>
+        <div class="island-tray-actions">
+          <button class="btn btn-secondary btn-sm" id="island-btn-step-jump">Jump to Step</button>
+          <button class="btn btn-primary btn-sm" id="island-btn-tray-primary">Next Action →</button>
+        </div>
+      </div>
+
+      <!-- Compact Resting Capsule -->
+      <div class="island-pill" id="island-pill-trigger" role="button" tabindex="0" title="Click to expand Preflight Control Center">
+        <div class="island-indicator">
+          <span class="island-dot" id="island-status-dot"></span>
+          <span class="island-title" id="island-status-title">Preflight Ready</span>
+        </div>
+        <div class="island-divider"></div>
+        <div class="island-stats" id="island-status-stats">
+          <span class="island-stat-metric" id="island-metric-text">Stage data to assess</span>
+        </div>
+        <div class="island-action-area">
+          <button type="button" class="island-quick-btn" id="island-primary-action">
+            <span id="island-btn-icon">→</span>
+            <span id="island-btn-text">Assess</span>
+          </button>
+          <span class="island-expand-chevron" id="island-expand-chevron">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 8 6 4 10 8"/></svg>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         5. Status Bar
+         ==================================================================== -->
+    <footer class="recon-status-bar" aria-label="Engine Status Bar">
+      <div class="recon-status-item">
+        <span>Engine: <strong style="color: var(--recon-text-primary);">Local v0.1.0</strong></span>
+        <span>|</span>
+        <span class="text-emerald">● Tests: 153 Passing</span>
+        <span>|</span>
+        <span>Memory: Ephemeral Sandbox</span>
+      </div>
+      <div class="recon-status-item">
+        <span class="text-muted" style="font-size: 11px; font-family: var(--font-mono);">Integration Readiness Engine</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ====================================================================
+       Modals: Shortcuts, Reset Confirmation, Session Expired
+       ==================================================================== -->
+
+  <!-- Reset Confirmation Modal -->
+  <div class="recon-modal-backdrop hidden" id="modal-reset-session">
+    <div class="recon-modal">
+      <h3 class="recon-modal-title text-rose">Purge Session &amp; Reset Workspace?</h3>
+      <p class="text-secondary" style="font-size: 13px; margin-bottom: 12px;">
+        This action will permanently delete all in-memory evaluation records, staged files, approved mappings, and generated adapter code from local ephemeral memory.
+      </p>
+      <div class="recon-modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-reset">Cancel</button>
+        <button class="btn btn-danger" id="btn-confirm-reset">Confirm Purge</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       Apple-Style Command Palette (⌘K / Ctrl+K)
+       ==================================================================== -->
+  <div class="recon-palette-backdrop hidden" id="modal-command-palette" role="dialog" aria-modal="true" aria-label="Command Palette">
+    <div class="recon-palette-container" id="command-palette-card">
+      <div class="recon-palette-search-bar">
+        <span class="recon-palette-search-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input type="text" id="palette-search-input" class="recon-palette-input" placeholder="Type a command, field, or action... (e.g. 'map', 'invoice_id', 'b2b')" autocomplete="off" spellcheck="false">
+        <kbd class="recon-palette-esc-badge" id="btn-close-palette" title="Close (Esc)">ESC</kbd>
+      </div>
+      <div class="recon-palette-results" id="palette-results-list" role="listbox">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+      <div class="recon-palette-footer">
+        <div class="recon-palette-footer-item">
+          <kbd>↑</kbd><kbd>↓</kbd> <span>Navigate</span>
+        </div>
+        <div class="recon-palette-footer-item">
+          <kbd>↵</kbd> <span>Select</span>
+        </div>
+        <div class="recon-palette-footer-item">
+          <kbd>ESC</kbd> <span>Dismiss</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="recon-modal-backdrop hidden" id="modal-shortcuts">
+    <div class="recon-modal">
+      <h3 class="recon-modal-title">Keyboard Navigation &amp; Shortcuts</h3>
+      <table class="recon-table" style="margin-top: 10px;">
+        <tbody>
+          <tr>
+            <td><kbd>Ctrl</kbd> + <kbd>K</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd></td>
+            <td>Open Command Palette (Quick Actions, Field Search, Navigation)</td>
+          </tr>
+          <tr>
+            <td><kbd>J</kbd> / <kbd>K</kbd> or <kbd>↓</kbd> / <kbd>↑</kbd></td>
+            <td>Navigate table rows in Mapping Studio and Quarantine Ledger</td>
+          </tr>
+          <tr>
+            <td><kbd>Enter</kbd></td>
+            <td>Open Contextual Inspector for selected row</td>
+          </tr>
+          <tr>
+            <td><kbd>Esc</kbd></td>
+            <td>Close open drawer or dismiss modal</td>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl</kbd> + <kbd>Enter</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></td>
+            <td>Advance workflow or trigger primary action</td>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl</kbd> + <kbd>1..7</kbd> / <kbd>⌘</kbd> + <kbd>1..7</kbd></td>
+            <td>Jump directly to unlocked workflow step (01 to 07)</td>
+          </tr>
+          <tr>
+            <td><kbd>G</kbd></td>
+            <td>Toggle Interactive Workflow Guide &amp; UI Tour</td>
+          </tr>
+          <tr>
+            <td><kbd>I</kbd></td>
+            <td>Toggle Contextual Inspector Sidecar Drawer</td>
+          </tr>
+          <tr>
+            <td><kbd>?</kbd></td>
+            <td>Toggle this keyboard shortcuts dialog</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="recon-modal-footer">
+        <button class="btn btn-primary" id="btn-close-shortcuts">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Expired Modal (S18) -->
+  <div class="recon-modal-backdrop hidden" id="modal-session-lost">
+    <div class="recon-modal">
+      <h3 class="recon-modal-title text-rose">Session Expired (S18)</h3>
+      <p class="text-secondary" style="font-size: 13px; margin-bottom: 12px;">
+        In-memory session was cleared by server restart or memory purge. Staged files and mapping decisions must be re-initialized.
+      </p>
+      <div class="recon-modal-footer">
+        <button class="btn btn-primary" onclick="window.location.reload()">Reload Workspace</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       Interactive Workflow Guide Modal & Floating Tour Spotlight
+       ==================================================================== -->
+
+  <!-- Interactive Workflow Guide Modal -->
+  <div class="recon-modal-backdrop hidden" id="modal-guide">
+    <div class="recon-guide-modal" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
+      <div class="recon-guide-header">
+        <div class="recon-guide-title" id="guide-modal-title">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-primary-base);"><circle cx="8" cy="8" r="6"/><polygon points="8,4.5 9.5,8 8,11.5 6.5,8" fill="currentColor"/></svg>
+          <span>RECON // Interactive Architecture Guide &amp; Walkthrough</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-guide-spotlight-toggle" title="Spotlight this step on the live screen">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg> Spotlight on Screen
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-close-guide" aria-label="Close guide modal">✕</button>
+        </div>
+      </div>
+
+      <nav class="recon-guide-stepper" id="guide-stepper-tabs" aria-label="Guide Steps">
+        <button class="recon-guide-step-btn active" data-gstep="1">01 INGEST</button>
+        <button class="recon-guide-step-btn" data-gstep="2">02 PROFILE</button>
+        <button class="recon-guide-step-btn" data-gstep="3">03 MAP</button>
+        <button class="recon-guide-step-btn" data-gstep="4">04 AUDIT</button>
+        <button class="recon-guide-step-btn" data-gstep="5">05 ADAPTER</button>
+        <button class="recon-guide-step-btn" data-gstep="6">06 VALIDATE</button>
+        <button class="recon-guide-step-btn" data-gstep="7">07 DOSSIER</button>
+      </nav>
+
+      <div class="recon-guide-body">
+        <div class="recon-guide-step-heading">
+          <h4 class="recon-guide-step-name" id="guide-step-name">01 Dual-Port Ingest Cockpit</h4>
+          <span class="badge badge-indigo" id="guide-step-badge">Port 1 &amp; Port 2</span>
+        </div>
+
+        <p class="recon-guide-desc" id="guide-step-desc">
+          Stage raw unfamiliar source data (CSV/JSON) on the left, and your target schema contract on the right. Recon pre-flights both files instantly before running any transformations.
+        </p>
+
+        <div class="recon-guide-cards-grid" id="guide-cards-grid">
+          <!-- Dynamically populated or updated based on step -->
+        </div>
+
+        <div id="guide-step-action-box" style="display: flex; align-items: center; justify-content: space-between; background-color: var(--recon-bg-subtle); border: 1px solid var(--recon-border-default); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 6px;">
+          <div style="font-size: 11px; color: var(--recon-text-secondary);" id="guide-action-hint">
+            Ready to test the pipeline with real fixtures?
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-guide-quick-demo">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="8 1 10 5.5 15 6.5 11.5 10 12.5 15 8 12.5 3.5 15 4.5 10 1 6.5 6 5.5 8 1"/></svg> Quick-Load Demo Fixtures
+          </button>
+        </div>
+      </div>
+
+      <div class="recon-guide-footer">
+        <div class="recon-guide-dots" id="guide-dots-container">
+          <span class="recon-guide-dot active" data-gstep="1"></span>
+          <span class="recon-guide-dot" data-gstep="2"></span>
+          <span class="recon-guide-dot" data-gstep="3"></span>
+          <span class="recon-guide-dot" data-gstep="4"></span>
+          <span class="recon-guide-dot" data-gstep="5"></span>
+          <span class="recon-guide-dot" data-gstep="6"></span>
+          <span class="recon-guide-dot" data-gstep="7"></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-guide-prev">← Previous</button>
+          <button class="btn btn-primary btn-sm" id="btn-guide-next">Next Step →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Spotlight Tour Card (Docked Widget) -->
+  <div class="recon-guide-floating-card hidden" id="recon-guide-floating-card">
+    <div class="recon-guide-floating-header">
+      <span class="recon-guide-floating-title" id="tour-floating-step">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-primary-base);"><circle cx="8" cy="8" r="6"/><polygon points="8,4.5 9.5,8 8,11.5 6.5,8" fill="currentColor"/></svg> <span id="tour-floating-step-label">01 INGEST</span>
+      </span>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <button class="btn btn-ghost btn-sm" id="btn-tour-expand" title="Expand Full Guide" style="padding: 2px 6px; font-size: 10px;">↗</button>
+        <button class="btn btn-ghost btn-sm" id="btn-tour-close" title="Close Tour" style="padding: 2px 6px; font-size: 10px;">✕</button>
+      </div>
+    </div>
+    <div class="recon-guide-floating-desc" id="tour-floating-desc">
+      Stage raw source data (CSV/JSON) and target schema contract.
+    </div>
+    <div class="recon-guide-floating-actions">
+      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--recon-text-muted);" id="tour-floating-counter">
+        Step 1 of 7
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="btn btn-secondary btn-sm" id="btn-tour-prev" style="padding: 3px 8px; font-size: 10px;">← Prev</button>
+        <button class="btn btn-primary btn-sm" id="btn-tour-next" style="padding: 3px 8px; font-size: 10px;">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=5.4"></script>
 </body>
 </html>

@@ -52,10 +52,11 @@ def generate_adapter(
         pattern = target_field.pattern
         trans_rule = mapping.transformation_rule or ""
 
+        var_name = re.sub(r"[^a-zA-Z0-9_]", "_", target_name)
         block = [f"    # Target: {target_name} <- Source: '{src_field}'"]
-        block.append(f"    raw_val_{target_name} = record.get('{src_field}')")
-        block.append(f"    val_{target_name} = str(raw_val_{target_name}).strip() if raw_val_{target_name} is not None else ''")
-        block.append(f"    if raw_val_{target_name} is None or val_{target_name}.lower() in ('', 'null', 'none', 'nan', 'n/a'):")
+        block.append(f"    raw_val_{var_name} = record.get('{src_field}')")
+        block.append(f"    val_{var_name} = str(raw_val_{var_name}).strip() if raw_val_{var_name} is not None else ''")
+        block.append(f"    if raw_val_{var_name} is None or val_{var_name}.lower() in ('', 'null', 'none', 'nan', 'n/a'):")
         if req and not nullable:
             block.append(f"        errors.append(\"Required non-nullable field '{target_name}' is missing or null (source '{src_field}')\")")
             block.append(f"        output['{target_name}'] = None")
@@ -69,36 +70,36 @@ def generate_adapter(
         # Parse / Transform non-null value
         if tgt_type == ContractType.STRING:
             if "uppercase" in trans_rule or (allowed_vals and any(v.isupper() for v in allowed_vals)):
-                block.append(f"        parsed_{target_name} = val_{target_name}.upper()")
+                block.append(f"        parsed_{var_name} = val_{var_name}.upper()")
             else:
-                block.append(f"        parsed_{target_name} = val_{target_name}")
+                block.append(f"        parsed_{var_name} = val_{var_name}")
 
             # Enum validation
             if allowed_vals:
                 allowed_repr = repr(allowed_vals)
-                block.append(f"        if parsed_{target_name} not in {allowed_repr}:")
-                block.append(f"            errors.append(f\"Value '{{parsed_{target_name}}}' for '{target_name}' not in allowed values {allowed_repr}\")")
+                block.append(f"        if parsed_{var_name} not in {allowed_repr}:")
+                block.append(f"            errors.append(f\"Value '{{parsed_{var_name}}}' for '{target_name}' not in allowed values {allowed_repr}\")")
 
             # Regex pattern validation
             if pattern:
                 pattern_repr = repr(pattern)
-                block.append(f"        if not re.match({pattern_repr}, parsed_{target_name}):")
-                block.append(f"            errors.append(f\"Value '{{parsed_{target_name}}}' for '{target_name}' does not match pattern \" + {pattern_repr})")
+                block.append(f"        if not re.match({pattern_repr}, parsed_{var_name}):")
+                block.append(f"            errors.append(f\"Value '{{parsed_{var_name}}}' for '{target_name}' does not match pattern \" + {pattern_repr})")
 
-            block.append(f"        output['{target_name}'] = parsed_{target_name}")
+            block.append(f"        output['{target_name}'] = parsed_{var_name}")
 
         elif tgt_type == ContractType.INTEGER:
             block.append("        try:")
-            block.append(f"            output['{target_name}'] = int(raw_val_{target_name}) if isinstance(raw_val_{target_name}, (int, float)) and not isinstance(raw_val_{target_name}, bool) else int(val_{target_name})")
+            block.append(f"            output['{target_name}'] = int(raw_val_{var_name}) if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool) else int(val_{var_name})")
             block.append("        except (ValueError, TypeError):")
-            block.append(f"            errors.append(f\"Cannot parse integer for '{target_name}' from '{{raw_val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse integer for '{target_name}' from '{{raw_val_{var_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.FLOAT:
             block.append("        try:")
-            block.append(f"            output['{target_name}'] = float(raw_val_{target_name}) if isinstance(raw_val_{target_name}, (int, float)) and not isinstance(raw_val_{target_name}, bool) else float(val_{target_name})")
+            block.append(f"            output['{target_name}'] = float(raw_val_{var_name}) if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool) else float(val_{var_name})")
             block.append("        except (ValueError, TypeError):")
-            block.append(f"            errors.append(f\"Cannot parse float for '{target_name}' from '{{raw_val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse float for '{target_name}' from '{{raw_val_{var_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.DATETIME:
@@ -111,21 +112,21 @@ def generate_adapter(
                     fmt = match.group(1)
 
             block.append("        try:")
-            block.append(f"            dt = datetime.strptime(val_{target_name}, '{fmt}')")
+            block.append(f"            dt = datetime.strptime(val_{var_name}, '{fmt}')")
             block.append(f"            output['{target_name}'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')")
             block.append("        except (ValueError, TypeError):")
-            block.append(f"            errors.append(f\"Cannot parse datetime for '{target_name}' using format '{fmt}' from '{{val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse datetime for '{target_name}' using format '{fmt}' from '{{val_{var_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         elif tgt_type == ContractType.BOOLEAN:
-            block.append(f"        if isinstance(raw_val_{target_name}, bool):")
-            block.append(f"            output['{target_name}'] = raw_val_{target_name}")
-            block.append(f"        elif val_{target_name}.lower() in ('true', 'yes', '1', 't'):")
+            block.append(f"        if isinstance(raw_val_{var_name}, bool):")
+            block.append(f"            output['{target_name}'] = raw_val_{var_name}")
+            block.append(f"        elif val_{var_name}.lower() in ('true', 'yes', '1', 't'):")
             block.append(f"            output['{target_name}'] = True")
-            block.append(f"        elif val_{target_name}.lower() in ('false', 'no', '0', 'f'):")
+            block.append(f"        elif val_{var_name}.lower() in ('false', 'no', '0', 'f'):")
             block.append(f"            output['{target_name}'] = False")
             block.append("        else:")
-            block.append(f"            errors.append(f\"Cannot parse boolean for '{target_name}' from '{{raw_val_{target_name}}}'\")")
+            block.append(f"            errors.append(f\"Cannot parse boolean for '{target_name}' from '{{raw_val_{var_name}}}'\")")
             block.append(f"            output['{target_name}'] = None")
 
         field_code_blocks.append("\n".join(block))

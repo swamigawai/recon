@@ -1,0 +1,73 @@
+{
+  "valid_records_count": 4,
+  "quarantined_records_count": 4,
+  "total_records_count": 8,
+  "valid_records": [
+    {
+      "sku_barcode": "SKU-100200",
+      "warehouse_zone": "WH-01",
+      "audit_timestamp": "2024-11-01T08:00:00Z",
+      "expected_quantity": 50,
+      "counted_quantity": 50,
+      "discrepancy_category": "MATCHED",
+      "reconciled_flag": true,
+      "auditor_comments": "All counts verified"
+    },
+    {
+      "sku_barcode": "SKU-100201",
+      "warehouse_zone": "WH-02",
+      "audit_timestamp": "2024-11-01T08:30:00Z",
+      "expected_quantity": 100,
+      "counted_quantity": 95,
+      "discrepancy_category": "DAMAGED",
+      "reconciled_flag": false,
+      "auditor_comments": "5 units broken in aisle"
+    },
+    {
+      "sku_barcode": "SKU-100202",
+      "warehouse_zone": "WH-03",
+      "audit_timestamp": "2024-11-01T09:00:00Z",
+      "expected_quantity": 200,
+      "counted_quantity": 198,
+      "discrepancy_category": "SHRINKAGE",
+      "reconciled_flag": true,
+      "auditor_comments": null
+    },
+    {
+      "sku_barcode": "SKU-100203",
+      "warehouse_zone": "WH-04",
+      "audit_timestamp": "2024-11-01T09:30:00Z",
+      "expected_quantity": 10,
+      "counted_quantity": 10,
+      "discrepancy_category": "MATCHED",
+      "reconciled_flag": true,
+      "auditor_comments": "None of the cartons were opened"
+    }
+  ],
+  "quarantined_fault_ledger": [
+    {
+      "record_index": 5,
+      "fault": "Missing required sku_barcode",
+      "error_code": "ERR_REQUIRED_FIELD_MISSING",
+      "expected_error_substring": "Required non-nullable field 'sku_barcode' is missing or null"
+    },
+    {
+      "record_index": 6,
+      "fault": "Pattern violation on warehouse_zone 'ZONE_A'",
+      "error_code": "ERR_PATTERN_VIOLATION",
+      "expected_error_substring": "does not match pattern"
+    },
+    {
+      "record_index": 7,
+      "fault": "Non-integer value 'twenty' in counted_quantity",
+      "error_code": "ERR_TYPE_CONVERSION",
+      "expected_error_substring": "Cannot parse integer for 'counted_quantity'"
+    },
+    {
+      "record_index": 8,
+      "fault": "Illegal discrepancy_category enum value STOLEN_MYSTERY",
+      "error_code": "ERR_ENUM_VIOLATION",
+      "expected_error_substring": "not in allowed values"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "contract_name": "target_contract_subscription_billing",
+  "version": "1.0.0",
+  "description": "Standardized B2B SaaS subscription lifecycle and recurring revenue contract",
+  "fields": {
+    "subscription_id": {
+      "name": "subscription_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^SUB-[A-Z0-9]{6,12}$",
+      "description": "Unique subscription contract token"
+    },
+    "customer_account_id": {
+      "name": "customer_account_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^CUST-[0-9]{5,8}$",
+      "description": "Master customer account reference identifier"
+    },
+    "plan_tier": {
+      "name": "plan_tier",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "FREE",
+        "STARTER",
+        "PROFESSIONAL",
+        "ENTERPRISE"
+      ],
+      "description": "Subscription pricing tier"
+    },
+    "billing_interval": {
+      "name": "billing_interval",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "MONTHLY",
+        "ANNUAL"
+      ],
+      "description": "Recurring billing cadence"
+    },
+    "mrr_amount": {
+      "name": "mrr_amount",
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Normalized Monthly Recurring Revenue in decimal currency"
+    },
+    "renewal_date": {
+      "name": "renewal_date",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 timestamp of next contract renewal"
+    },
+    "auto_renew": {
+      "name": "auto_renew",
+      "target_type": "boolean",
+      "required": true,
+      "nullable": false,
+      "description": "Boolean flag indicating whether subscription automatically renews"
+    },
+    "cancellation_reason": {
+      "name": "cancellation_reason",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Optional notes or reason for contract churn"
+    }
+  }
+}

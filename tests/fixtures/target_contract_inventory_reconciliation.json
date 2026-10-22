@@ -1,0 +1,71 @@
+{
+  "contract_name": "target_contract_inventory_reconciliation",
+  "version": "1.0.0",
+  "description": "Standardized warehouse inventory reconciliation and stock variance contract",
+  "fields": {
+    "sku_barcode": {
+      "name": "sku_barcode",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^SKU-[0-9]{6,10}$",
+      "description": "Unique warehouse stock keeping unit barcode"
+    },
+    "warehouse_zone": {
+      "name": "warehouse_zone",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z]{2}-[0-9]{2}$",
+      "description": "Zone and aisle code for warehouse location"
+    },
+    "audit_timestamp": {
+      "name": "audit_timestamp",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 audit timestamp"
+    },
+    "expected_quantity": {
+      "name": "expected_quantity",
+      "target_type": "integer",
+      "required": true,
+      "nullable": false,
+      "description": "System book quantity on record"
+    },
+    "counted_quantity": {
+      "name": "counted_quantity",
+      "target_type": "integer",
+      "required": true,
+      "nullable": false,
+      "description": "Physical counted quantity from inventory audit"
+    },
+    "discrepancy_category": {
+      "name": "discrepancy_category",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "MATCHED",
+        "DAMAGED",
+        "SHRINKAGE",
+        "MISPLACED"
+      ],
+      "description": "Classification category for stock variance"
+    },
+    "reconciled_flag": {
+      "name": "reconciled_flag",
+      "target_type": "boolean",
+      "required": true,
+      "nullable": false,
+      "description": "Boolean flag indicating whether difference is approved and resolved"
+    },
+    "auditor_comments": {
+      "name": "auditor_comments",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Optional notes from stock auditor"
+    }
+  }
+}

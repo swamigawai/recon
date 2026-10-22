@@ -1,0 +1,9 @@
+consignment_ref,airline_code,departure_port,arrival_port,cargo_weight,dispatch_datetime,hazardous_goods,clearance_status,handling_notes,pilot_license_number
+AWB-12345678,BA,LHR,JFK,1250.50,2024-12-01T12:00:00Z,false,CLEARED,Fragile medical equipment,PL-998
+AWB-87654321,EK,DXB,BOM,420.00,2024-12-01T15:30:00Z,true,inspection_required,Dry ice containers,PL-112
+AWB-11223344,SQ,SIN,SYD,85.25,2024-12-01T18:00:00Z,false,CLEARED,,PL-345
+AWB-55667788,LH,FRA,ORD,3100.00,2024-12-01T21:15:00Z,false,CLEARED,Not Applicable - general dry cargo,PL-678
+,AF,CDG,NRT,500.00,2024-12-02T01:00:00Z,false,CLEARED,Missing waybill reference,PL-901
+AWB-99887766,CX,LONDON,HKG,650.00,2024-12-02T03:30:00Z,false,CLEARED,Pattern mismatch in origin port,PL-234
+AWB-44332211,QR,DOH,CPT,ONE_TON,2024-12-02T06:00:00Z,false,CLEARED,Non-float cargo weight,PL-567
+AWB-66778899,JL,HND,LAX,800.00,2024-12-02T09:00:00Z,false,CONFISCATED,Illegal enum clearance status,PL-890

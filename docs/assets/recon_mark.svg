@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Recon Mark">
+  <title>Recon Mark</title>
+  <defs>
+    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background Badge -->
+  <rect width="48" height="48" rx="12" fill="#0B0F19" />
+  <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="11.25" fill="none" stroke="#1E293B" stroke-width="1.5" />
+  
+  <!-- Lineage Grid Trace -->
+  <path d="M 12 24 L 21 15 L 30 24 L 21 33 Z" fill="none" stroke="url(#markGrad)" stroke-width="3" stroke-linejoin="round" />
+  <line x1="30" y1="24" x2="38" y2="24" stroke="#10B981" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Verification Checkpoints -->
+  <circle cx="12" cy="24" r="3.5" fill="#6366F1" />
+  <circle cx="21" cy="15" r="3" fill="#818CF8" />
+  <circle cx="21" cy="33" r="3" fill="#06B6D4" />
+  <circle cx="30" cy="24" r="3.5" fill="#10B981" />
+  <circle cx="38" cy="24" r="2.5" fill="#34D399" />
+</svg>

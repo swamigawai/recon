@@ -1,0 +1,116 @@
+{
+  "s01_missing_required": {
+    "scenario_id": "s01_missing_required",
+    "description": "Source dataset completely lacks mandatory transaction_id field.",
+    "hazard_type": "MISSING_REQUIRED_FIELD",
+    "expected_preflight_verdict": "BLOCKED",
+    "expected_unmapped_required": [
+      "transaction_id"
+    ],
+    "expected_valid_count": 0,
+    "expected_quarantine_count": 5,
+    "total_records": 5
+  },
+  "s02_ambiguous_mapping": {
+    "scenario_id": "s02_ambiguous_mapping",
+    "description": "Source data provides multiple candidate postal codes (billing vs shipping).",
+    "hazard_type": "AMBIGUOUS_MAPPING",
+    "expected_preflight_verdict": "BLOCKED",
+    "expected_ambiguous_target": [
+      "postal_code"
+    ],
+    "total_records": 3
+  },
+  "s03_incompatible_types": {
+    "scenario_id": "s03_incompatible_types",
+    "description": "Non-numeric string values in mandatory float column.",
+    "hazard_type": "TYPE_INCOMPATIBILITY",
+    "expected_valid_count": 3,
+    "expected_quarantine_count": 2,
+    "total_records": 5,
+    "expected_quarantine_codes": [
+      "ERR_TYPE_CONVERSION"
+    ]
+  },
+  "s04_enum_mismatch": {
+    "scenario_id": "s04_enum_mismatch",
+    "description": "Casing differences and disallowed enum states in status field.",
+    "hazard_type": "ENUM_VIOLATION",
+    "expected_valid_count": 3,
+    "expected_quarantine_count": 2,
+    "total_records": 5,
+    "expected_quarantine_codes": [
+      "ERR_ENUM_VIOLATION"
+    ]
+  },
+  "s05_leading_zeros": {
+    "scenario_id": "s05_leading_zeros",
+    "description": "5-digit postal or badge codes with leading zeros must not be cast to integers.",
+    "hazard_type": "LEADING_ZERO_TRUNCATION",
+    "expected_valid_count": 4,
+    "expected_quarantine_count": 0,
+    "total_records": 4,
+    "expected_string_values": [
+      "00123",
+      "09876",
+      "00001",
+      "00042"
+    ]
+  },
+  "s06_decimal_precision": {
+    "scenario_id": "s06_decimal_precision",
+    "description": "High-precision financial floats must not suffer premature rounding truncation.",
+    "hazard_type": "PRECISION_LOSS",
+    "expected_valid_count": 3,
+    "expected_quarantine_count": 0,
+    "total_records": 3,
+    "expected_float_values": [
+      1.082456,
+      1.234e-05,
+      99999999.98765431
+    ]
+  },
+  "s07_duplicate_records": {
+    "scenario_id": "s07_duplicate_records",
+    "description": "Duplicate rows must be detected during profiling without being silently dropped.",
+    "hazard_type": "DUPLICATE_RECORDS",
+    "expected_duplicates_profiled": 1,
+    "expected_valid_count": 4,
+    "expected_quarantine_count": 0,
+    "total_records": 4
+  },
+  "s08_nested_dotted": {
+    "scenario_id": "s08_nested_dotted",
+    "description": "Supported dotted field namespaces for nested target payloads.",
+    "hazard_type": "SUPPORTED_NESTED_STRUCTURE",
+    "expected_valid_count": 3,
+    "expected_quarantine_count": 0,
+    "total_records": 3
+  },
+  "s09_unsupported_complex": {
+    "scenario_id": "s09_unsupported_complex",
+    "description": "Unsupported schema constructs must trigger clear ContractError diagnostics.",
+    "hazard_type": "UNSUPPORTED_STRUCTURE",
+    "expected_preflight_verdict": "ERROR",
+    "expected_error_diagnostic": "Invalid target_type"
+  },
+  "s10_schema_drift": {
+    "scenario_id": "s10_schema_drift",
+    "description": "Previously working integration breaks when upstream contract adds required field.",
+    "hazard_type": "SCHEMA_DRIFT",
+    "expected_preflight_verdict": "BLOCKED",
+    "expected_unmapped_required": [
+      "regulatory_code"
+    ],
+    "total_records": 2
+  },
+  "s11_clean_valid": {
+    "scenario_id": "s11_clean_valid",
+    "description": "Completely conforming dataset must pass with 0 false alarms and exit code 0.",
+    "hazard_type": "CLEAN_CONFORMING",
+    "expected_preflight_verdict": "PASS",
+    "expected_valid_count": 5,
+    "expected_quarantine_count": 0,
+    "total_records": 5
+  }
+}

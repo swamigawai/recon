@@ -1,0 +1,14 @@
+[
+  {
+    "item_id": "ITM1",
+    "discount_notes": "VIP Client"
+  },
+  {
+    "item_id": "ITM2",
+    "discount_notes": null
+  },
+  {
+    "item_id": "ITM3",
+    "discount_notes": "NULL"
+  }
+]

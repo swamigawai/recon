@@ -30,6 +30,22 @@ def test_health_check(client: TestClient) -> None:
     assert "Recon" in data["engine"]
 
 
+def test_static_frontend_assets_served(client: TestClient) -> None:
+    """Verifies static frontend shell and assets are served by FastAPI."""
+    res_root = client.get("/")
+    assert res_root.status_code == 200
+    assert "RECON // 01" in res_root.text
+    assert "Contextual Inspector" in res_root.text
+
+    res_css = client.get("/style.css")
+    assert res_css.status_code == 200
+    assert "--recon-bg-root" in res_css.text
+
+    res_js = client.get("/app.js")
+    assert res_js.status_code == 200
+    assert "initShell" in res_js.text
+
+
 def test_sample_catalogs(client: TestClient) -> None:
     """Verifies sample contracts and datasets enumeration endpoints."""
     res_c = client.get("/api/sample-contracts")
@@ -264,6 +280,18 @@ def test_download_endpoints(client: TestClient) -> None:
     assert "def transform_dataset(" in res_py.text
     assert "attachment; filename=" in res_py.headers["content-disposition"]
 
+    # 4. Download Valid Records (.jsonl)
+    res_valid = client.get(f"/api/download/valid-records/{session_id}")
+    assert res_valid.status_code == 200
+    assert res_valid.headers["content-type"].startswith("application/x-jsonlines")
+    valid_lines = [line for line in res_valid.text.strip().split("\n") if line.strip()]
+    assert len(valid_lines) == 10  # all 10 valid records exported, not truncated to 3 sample records
+
+    # 5. Download Quarantine Records (.jsonl)
+    res_quarantine = client.get(f"/api/download/quarantine-records/{session_id}")
+    assert res_quarantine.status_code == 200
+    assert res_quarantine.headers["content-type"].startswith("application/x-jsonlines")
+
 
 def test_invalid_requests(client: TestClient) -> None:
     """Verifies error handling on bad requests."""
@@ -430,4 +458,341 @@ def test_session_lifecycle_and_deletion(client: TestClient) -> None:
     # Subsequent access fails with 404
     res_retry = client.get(f"/api/download/report/{sid}?format=md")
     assert res_retry.status_code == 404
+
+
+def test_mapping_spec_download_and_upload(client: TestClient) -> None:
+    """Verifies exporting and re-uploading mapping specifications via API."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
+    sid = res_assess.json()["session_id"]
+
+    # 1. Download mapping spec
+    res_dl = client.get(f"/api/download/mapping-spec/{sid}")
+    assert res_dl.status_code == 200
+    spec_data = res_dl.json()
+    assert spec_data["schema_version"] == "1.0"
+    assert spec_data["contract_name"] == "service_request_target_contract"
+    assert len(spec_data["mappings"]) > 0
+
+    # 2. Upload spec back to active session
+    res_up = client.post(
+        "/api/upload-mapping-spec",
+        data={"session_id": sid, "spec_json": json.dumps(spec_data)},
+    )
+    assert res_up.status_code == 200
+    up_data = res_up.json()
+    assert up_data["validation_result"]["is_valid"] is True
+    assert up_data["validation_result"]["reused_count"] > 0
+    assert up_data["validation_result"]["contract_match"] is True
+
+    # Check human approval requirement: required fields must NOT be silently auto-approved!
+    ticket_prop = next(p for p in up_data["proposals_summary"] if p["target_field"] == "ticket_id")
+    assert ticket_prop["status"] == "proposed"
+
+
+def test_standard_contract_ingestion_api(client: TestClient) -> None:
+    """Verifies that JSON Schema and OpenAPI contracts can be uploaded directly via /api/assess."""
+    json_schema_contract = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "UniversalCustomer",
+        "type": "object",
+        "required": ["customer_id", "email"],
+        "properties": {
+            "customer_id": {"type": "string"},
+            "email": {"type": "string", "format": "email"},
+            "age": {"type": "integer"},
+        },
+    }
+
+    res = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "contract_text": json.dumps(json_schema_contract),
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["contract"]["contract_name"] == "UniversalCustomer"
+    assert "customer_id" in [p["target_field"] for p in data["proposals"]]
+
+
+def test_interactive_mapping_scenario_1_straightforward_1to1(client: TestClient) -> None:
+    """Verifies scenario 1: Straightforward 1-to-1 mapping assignment."""
+    res = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res.status_code == 200
+    sid = res.json()["session_id"]
+
+    # Reassign ticket_id explicitly to Unique Key
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={
+            "session_id": sid,
+            "reviewer": "qa_verifier",
+            "overrides": {"ticket_id": "Unique Key"},
+        },
+    )
+    assert res_approve.status_code == 200
+    data = res_approve.json()
+    assert data["validation"]["all_tests_passed"] is True
+    assert "ticket_id" in data["adapter"]["python_code"]
+    assert "Unique Key" in data["adapter"]["python_code"]
+
+
+def test_interactive_mapping_scenario_2_transformation_required(client: TestClient) -> None:
+    """Verifies scenario 2: Mapping requiring a transformation (e.g. date parsing or cast)."""
+    res = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res.status_code == 200
+    sid = res.json()["session_id"]
+
+    # created_at requires datetime transformation
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={
+            "session_id": sid,
+            "reviewer": "qa_verifier",
+            "overrides": {"created_at": "Created Date"},
+        },
+    )
+    assert res_approve.status_code == 200
+    data = res_approve.json()
+    assert "created_at" in data["adapter"]["python_code"]
+
+
+def test_interactive_mapping_scenario_3_ambiguous_source_selection(client: TestClient) -> None:
+    """Verifies scenario 3: Ambiguous source selection resolved by explicit human choice."""
+    contract = {
+        "contract_name": "ambiguity_contract",
+        "version": "1.0.0",
+        "fields": {
+            "incident_code": {
+                "name": "incident_code",
+                "target_type": "string",
+                "required": True,
+                "description": "Unique incident identifier",
+            },
+        },
+    }
+    res = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "contract_text": json.dumps(contract),
+        },
+    )
+    assert res.status_code == 200
+    sid = res.json()["session_id"]
+
+    # In absence of exact match, user manually disambiguates and assigns 'Complaint Type'
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={
+            "session_id": sid,
+            "reviewer": "qa_verifier",
+            "overrides": {"incident_code": "Complaint Type"},
+        },
+    )
+    assert res_approve.status_code == 200
+    data = res_approve.json()
+    assert data["validation"]["all_tests_passed"] is True
+    assert "Complaint Type" in data["adapter"]["python_code"]
+
+
+def test_interactive_mapping_scenario_4_missing_required_blocks_approval(client: TestClient) -> None:
+    """Verifies scenario 4: Required target field with no valid source blocks approval."""
+    contract = {
+        "contract_name": "strict_required_contract",
+        "version": "1.0.0",
+        "fields": {
+            "mandatory_unmapped_token": {
+                "name": "mandatory_unmapped_token",
+                "target_type": "string",
+                "required": True,
+                "description": "Field that does not exist in source data",
+            },
+        },
+    }
+    res = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "contract_text": json.dumps(contract),
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["has_unresolved_required"] is True
+    sid = data["session_id"]
+
+    # Attempting to approve without mapping the required field must fail with 400
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={"session_id": sid, "reviewer": "qa_verifier", "overrides": {}},
+    )
+    assert res_approve.status_code == 400
+    err = res_approve.json()
+    assert "Cannot approve required target field" in err["detail"] or "required" in err["detail"].lower()
+
+
+def test_interactive_mapping_scenario_5_duplicate_source_assignment(client: TestClient) -> None:
+    """Verifies scenario 5: Conflicting or duplicate source assignment to multiple target fields."""
+    contract = {
+        "contract_name": "duplicate_source_contract",
+        "version": "1.0.0",
+        "fields": {
+            "ticket_primary": {
+                "name": "ticket_primary",
+                "target_type": "string",
+                "required": True,
+                "description": "First target field",
+            },
+            "ticket_secondary": {
+                "name": "ticket_secondary",
+                "target_type": "string",
+                "required": True,
+                "description": "Second target field reusing same source",
+            },
+        },
+    }
+    res = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "contract_text": json.dumps(contract),
+        },
+    )
+    assert res.status_code == 200
+    sid = res.json()["session_id"]
+
+    # Reassign BOTH target fields to the identical source column 'Unique Key'
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={
+            "session_id": sid,
+            "reviewer": "qa_verifier",
+            "overrides": {
+                "ticket_primary": "Unique Key",
+                "ticket_secondary": "Unique Key",
+            },
+        },
+    )
+    assert res_approve.status_code == 200
+    data = res_approve.json()
+    assert data["validation"]["all_tests_passed"] is True
+    code = data["adapter"]["python_code"]
+    assert "ticket_primary" in code
+    assert "ticket_secondary" in code
+    assert code.count("Unique Key") >= 2
+
+
+def test_inspector_and_flow_static_assets_verified(client: TestClient) -> None:
+    """Verifies the new Inspector and Flow Graph static assets and elements."""
+    res_html = client.get("/")
+    assert res_html.status_code == 200
+    assert "inspector-edge-tab" in res_html.text
+    assert "flow-meter-evidence" in res_html.text
+    assert "flow-meter-panel" in res_html.text
+
+    res_js = client.get("/app.js")
+    assert res_js.status_code == 200
+    assert "evaluateMappingEvidence" in res_js.text
+    assert "getDuplicateSourceAssignments" in res_js.text
+    assert "handleMappingChange" in res_js.text
+
+
+def test_command_palette_static_assets_verified(client: TestClient) -> None:
+    """Verifies the Apple-grade Command Palette (⌘K / Ctrl+K) elements and handlers."""
+    res_html = client.get("/")
+    assert res_html.status_code == 200
+    assert "modal-command-palette" in res_html.text
+    assert "btn-command-palette" in res_html.text
+    assert "palette-search-input" in res_html.text
+
+    res_js = client.get("/app.js")
+    assert res_js.status_code == 200
+    assert "initCommandPalette" in res_js.text
+    assert "openCommandPalette" in res_js.text
+    assert "renderPaletteResults" in res_js.text
+
+    res_css = client.get("/style.css")
+    assert res_css.status_code == 200
+    assert "recon-palette-backdrop" in res_css.text
+    assert "recon-palette-container" in res_css.text
+
+
+def test_living_flow_and_dynamic_island_static_assets_verified(client: TestClient) -> None:
+    """Verifies Living Data Flow Canvas (particles, conduit bubble) and Dynamic Island."""
+    res_html = client.get("/")
+    assert res_html.status_code == 200
+    assert "recon-dynamic-island" in res_html.text
+    assert "island-pill-trigger" in res_html.text
+    assert "island-expanded-tray" in res_html.text
+    assert "island-primary-action" in res_html.text
+    assert "flow-svg-canvas" in res_html.text
+    assert "flow-chips-layer" in res_html.text
+
+    res_css = client.get("/style.css")
+    assert res_css.status_code == 200
+    assert "flow-packet-particle" in res_css.text
+    assert "flow-conduit-bubble" in res_css.text
+    assert "recon-dynamic-island" in res_css.text
+    assert "island-pill" in res_css.text
+    assert "island-expanded-tray" in res_css.text
+
+    res_js = client.get("/app.js")
+    assert res_js.status_code == 200
+    assert "flow-packet-particle" in res_js.text
+    assert "animateMotion" in res_js.text
+    assert "flow-conduit-bubble" in res_js.text
+    assert "initDynamicIsland" in res_js.text
+    assert "updateDynamicIsland" in res_js.text
+    assert "executeDynamicIslandAction" in res_js.text
+
+
+def test_morphing_diff_and_gutter_minimap_static_assets_verified(client: TestClient) -> None:
+    """Verifies Before-After Morphing Diff Inspector and Xcode-Style Gutter Minimap."""
+    res_html = client.get("/")
+    assert res_html.status_code == 200
+    assert "morphing-diff-view" in res_html.text
+    assert "diff-scrub-input" in res_html.text
+    assert "morph-wipe-card" in res_html.text
+    assert "flow-minimap-gutter" in res_html.text
+    assert "minimap-track" in res_html.text
+
+    res_css = client.get("/style.css")
+    assert res_css.status_code == 200
+    assert "morph-diff-container" in res_css.text
+    assert "morph-scrub-slider" in res_css.text
+    assert "morph-wipe-card" in res_css.text
+    assert "morph-sample-card" in res_css.text
+    assert "flow-minimap-gutter" in res_css.text
+    assert "minimap-marker" in res_css.text
+
+    res_js = client.get("/app.js")
+    assert res_js.status_code == 200
+    assert "computeTransformedValue" in res_js.text
+    assert "renderMinimapGutter" in res_js.text
+    assert "queueFlowReset" in res_js.text
+    assert "morph-wipe-target" in res_js.text
+    assert "minimap-track" in res_js.text
+
+
 

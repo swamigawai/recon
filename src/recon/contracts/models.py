@@ -57,3 +57,9 @@ class TargetContract(BaseModel):
     def non_nullable_field_names(self) -> list[str]:
         """Returns names of all fields where nullable is False."""
         return [f.name for f in self.fields.values() if not f.nullable]
+
+    @property
+    def fingerprint(self) -> str:
+        """Returns the deterministic SHA-256 fingerprint for this contract."""
+        from recon.contracts.fingerprint import compute_contract_fingerprint
+        return compute_contract_fingerprint(self)

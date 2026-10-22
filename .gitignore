@@ -50,6 +50,7 @@ Thumbs.db
 
 # Recon Generated Artifacts & Sensitive Outputs
 output/
+recon_output/
 reports/generated/
 adapters/generated/
 temp/

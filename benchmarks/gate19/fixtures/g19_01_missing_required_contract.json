@@ -1,0 +1,24 @@
+{
+  "contract_name": "g19_01_missing_required",
+  "version": "1.0.0",
+  "fields": {
+    "invoice_id": {
+      "name": "invoice_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "total_amount": {
+      "name": "total_amount",
+      "target_type": "float",
+      "required": true,
+      "nullable": false
+    },
+    "issue_date": {
+      "name": "issue_date",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false
+    }
+  }
+}

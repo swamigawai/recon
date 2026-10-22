@@ -1,0 +1,575 @@
+{
+  "benchmark_name": "Gate 18 Integration Reliability & Preflight Benchmark",
+  "timestamp": "2026-10-22T09:31:58Z",
+  "total_scenarios": 11,
+  "scenarios": {
+    "s01_missing_required": {
+      "hazard_type": "MISSING_REQUIRED_FIELD",
+      "description": "Source dataset completely lacks mandatory transaction_id field.",
+      "baseline_a": {
+        "valid_count": 0,
+        "rejected_count": 5,
+        "detected_hazards": [
+          "Missing required field 'transaction_id'",
+          "Missing required field 'amount'",
+          "Missing required field 'timestamp'"
+        ],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 0,
+        "dropped_count": 5,
+        "detected_hazards": [
+          "Missing mapping for required field 'transaction_id'"
+        ],
+        "crashed": true,
+        "crash_reason": "KeyError: Required field 'transaction_id' has no mapped source column",
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": false
+      },
+      "recon": {
+        "preflight_verdict": "BLOCKED",
+        "detected_hazards": [
+          "UNRESOLVED_FIELD_missing_source: transaction_id",
+          "UNRESOLVED_FIELD_missing_source: timestamp",
+          "CRITICAL_RISK_R001_MISSING_REQUIRED_FIELD: Downstream systems expecting 'transaction_id' will reject payloads or fail validation.",
+          "CRITICAL_RISK_R001_MISSING_REQUIRED_FIELD: Downstream systems expecting 'timestamp' will reject payloads or fail validation."
+        ],
+        "unresolved_mappings": [
+          "transaction_id",
+          "timestamp"
+        ],
+        "risk_findings": [
+          "R001_MISSING_REQUIRED_FIELD: Downstream systems expecting 'transaction_id' will reject payloads or fail validation.",
+          "R001_MISSING_REQUIRED_FIELD: Downstream systems expecting 'timestamp' will reject payloads or fail validation."
+        ],
+        "valid_count": 0,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": false,
+        "adapter_generated": false,
+        "diagnostics": [
+          "Adapter synthesis strictly blocked: Cannot generate adapter: approved mapping plan is incomplete. Missing required fields: ['transaction_id', 'timestamp']\n  Context: missing_required_fields=['transaction_id', 'timestamp']\n  Action: Approve all required target field mappings before generating an adapter."
+        ]
+      },
+      "ground_truth": {
+        "scenario_id": "s01_missing_required",
+        "description": "Source dataset completely lacks mandatory transaction_id field.",
+        "hazard_type": "MISSING_REQUIRED_FIELD",
+        "expected_preflight_verdict": "BLOCKED",
+        "expected_unmapped_required": [
+          "transaction_id"
+        ],
+        "expected_valid_count": 0,
+        "expected_quarantine_count": 5,
+        "total_records": 5
+      }
+    },
+    "s02_ambiguous_mapping": {
+      "hazard_type": "AMBIGUOUS_MAPPING",
+      "description": "Source data provides multiple candidate postal codes (billing vs shipping).",
+      "baseline_a": {
+        "valid_count": 0,
+        "rejected_count": 3,
+        "detected_hazards": [
+          "Missing required field 'postal_code'"
+        ],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 3,
+        "dropped_count": 0,
+        "detected_hazards": [],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [
+          "ALTERNATIVE_CANDIDATES_DETECTED: ['shipping_postal_code']"
+        ],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 3,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s02_ambiguous_mapping",
+        "description": "Source data provides multiple candidate postal codes (billing vs shipping).",
+        "hazard_type": "AMBIGUOUS_MAPPING",
+        "expected_preflight_verdict": "BLOCKED",
+        "expected_ambiguous_target": [
+          "postal_code"
+        ],
+        "total_records": 3
+      }
+    },
+    "s03_incompatible_types": {
+      "hazard_type": "TYPE_INCOMPATIBILITY",
+      "description": "Non-numeric string values in mandatory float column.",
+      "baseline_a": {
+        "valid_count": 5,
+        "rejected_count": 0,
+        "detected_hazards": [],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 3,
+        "dropped_count": 2,
+        "detected_hazards": [
+          "Cast failure on balance: could not convert string to float: 'N/A'",
+          "Cast failure on balance: could not convert string to float: 'PENDING_AUDIT'"
+        ],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "BLOCKED",
+        "detected_hazards": [
+          "CRITICAL_RISK_R002_INCOMPATIBLE_TYPES: Casting non-numeric strings to numeric types will raise runtime conversion exceptions.",
+          "CRITICAL_RISK_R003_NULLABILITY_CONFLICT: Passing nulls into a non-nullable target field violates contract integrity."
+        ],
+        "unresolved_mappings": [],
+        "risk_findings": [
+          "R002_INCOMPATIBLE_TYPES: Casting non-numeric strings to numeric types will raise runtime conversion exceptions.",
+          "R003_NULLABILITY_CONFLICT: Passing nulls into a non-nullable target field violates contract integrity."
+        ],
+        "valid_count": 3,
+        "quarantined_count": 2,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s03_incompatible_types",
+        "description": "Non-numeric string values in mandatory float column.",
+        "hazard_type": "TYPE_INCOMPATIBILITY",
+        "expected_valid_count": 3,
+        "expected_quarantine_count": 2,
+        "total_records": 5,
+        "expected_quarantine_codes": [
+          "ERR_TYPE_CONVERSION"
+        ]
+      }
+    },
+    "s04_enum_mismatch": {
+      "hazard_type": "ENUM_VIOLATION",
+      "description": "Casing differences and disallowed enum states in status field.",
+      "baseline_a": {
+        "valid_count": 3,
+        "rejected_count": 2,
+        "detected_hazards": [
+          "Field 'order_status' value 'completed' not in ['COMPLETED', 'CANCELLED', 'ON_HOLD']",
+          "Field 'order_status' value 'REFUNDED' not in ['COMPLETED', 'CANCELLED', 'ON_HOLD']"
+        ],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 3,
+        "dropped_count": 2,
+        "detected_hazards": [
+          "Enum mismatch on order_status: 'completed' not in ['COMPLETED', 'CANCELLED', 'ON_HOLD']",
+          "Enum mismatch on order_status: 'REFUNDED' not in ['COMPLETED', 'CANCELLED', 'ON_HOLD']"
+        ],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [
+          "ENUM_QUARANTINE_DIAGNOSTIC: Value 'REFUNDED' for 'order_status' not in allowed values ['COMPLETED', 'CANCELLED', 'ON_HOLD']"
+        ],
+        "unresolved_mappings": [],
+        "risk_findings": [
+          "R005_ENUM_VIOLATION: Records with unexpected categorical values will fail target schema validation."
+        ],
+        "valid_count": 4,
+        "quarantined_count": 1,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s04_enum_mismatch",
+        "description": "Casing differences and disallowed enum states in status field.",
+        "hazard_type": "ENUM_VIOLATION",
+        "expected_valid_count": 3,
+        "expected_quarantine_count": 2,
+        "total_records": 5,
+        "expected_quarantine_codes": [
+          "ERR_ENUM_VIOLATION"
+        ]
+      }
+    },
+    "s05_leading_zeros": {
+      "hazard_type": "LEADING_ZERO_TRUNCATION",
+      "description": "5-digit postal or badge codes with leading zeros must not be cast to integers.",
+      "baseline_a": {
+        "valid_count": 4,
+        "rejected_count": 0,
+        "detected_hazards": [],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 4,
+        "dropped_count": 0,
+        "detected_hazards": [],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 4,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s05_leading_zeros",
+        "description": "5-digit postal or badge codes with leading zeros must not be cast to integers.",
+        "hazard_type": "LEADING_ZERO_TRUNCATION",
+        "expected_valid_count": 4,
+        "expected_quarantine_count": 0,
+        "total_records": 4,
+        "expected_string_values": [
+          "00123",
+          "09876",
+          "00001",
+          "00042"
+        ]
+      }
+    },
+    "s06_decimal_precision": {
+      "hazard_type": "PRECISION_LOSS",
+      "description": "High-precision financial floats must not suffer premature rounding truncation.",
+      "baseline_a": {
+        "valid_count": 3,
+        "rejected_count": 0,
+        "detected_hazards": [],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 3,
+        "dropped_count": 0,
+        "detected_hazards": [],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 3,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s06_decimal_precision",
+        "description": "High-precision financial floats must not suffer premature rounding truncation.",
+        "hazard_type": "PRECISION_LOSS",
+        "expected_valid_count": 3,
+        "expected_quarantine_count": 0,
+        "total_records": 3,
+        "expected_float_values": [
+          1.082456,
+          1.234e-05,
+          99999999.98765431
+        ]
+      }
+    },
+    "s07_duplicate_records": {
+      "hazard_type": "DUPLICATE_RECORDS",
+      "description": "Duplicate rows must be detected during profiling without being silently dropped.",
+      "baseline_a": {
+        "valid_count": 4,
+        "rejected_count": 0,
+        "detected_hazards": [],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 4,
+        "dropped_count": 0,
+        "detected_hazards": [],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [
+          "DUPLICATE_ROWS: 1"
+        ],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 4,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s07_duplicate_records",
+        "description": "Duplicate rows must be detected during profiling without being silently dropped.",
+        "hazard_type": "DUPLICATE_RECORDS",
+        "expected_duplicates_profiled": 1,
+        "expected_valid_count": 4,
+        "expected_quarantine_count": 0,
+        "total_records": 4
+      }
+    },
+    "s08_nested_dotted": {
+      "hazard_type": "SUPPORTED_NESTED_STRUCTURE",
+      "description": "Supported dotted field namespaces for nested target payloads.",
+      "baseline_a": {
+        "valid_count": 3,
+        "rejected_count": 0,
+        "detected_hazards": [],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 3,
+        "dropped_count": 0,
+        "detected_hazards": [],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 3,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s08_nested_dotted",
+        "description": "Supported dotted field namespaces for nested target payloads.",
+        "hazard_type": "SUPPORTED_NESTED_STRUCTURE",
+        "expected_valid_count": 3,
+        "expected_quarantine_count": 0,
+        "total_records": 3
+      }
+    },
+    "s09_unsupported_complex": {
+      "hazard_type": "UNSUPPORTED_STRUCTURE",
+      "description": "Unsupported schema constructs must trigger clear ContractError diagnostics.",
+      "baseline_a": {
+        "detected_hazards": [
+          "Schema syntax unsupported"
+        ],
+        "valid_count": 0
+      },
+      "baseline_b": {
+        "crashed": true,
+        "detected_hazards": [
+          "Crash on unrecognized type"
+        ]
+      },
+      "recon": {
+        "preflight_verdict": "ERROR",
+        "detected_hazards": [
+          "Invalid target contract schema in <dictionary>: fields.items.target_type: Input should be 'string', 'integer', 'float', 'boolean', 'datetime' or 'date'\n  Context: source='<dictionary>', validation_errors=[\"fields.items.target_type: Input should be 'string', 'integer', 'float', 'boolean', 'datetime' or 'date'\"]\n  Action: Update the contract JSON to match the required TargetContract specification."
+        ],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 0,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": false,
+        "adapter_generated": false,
+        "diagnostics": [
+          "Properly rejected with ContractError: Invalid target contract schema in <dictionary>: fields.items.target_type: Input should be 'string', 'integer', 'float', 'boolean', 'datetime' or 'date'\n  Context: source='<dictionary>', validation_errors=[\"fields.items.target_type: Input should be 'string', 'integer', 'float', 'boolean', 'datetime' or 'date'\"]\n  Action: Update the contract JSON to match the required TargetContract specification."
+        ]
+      },
+      "ground_truth": {
+        "scenario_id": "s09_unsupported_complex",
+        "description": "Unsupported schema constructs must trigger clear ContractError diagnostics.",
+        "hazard_type": "UNSUPPORTED_STRUCTURE",
+        "expected_preflight_verdict": "ERROR",
+        "expected_error_diagnostic": "Invalid target_type"
+      }
+    },
+    "s10_schema_drift": {
+      "hazard_type": "SCHEMA_DRIFT",
+      "description": "Previously working integration breaks when upstream contract adds required field.",
+      "baseline_a": {
+        "valid_count": 0,
+        "rejected_count": 2,
+        "detected_hazards": [
+          "Missing required field 'regulatory_code'"
+        ],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 0,
+        "dropped_count": 2,
+        "detected_hazards": [
+          "Missing mapping for required field 'regulatory_code'"
+        ],
+        "crashed": true,
+        "crash_reason": "KeyError: Required field 'regulatory_code' has no mapped source column",
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": false
+      },
+      "recon": {
+        "preflight_verdict": "BLOCKED",
+        "detected_hazards": [
+          "UNRESOLVED_FIELD_missing_source: regulatory_code",
+          "CRITICAL_RISK_R001_MISSING_REQUIRED_FIELD: Downstream systems expecting 'regulatory_code' will reject payloads or fail validation."
+        ],
+        "unresolved_mappings": [
+          "regulatory_code"
+        ],
+        "risk_findings": [
+          "R001_MISSING_REQUIRED_FIELD: Downstream systems expecting 'regulatory_code' will reject payloads or fail validation."
+        ],
+        "valid_count": 0,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": false,
+        "adapter_generated": false,
+        "diagnostics": [
+          "Adapter synthesis strictly blocked: Cannot generate adapter: approved mapping plan is incomplete. Missing required fields: ['regulatory_code']\n  Context: missing_required_fields=['regulatory_code']\n  Action: Approve all required target field mappings before generating an adapter."
+        ]
+      },
+      "ground_truth": {
+        "scenario_id": "s10_schema_drift",
+        "description": "Previously working integration breaks when upstream contract adds required field.",
+        "hazard_type": "SCHEMA_DRIFT",
+        "expected_preflight_verdict": "BLOCKED",
+        "expected_unmapped_required": [
+          "regulatory_code"
+        ],
+        "total_records": 2
+      }
+    },
+    "s11_clean_valid": {
+      "hazard_type": "CLEAN_CONFORMING",
+      "description": "Completely conforming dataset must pass with 0 false alarms and exit code 0.",
+      "baseline_a": {
+        "valid_count": 5,
+        "rejected_count": 0,
+        "detected_hazards": [],
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "can_generate_adapter": false,
+        "zero_loss_balanced": true
+      },
+      "baseline_b": {
+        "valid_count": 5,
+        "dropped_count": 0,
+        "detected_hazards": [],
+        "crashed": false,
+        "crash_reason": null,
+        "can_propose_mappings": false,
+        "can_detect_ambiguity": false,
+        "zero_loss_balanced": true
+      },
+      "recon": {
+        "preflight_verdict": "PASS",
+        "detected_hazards": [],
+        "unresolved_mappings": [],
+        "risk_findings": [],
+        "valid_count": 5,
+        "quarantined_count": 0,
+        "zero_loss_satisfied": true,
+        "adapter_generated": true,
+        "diagnostics": []
+      },
+      "ground_truth": {
+        "scenario_id": "s11_clean_valid",
+        "description": "Completely conforming dataset must pass with 0 false alarms and exit code 0.",
+        "hazard_type": "CLEAN_CONFORMING",
+        "expected_preflight_verdict": "PASS",
+        "expected_valid_count": 5,
+        "expected_quarantine_count": 0,
+        "total_records": 5
+      }
+    }
+  },
+  "metrics": {
+    "baseline_a": {
+      "detected_hazards": 5,
+      "missed_hazards": 6,
+      "can_preflight_map": false,
+      "zero_loss_pass_rate": 100.0,
+      "hazard_detection_recall": 45.5
+    },
+    "baseline_b": {
+      "detected_hazards": 6,
+      "missed_hazards": 5,
+      "can_preflight_map": false,
+      "zero_loss_pass_rate": 80.0,
+      "hazard_detection_recall": 54.5
+    },
+    "recon": {
+      "detected_hazards": 11,
+      "missed_hazards": 0,
+      "can_preflight_map": true,
+      "zero_loss_pass_rate": 80.0,
+      "hazard_detection_recall": 100.0,
+      "executed_transformation_scenarios": 8,
+      "executed_zero_loss_pass_rate": 100.0,
+      "preflight_blocked_scenarios": 3
+    }
+  }
+}

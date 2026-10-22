@@ -1,0 +1,14 @@
+[
+  {
+    "meta.source_system": "SAP_ERP",
+    "payload.user_id": "U100"
+  },
+  {
+    "meta.source_system": "ORACLE_FIN",
+    "payload.user_id": "U101"
+  },
+  {
+    "meta.source_system": "NETSUITE",
+    "payload.user_id": "U102"
+  }
+]

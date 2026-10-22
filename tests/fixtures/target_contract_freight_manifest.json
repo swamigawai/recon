@@ -1,0 +1,80 @@
+{
+  "contract_name": "target_contract_freight_manifest",
+  "version": "1.0.0",
+  "description": "Standardized international air and sea freight cargo manifest contract",
+  "fields": {
+    "waybill_number": {
+      "name": "waybill_number",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^AWB-[0-9]{8}$",
+      "description": "Master Air Waybill tracking reference"
+    },
+    "carrier_iata_code": {
+      "name": "carrier_iata_code",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z0-9]{2,3}$",
+      "description": "2 or 3-character IATA carrier code"
+    },
+    "origin_airport": {
+      "name": "origin_airport",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z]{3}$",
+      "description": "3-letter IATA departure airport code"
+    },
+    "destination_airport": {
+      "name": "destination_airport",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z]{3}$",
+      "description": "3-letter IATA arrival airport code"
+    },
+    "gross_weight_kg": {
+      "name": "gross_weight_kg",
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Total gross shipment weight in kilograms"
+    },
+    "dispatch_datetime": {
+      "name": "dispatch_datetime",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 departure timestamp"
+    },
+    "hazardous_goods": {
+      "name": "hazardous_goods",
+      "target_type": "boolean",
+      "required": true,
+      "nullable": false,
+      "description": "Boolean flag for dangerous cargo declarations"
+    },
+    "clearance_status": {
+      "name": "clearance_status",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "CLEARED",
+        "INSPECTION_REQUIRED",
+        "DETAINED",
+        "RETURNED"
+      ],
+      "description": "Customs clearance status"
+    },
+    "handling_notes": {
+      "name": "handling_notes",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Special storage or cargo handling instructions"
+    }
+  }
+}

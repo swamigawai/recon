@@ -1,0 +1,11 @@
+{
+  "contract_name": "s09_unsupported_complex",
+  "version": "1.0.0",
+  "fields": {
+    "items": {
+      "name": "items",
+      "target_type": "array_of_arbitrary_objects",
+      "required": true
+    }
+  }
+}

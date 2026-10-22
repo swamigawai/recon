@@ -1,0 +1,14 @@
+[
+  {
+    "user_id": "U1",
+    "account_status": "ACTIVE"
+  },
+  {
+    "user_id": "U2",
+    "account_status": "ARCHIVED"
+  },
+  {
+    "user_id": "U3",
+    "account_status": "CLOSED"
+  }
+]

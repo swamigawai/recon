@@ -1,0 +1,18 @@
+{
+  "contract_name": "s06_decimal_precision",
+  "version": "1.0.0",
+  "fields": {
+    "asset_id": {
+      "name": "asset_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false
+    },
+    "exchange_rate": {
+      "name": "exchange_rate",
+      "target_type": "float",
+      "required": true,
+      "nullable": false
+    }
+  }
+}

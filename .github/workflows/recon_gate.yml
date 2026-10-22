@@ -1,0 +1,45 @@
+name: Recon Integration Preflight Gate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  recon-gate:
+    name: Preflight Schema & Data Contract Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Recon Engine
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Run Recon CI Gate (Strict Mode)
+        id: recon_gate
+        run: |
+          recon gate \
+            --source data/incoming_batch.csv \
+            --contract contracts/target_contract.json \
+            --mapping-spec config/recon_mapping_spec.json \
+            --strict \
+            --max-quarantine-pct 5.0 \
+            --json > gate_result.json
+
+      - name: Archive Preflight Diagnostics on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recon-gate-diagnostics
+          path: gate_result.json

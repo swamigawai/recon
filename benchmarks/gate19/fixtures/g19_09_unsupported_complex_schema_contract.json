@@ -1,0 +1,11 @@
+{
+  "contract_name": "g19_09_unsupported_complex_schema",
+  "version": "1.0.0",
+  "fields": {
+    "graph_node": {
+      "name": "graph_node",
+      "target_type": "deeply_nested_heterogeneous_graph",
+      "required": true
+    }
+  }
+}
