@@ -532,15 +532,18 @@ function initShell() {
       if (isStepAvailable(targetStep)) {
         navigateToStep(targetStep);
       } else {
+        triggerHapticFeedback(step);
         if (!currentAssessment) {
           showGlobalError(
             "WORKFLOW GATED",
-            "Screen 02 (PROFILE) and 03 (MAP) unlock after inspection. Stage a dataset & contract in Screen 01, then click 'INITIALIZE RECON INSPECTION →' (or click Quick Load Sample Fixtures)."
+            "Screen 02 (PROFILE) and 03 (MAP) unlock after inspection. Stage a dataset & contract in Screen 01, then click 'INITIALIZE RECON INSPECTION →' (or click Quick Load Sample Fixtures).",
+            step
           );
         } else if (!currentResults && targetStep >= 5) {
           showGlobalError(
             "APPROVAL REQUIRED",
-            "Screen 05 (ADAPTER) and 06 (VALIDATE) unlock after reviewing the Risk Radar in 04 AUDIT and clicking 'APPROVE & COMPILE ADAPTER →'."
+            "Screen 05 (ADAPTER) and 06 (VALIDATE) unlock after reviewing the Risk Radar in 04 AUDIT and clicking 'APPROVE & COMPILE ADAPTER →'.",
+            step
           );
         }
       }
@@ -752,11 +755,48 @@ function toggleShortcutsModal() {
   modal.classList.toggle("hidden");
 }
 
-function showGlobalError(title, msg) {
+// =============================================================================
+// Haptic Feedback Engine (Physical Vibration & Micro-Jitter Visuals)
+// =============================================================================
+
+function triggerHapticFeedback(element = null, pattern = [45, 35, 55]) {
+  // 1. Hardware physical vibration via Web Vibration API
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator && typeof navigator.vibrate === "function") {
+      navigator.vibrate(pattern);
+    }
+  } catch (_) {
+    // Gracefully ignore sandbox/permission limitations
+  }
+
+  // 2. Visual micro-haptic jitter/shake
+  const target = element || document.getElementById("global-error-bar") || document.getElementById("workspace-canvas");
+  if (target && target instanceof Element) {
+    target.classList.remove("haptic-vibrate", "haptic-shockwave");
+    // Trigger reflow to restart animation reliably
+    void target.offsetWidth;
+    target.classList.add("haptic-vibrate", "haptic-shockwave");
+    setTimeout(() => {
+      if (target) {
+        target.classList.remove("haptic-vibrate", "haptic-shockwave");
+      }
+    }, 450);
+  }
+}
+
+function showGlobalError(title, msg, targetEl = null) {
   const bar = document.getElementById("global-error-bar");
-  document.getElementById("global-error-title").textContent = title ? `[${title}]` : "[ERROR]";
-  document.getElementById("global-error-msg").textContent = msg;
-  bar.classList.remove("hidden");
+  if (bar) {
+    const titleEl = document.getElementById("global-error-title");
+    const msgEl = document.getElementById("global-error-msg");
+    if (titleEl) titleEl.textContent = title ? `[${title}]` : "[ERROR]";
+    if (msgEl) msgEl.textContent = msg;
+    bar.classList.remove("hidden");
+    triggerHapticFeedback(bar);
+  }
+  if (targetEl && targetEl !== bar) {
+    triggerHapticFeedback(targetEl);
+  }
 }
 
 function hideGlobalError() {
@@ -985,12 +1025,19 @@ function bindDropZones() {
       syntaxErr.textContent = `JSON Syntax Error: ${err.message}`;
       document.getElementById("contract-status-text").textContent = "Invalid JSON Contract";
       document.getElementById("contract-status-meta").textContent = "Syntax Error";
+      triggerHapticFeedback(contractTextArea);
     }
     updatePreflightStatus();
   });
 }
 
 function handleSourceFileStaged(file) {
+  if (!file || file.size === 0) {
+    const dz = document.getElementById("source-dropzone");
+    triggerHapticFeedback(dz);
+    showGlobalError("EMPTY FILE", "The selected source file is empty (0 bytes).", dz);
+    return;
+  }
   stagedSourceFile = file;
   document.getElementById("sample-dataset-select").value = "";
   const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
@@ -1002,6 +1049,12 @@ function handleSourceFileStaged(file) {
 }
 
 function handleContractFileStaged(file) {
+  if (!file || file.size === 0) {
+    const dz = document.getElementById("contract-dropzone");
+    triggerHapticFeedback(dz);
+    showGlobalError("EMPTY FILE", "The selected contract file is empty (0 bytes).", dz);
+    return;
+  }
   stagedContractFile = file;
   const sizeKb = (file.size / 1024).toFixed(1);
   document.getElementById("contract-status-text").textContent = file.name;
@@ -1175,7 +1228,7 @@ async function handleAssessIntegration() {
         showSessionLostModal();
         return;
       }
-      showGlobalError("ASSESSMENT FAILED", data.detail || "Unable to inspect and profile dataset.");
+      showGlobalError("ASSESSMENT FAILED", data.detail || "Unable to inspect and profile dataset.", btn);
       return;
     }
 
@@ -1198,7 +1251,7 @@ async function handleAssessIntegration() {
     // Navigate to Profile Matrix (Step 02)
     navigateToStep(2);
   } catch (err) {
-    showGlobalError("NETWORK ERROR", err.message);
+    showGlobalError("NETWORK ERROR", err.message, btn);
   } finally {
     btn.disabled = false;
     spinner.classList.add("hidden");
@@ -2624,8 +2677,9 @@ function updateApprovalGateState() {
 
 async function handleApproveAndGenerate() {
   hideGlobalError();
+  const btn = document.getElementById("btn-approve");
   if (!currentSessionId) {
-    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before approving.");
+    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before approving.", btn);
     return;
   }
 
@@ -2639,7 +2693,7 @@ async function handleApproveAndGenerate() {
       ? mappingOverrides[p.target_field]
       : (p.proposed_source_field || "");
     if (p.required && !chosen) {
-      showGlobalError("BLOCKER DETECTED", `Target field '${p.target_field}' is required but unmapped.`);
+      showGlobalError("BLOCKER DETECTED", `Target field '${p.target_field}' is required but unmapped.`, btn);
       return;
     }
     if (chosen) {
@@ -2647,7 +2701,6 @@ async function handleApproveAndGenerate() {
     }
   }
 
-  const btn = document.getElementById("btn-approve");
   const origText = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Synthesizing AST Adapter & Validating...";
@@ -2669,7 +2722,7 @@ async function handleApproveAndGenerate() {
         showSessionLostModal();
         return;
       }
-      showGlobalError("ADAPTER COMPILATION FAILED", data.detail || "Unable to compile and validate adapter.");
+      showGlobalError("ADAPTER COMPILATION FAILED", data.detail || "Unable to compile and validate adapter.", btn);
       btn.disabled = false;
       btn.textContent = origText;
       return;
@@ -2685,7 +2738,7 @@ async function handleApproveAndGenerate() {
     // Navigate to Step 05 Adapter
     navigateToStep(5);
   } catch (err) {
-    showGlobalError("NETWORK ERROR", err.message);
+    showGlobalError("NETWORK ERROR", err.message, btn);
     btn.disabled = false;
     btn.textContent = origText;
   }
@@ -3010,7 +3063,12 @@ async function handlePurgeSession() {
 }
 
 function showSessionLostModal() {
-  document.getElementById("modal-session-lost").classList.remove("hidden");
+  const modal = document.getElementById("modal-session-lost");
+  if (modal) {
+    modal.classList.remove("hidden");
+    const dialog = modal.querySelector(".recon-modal") || modal;
+    triggerHapticFeedback(dialog);
+  }
 }
 
 // =============================================================================
@@ -3657,7 +3715,12 @@ function handlePaletteKeydown(e) {
 }
 
 function executePaletteItem(item) {
-  if (!item || item.disabled) return;
+  if (!item) return;
+  if (item.disabled) {
+    const dialog = document.querySelector("#modal-command-palette .recon-palette-dialog") || document.getElementById("modal-command-palette");
+    triggerHapticFeedback(dialog);
+    return;
+  }
   closeCommandPalette();
   if (typeof item.action === "function") {
     item.action();
