@@ -55,6 +55,9 @@
         <button id="btn-theme-toggle" class="btn btn-ghost btn-sm" title="Toggle Theme (Light / Dark)">
           <span id="theme-toggle-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 0 12V2z" fill="currentColor"/></svg></span> <span id="theme-toggle-text">Theme</span>
         </button>
+        <button id="btn-crt-toggle" class="btn btn-ghost btn-sm font-mono" title="Toggle CRT Hardware Telemetry [C]" aria-label="Toggle CRT Monitor">
+          <span style="font-size: 13px;">📺</span> <span id="crt-toggle-text">CRT</span>
+        </button>
         <button id="btn-sound-toggle" class="btn btn-ghost btn-sm" title="Toggle Audio Synthesizer Feedback [M]" aria-label="Toggle UI Sounds">
           <span id="sound-toggle-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="2,5 5,5 9,2 9,14 5,11 2,11" fill="currentColor"/><path d="M11.5 5.5 C13 7 13 9 11.5 10.5"/></svg></span> <span id="sound-toggle-text">Sound</span>
         </button>
@@ -1233,6 +1236,70 @@
       <div style="display: flex; gap: 6px;">
         <button class="btn btn-secondary btn-sm" id="btn-tour-prev" style="padding: 3px 8px; font-size: 10px;">← Prev</button>
         <button class="btn btn-primary btn-sm" id="btn-tour-next" style="padding: 3px 8px; font-size: 10px;">Next →</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- ====================================================================
+       CRT HARDWARE TELEMETRY MONITOR (Raw WebGL + Canvas 2D)
+       ==================================================================== -->
+  <div class="crt-overlay hidden" id="crt-monitor-modal" role="dialog" aria-label="CRT Hardware Telemetry Monitor">
+    <div class="crt-chassis">
+      <!-- Vintage Monitor Bezel Header -->
+      <div class="crt-bezel-top">
+        <div class="crt-bezel-brand">
+          <span class="crt-power-led" id="crt-power-led"></span>
+          <span class="font-mono crt-brand-label">RECON TRINITRON // CRT-2026</span>
+          <span class="crt-badge font-mono" id="crt-badge-status">60Hz · 1080p ADAPTIVE</span>
+        </div>
+        <div class="crt-controls-group">
+          <!-- Variant selector buttons -->
+          <div class="crt-variant-buttons" role="radiogroup" aria-label="CRT Screen Variant">
+            <button class="btn-crt-var active" data-variant="terminal" title="Matrix-era Boot Terminal">01 Terminal</button>
+            <button class="btn-crt-var" data-variant="bluescreen" title="Blue Signal Fault (Crash Telemetry)">02 Blue Fault</button>
+            <button class="btn-crt-var" data-variant="cinematic" title="Monochrome Film Leader Countdown">03 Film Leader</button>
+            <button class="btn-crt-var" data-variant="nintendo" title="8-Bit Retro Console Title">04 8-Bit Console</button>
+          </div>
+          <button class="btn btn-ghost btn-sm btn-crt-close" id="btn-close-crt" title="Close CRT Monitor (Esc / C)">✕</button>
+        </div>
+      </div>
+
+      <!-- The Curved Glass CRT Screen Tube -->
+      <div class="crt-tube-container" id="crt-tube-frame">
+        <!-- Raw WebGL CRT Composite Canvas -->
+        <canvas class="crt-webgl-canvas" id="crt-webgl-canvas"></canvas>
+        <!-- Offscreen Canvas 2D -->
+        <canvas class="crt-offscreen-canvas" id="crt-offscreen-canvas" style="display: none;"></canvas>
+      </div>
+
+      <!-- Vintage Bezel Controls Bar -->
+      <div class="crt-bezel-bottom">
+        <div class="crt-tuning-knobs">
+          <label class="crt-knob-label font-mono">
+            <span>CURVATURE</span>
+            <input type="range" id="crt-knob-curvature" min="0" max="40" value="16">
+          </label>
+          <label class="crt-knob-label font-mono">
+            <span>SCANLINES</span>
+            <input type="range" id="crt-knob-scanlines" min="0" max="100" value="45">
+          </label>
+          <label class="crt-knob-label font-mono">
+            <span>PHOSPHOR GLOW</span>
+            <input type="range" id="crt-knob-glow" min="0" max="100" value="50">
+          </label>
+          <label class="crt-knob-label font-mono">
+            <span>HUM BAR</span>
+            <input type="range" id="crt-knob-hum" min="0" max="100" value="25">
+          </label>
+        </div>
+        <div class="crt-actions-right">
+          <button class="btn btn-secondary btn-sm font-mono" id="btn-crt-theme-sync" title="Apply CRT scanline atmosphere to the entire website">
+            ⚡ Toggle Site CRT Glow
+          </button>
+          <button class="btn btn-primary btn-sm font-mono" id="btn-crt-inject-telemetry" title="Inject current Recon batch records into CRT stream">
+            Sync Recon Telemetry
+          </button>
+        </div>
       </div>
     </div>
   </div>
