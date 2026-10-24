@@ -75,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initDynamicIsland();
   initPresetBenchmarks();
   initMappingViewToggle();
-  initAppleConformanceEvents();
   loadSampleDatasets();
   loadSampleContracts();
   bindDropZones();
@@ -134,13 +133,6 @@ function applyTheme(theme) {
     } else {
       icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M13.5 9.5a6 6 0 1 1-7-7 5 5 0 0 0 7 7z"/></svg>`;
       text.textContent = "Dark";
-    }
-  }
-  if (lastAppleValidationData) {
-    if (activeAppleView === "ring") {
-      renderAppleConformance(lastAppleValidationData);
-    } else {
-      renderAppleTrend(lastAppleValidationData);
     }
   }
 }
@@ -3271,176 +3263,77 @@ function fallbackCopy(text, onSuccess) {
 }
 
 // =============================================================================
-// Screen F: Validation Lab & Apple Conformance Experience
+// Screen F: Validation Lab & Swiss Precision Batch Matrix
 // =============================================================================
 
-let activeAppleView = "ring"; // "ring" | "trend"
-let lastAppleValidationData = null;
-
-function initAppleConformanceEvents() {
-  const btnRing = document.getElementById("btn-apple-ring");
-  const btnTrend = document.getElementById("btn-apple-trend");
-  const ringWrapper = document.getElementById("apple-ring-wrapper");
-  const trendWrapper = document.getElementById("apple-trend-wrapper");
-
-  if (btnRing && btnTrend) {
-    btnRing.addEventListener("click", () => {
-      activeAppleView = "ring";
-      btnRing.classList.add("active");
-      btnTrend.classList.remove("active");
-      if (ringWrapper) ringWrapper.classList.remove("hidden");
-      if (trendWrapper) trendWrapper.classList.add("hidden");
-      if (lastAppleValidationData) renderAppleConformance(lastAppleValidationData);
-    });
-
-    btnTrend.addEventListener("click", () => {
-      activeAppleView = "trend";
-      btnTrend.classList.add("active");
-      btnRing.classList.remove("active");
-      if (ringWrapper) ringWrapper.classList.add("hidden");
-      if (trendWrapper) trendWrapper.classList.remove("hidden");
-      if (lastAppleValidationData) renderAppleTrend(lastAppleValidationData);
-    });
-  }
-}
-
-function renderAppleConformance(data) {
-  const svg = document.getElementById("apple-ring-svg");
-  if (!svg) return;
-
-  const val = (data && data.validation) ? data.validation : null;
-  const rate = val && val.contract_pass_rate != null ? Number(val.contract_pass_rate) : 0;
-  const total = val ? (val.total_input_records || 0) : 0;
-
-  // Center display
-  const pctEl = document.getElementById("apple-ring-pct");
-  if (pctEl) {
-    pctEl.textContent = total > 0 ? `${Math.round(rate)}%` : "0%";
-  }
-
-  // Radius = 84, Circumference = 2 * PI * 84 ≈ 527.787
-  const r = 84;
-  const circ = 2 * Math.PI * r;
-  const clampedRate = Math.max(0, Math.min(100, rate));
-  const offset = total > 0 ? circ * (1 - clampedRate / 100) : circ;
-
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  const stop0 = isDark ? "#FCE9A6" : "#F7E7C4";
-  const stop50 = isDark ? "#E5C158" : "#D4AF37";
-  const stop100 = isDark ? "#A67C26" : "#997328";
-
-  svg.innerHTML = `
-    <defs>
-      <linearGradient id="appleGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${stop0}" />
-        <stop offset="50%" stop-color="${stop50}" />
-        <stop offset="100%" stop-color="${stop100}" />
-      </linearGradient>
-      <filter id="appleRingShadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="${stop50}" flood-opacity="0.35"/>
-      </filter>
-    </defs>
-    <!-- Background Track -->
-    <circle cx="110" cy="110" r="${r}" fill="none" stroke="var(--apple-ring-track)" stroke-width="16" />
-    <!-- Active Conformance Ring Arc -->
-    <circle cx="110" cy="110" r="${r}" fill="none" stroke="url(#appleGoldGrad)" stroke-width="16"
-            stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"
-            filter="url(#appleRingShadow)" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1);" />
-  `;
-}
-
-function renderAppleTrend(data) {
-  const svg = document.getElementById("apple-trend-svg");
-  if (!svg) return;
-  const tooltip = document.getElementById("apple-tooltip");
+function renderRecordMatrix(data) {
+  const grid = document.getElementById("record-cells-grid");
+  const countEl = document.getElementById("matrix-record-count");
+  const callout = document.getElementById("record-cell-inspector");
+  if (!grid) return;
 
   const val = (data && data.validation) ? data.validation : null;
   const total = val ? (val.total_input_records || 0) : 0;
   const quarantined = val ? (val.quarantined_records_count || 0) : 0;
+  const valid = val ? (val.valid_records_count || 0) : 0;
+
+  if (countEl) countEl.textContent = total;
+  grid.innerHTML = "";
 
   if (!val || total === 0) {
-    svg.innerHTML = `<text x="140" y="90" font-family="-apple-system, sans-serif" font-size="12" fill="var(--apple-text-caption)" text-anchor="middle">Awaiting data...</text>`;
+    grid.innerHTML = `<span class="text-muted" style="font-size: 11px; padding: 4px;">Awaiting validation batch execution...</span>`;
     return;
   }
 
-  const w = 280;
-  const h = 180;
-  const padX = 20;
-  const padY = 24;
-  const graphW = w - padX * 2;
-  const graphH = h - padY * 2;
+  const sampleQuar = val.sample_quarantined_records || [];
+  const quarIndices = new Set(sampleQuar.map(r => r.row_index || r.record_index || 0));
 
-  const pointsCount = Math.max(10, Math.min(24, total));
-  const points = [];
+  // Render record cells (up to 120 for high density performance)
+  const displayLimit = Math.min(total, 120);
 
-  for (let i = 0; i < pointsCount; i++) {
-    const px = padX + (i / (pointsCount - 1)) * graphW;
-    const isQuar = quarantined > 0 && (i === Math.floor(pointsCount / 2) || (quarantined > 1 && i % 4 === 0));
-    const variance = Math.sin(i * 0.9) * 4;
-    const py = isQuar ? (padY + graphH * 0.75 + variance) : (padY + 12 + variance);
-    points.push({ x: px, y: py, isQuar, index: i + 1 });
-  }
+  for (let i = 1; i <= displayLimit; i++) {
+    const isQuar = quarIndices.has(i) || (quarantined > 0 && i <= quarantined);
+    const cell = document.createElement("div");
+    cell.className = `record-cell ${isQuar ? "quarantined" : "valid"}`;
+    cell.textContent = i;
+    cell.title = `Row #${i}: ${isQuar ? "Quarantined" : "Valid"}`;
 
-  let pathD = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i];
-    const p1 = points[i + 1];
-    const cx = (p0.x + p1.x) / 2;
-    pathD += ` C ${cx} ${p0.y}, ${cx} ${p1.y}, ${p1.x} ${p1.y}`;
-  }
-
-  const areaD = `${pathD} L ${points[points.length - 1].x} ${padY + graphH} L ${points[0].x} ${padY + graphH} Z`;
-
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  const lineColor = isDark ? "#E5C158" : "#D4AF37";
-
-  let dotsSvg = "";
-  points.forEach(p => {
-    dotsSvg += `
-      <circle cx="${p.x}" cy="${p.y}" r="${p.isQuar ? 5 : 3.5}" 
-              fill="${p.isQuar ? '#FF3B30' : lineColor}" 
-              stroke="var(--apple-glass-bg)" stroke-width="2" class="apple-trend-dot" 
-              data-row="${p.index}" data-status="${p.isQuar ? 'Quarantined' : 'Valid Conforming'}"
-              style="cursor: pointer;" />
-    `;
-  });
-
-  svg.innerHTML = `
-    <defs>
-      <linearGradient id="appleTrendFill" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="${lineColor}" stop-opacity="${isDark ? '0.28' : '0.18'}" />
-        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.0" />
-      </linearGradient>
-    </defs>
-    <!-- Baseline 100% -->
-    <line x1="${padX}" y1="${padY + 12}" x2="${padX + graphW}" y2="${padY + 12}" stroke="var(--apple-track-bg)" stroke-width="1" stroke-dasharray="2 3"/>
-    <!-- Area & Line -->
-    <path d="${areaD}" fill="url(#appleTrendFill)" />
-    <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" />
-    ${dotsSvg}
-  `;
-
-  // Tooltip interaction
-  svg.querySelectorAll(".apple-trend-dot").forEach(dot => {
-    dot.addEventListener("mouseenter", () => {
-      const row = dot.getAttribute("data-row");
-      const status = dot.getAttribute("data-status");
-      if (tooltip) {
-        tooltip.textContent = `Record #${row} · ${status}`;
-        tooltip.classList.remove("hidden");
-        const rect = svg.getBoundingClientRect();
-        const cx = parseFloat(dot.getAttribute("cx"));
-        const cy = parseFloat(dot.getAttribute("cy"));
-        const scaleX = rect.width / w;
-        const scaleY = rect.height / h;
-        tooltip.style.left = `${cx * scaleX + 8}px`;
-        tooltip.style.top = `${cy * scaleY - 28}px`;
+    cell.addEventListener("mouseenter", () => {
+      if (callout) {
+        callout.classList.remove("hidden");
+        callout.innerHTML = `
+          <div>
+            <span style="font-weight: 700; color: ${isQuar ? "var(--recon-rose-text)" : "var(--recon-emerald-text)"};">
+              ROW #${i} [${isQuar ? "QUARANTINED" : "CONFORMING"}]
+            </span>
+            <span class="text-muted" style="margin-left: 8px;">Target schema invariants evaluated</span>
+          </div>
+          <span class="badge ${isQuar ? "badge-rose" : "badge-emerald"}">${isQuar ? "Violation Detected" : "Schema Cleared"}</span>
+        `;
       }
     });
-    dot.addEventListener("mouseleave", () => {
-      if (tooltip) tooltip.classList.add("hidden");
+
+    cell.addEventListener("click", () => {
+      if (isQuar) {
+        const qSection = document.getElementById("quarantine-tbody");
+        if (qSection) {
+          qSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
     });
-  });
+
+    grid.appendChild(cell);
+  }
+
+  if (total > displayLimit) {
+    const more = document.createElement("span");
+    more.className = "text-muted";
+    more.style.fontSize = "10px";
+    more.style.alignSelf = "center";
+    more.style.padding = "0 6px";
+    more.textContent = `+${total - displayLimit} more`;
+    grid.appendChild(more);
+  }
 }
 
 function renderValidationLab(data) {
@@ -3453,7 +3346,7 @@ function renderValidationLab(data) {
   const validPct = total > 0 ? ((valid / total) * 100).toFixed(1) : "0";
   const quarnPct = total > 0 ? ((quarantined / total) * 100).toFixed(1) : "0";
 
-  // Standard metrics
+  // Four Core Accounting Cards
   document.getElementById("metric-total-records").textContent = Number(total).toLocaleString();
   document.getElementById("metric-valid-records").textContent = Number(valid).toLocaleString();
   document.getElementById("metric-valid-pct").textContent = `${validPct}%`;
@@ -3461,42 +3354,38 @@ function renderValidationLab(data) {
   document.getElementById("metric-quarantined-pct").textContent = `${quarnPct}%`;
   document.getElementById("metric-pass-rate").textContent = `${rate}%`;
 
-  // Apple progress fills
-  const fillValid = document.getElementById("apple-fill-valid");
-  if (fillValid) fillValid.style.width = `${validPct}%`;
-  const fillQuar = document.getElementById("apple-fill-quarantine");
-  if (fillQuar) fillQuar.style.width = `${quarnPct}%`;
+  // Conformance Partition Meter
+  const segValid = document.getElementById("meter-segment-valid");
+  const segQuar = document.getElementById("meter-segment-quar");
+  if (segValid) segValid.style.width = `${validPct}%`;
+  if (segQuar) segQuar.style.width = `${quarnPct}%`;
 
-  // Apple status
-  const isBalanced = total === (valid + quarantined);
-  const statusDot = document.getElementById("apple-status-dot");
-  const statusText = document.getElementById("apple-status-text");
-  if (statusDot && statusText) {
-    if (isBalanced) {
-      statusDot.className = "apple-pulse-green";
-      statusText.textContent = quarantined === 0 
-        ? "100% Conformance · Zero Data Loss Guaranteed" 
-        : `Ledger Balanced · ${quarantined} quarantined records isolated`;
+  const statusBadge = document.getElementById("conformance-status-badge");
+  if (statusBadge) {
+    if (quarantined === 0) {
+      statusBadge.className = "badge badge-emerald";
+      statusBadge.textContent = "100% Conforming";
     } else {
-      statusDot.className = "apple-pulse-red";
-      statusText.textContent = "Ledger Discrepancy Detected";
+      statusBadge.className = "badge badge-amber";
+      statusBadge.textContent = `${validPct}% Pass · ${quarantined} Quarantined`;
     }
   }
 
-  // Render Apple Visual
-  lastAppleValidationData = data;
-  if (activeAppleView === "ring") {
-    renderAppleConformance(data);
-  } else {
-    renderAppleTrend(data);
+  const identityTag = document.getElementById("conformance-identity-tag");
+  if (identityTag) {
+    identityTag.textContent = `N_total (${total}) = N_valid (${valid}) + N_quarantine (${quarantined})`;
   }
 
+  // Render Interactive Record Cell Matrix
+  renderRecordMatrix(data);
+
   // Ledger Accounting Identity Verification: N_total = N_valid + N_quarantine
+  const isBalanced = total === (valid + quarantined);
   const ledgerBar = document.getElementById("ledger-balance-bar");
   const ledgerEq = document.getElementById("ledger-balance-equation");
 
   if (isBalanced) {
-    if (ledgerBar) ledgerBar.className = "ledger-balance-bar balanced hidden";
+    if (ledgerBar) ledgerBar.className = "ledger-balance-bar balanced";
     if (ledgerBar && ledgerBar.firstElementChild) ledgerBar.firstElementChild.textContent = "[✓ LEDGER BALANCED]";
     if (ledgerEq) ledgerEq.textContent = `N_total (${total}) = N_valid (${valid}) + N_quarantine (${quarantined}). Zero data loss verified.`;
   } else {
