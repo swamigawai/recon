@@ -853,6 +853,33 @@
               <div class="recon-drawer-section-title">Synthesized Transform Formula</div>
               <pre id="drawer-ast-code" class="font-mono" style="background-color: var(--recon-bg-root); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--recon-border-subtle); font-size: 11px; overflow-x: auto; color: var(--recon-syntax-function);"></pre>
             </div>
+
+            <!-- Live Transformation Playground -->
+            <div class="recon-drawer-section" style="margin-top: 14px;">
+              <div class="recon-drawer-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Live Expression Playground</span>
+                <span class="badge badge-indigo" style="font-size: 9px; font-weight: 700;">INTERACTIVE</span>
+              </div>
+              <p class="text-muted" style="font-size: 11px; margin-bottom: 8px;">Test inline transforms on observed sample values in real time:</p>
+              
+              <!-- Quick Preset Chips -->
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;" id="drawer-transform-chips">
+                <button type="button" class="btn btn-secondary btn-sm transform-chip-btn" data-expr="val.strip().upper()" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono);">.upper()</button>
+                <button type="button" class="btn btn-secondary btn-sm transform-chip-btn" data-expr="val.strip().lower()" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono);">.lower()</button>
+                <button type="button" class="btn btn-secondary btn-sm transform-chip-btn" data-expr="val.strip().title()" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono);">.title()</button>
+                <button type="button" class="btn btn-secondary btn-sm transform-chip-btn" data-expr="val.replace('$', '').replace(',', '').strip()" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono);">clean_currency()</button>
+                <button type="button" class="btn btn-secondary btn-sm transform-chip-btn" data-expr="round(float(val), 2)" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono);">round(2)</button>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 8px;">
+                <input type="text" id="drawer-transform-expr-input" class="form-input font-mono" placeholder="e.g. val.strip().upper()" style="font-size: 11px; width: 100%;">
+              </div>
+
+              <!-- Real-time before / after preview table -->
+              <div id="drawer-playground-preview" style="border: 1px solid var(--recon-border-subtle); border-radius: var(--radius-sm); overflow: hidden; background: var(--recon-bg-root);">
+                <!-- Dynamically rendered by app.js -->
+              </div>
+            </div>
           </div>
 
           <!-- Schema Meta Tab -->

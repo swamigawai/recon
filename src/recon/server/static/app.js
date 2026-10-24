@@ -20,6 +20,7 @@ let sampleDatasetsMap = {};
 // Inspector Drawer State (Global Module Scope)
 let isDrawerPinned = false;
 let drawerHoverTimer = null;
+let currentPlaygroundSamples = [];
 
 function updateInspectorUI(isOpen, isPinned) {
   const edgeTab = document.getElementById("inspector-edge-tab");
@@ -86,7 +87,15 @@ document.addEventListener("DOMContentLoaded", () => {
 // =============================================================================
 
 function initTheme() {
-  let savedTheme = localStorage.getItem("recon-theme-v4");
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlTheme = urlParams.get("theme");
+  const isEmbed = urlParams.get("embed") === "true";
+
+  if (isEmbed) {
+    document.body.classList.add("is-embed-mode");
+  }
+
+  let savedTheme = urlTheme || localStorage.getItem("recon-theme-v4");
   if (!savedTheme) {
     savedTheme = "dark";
     localStorage.setItem("recon-theme-v4", "dark");
@@ -683,6 +692,9 @@ function initShell() {
 
   // Initialize Preflight Quick Peek
   initPreflightPeek();
+
+  // Initialize Transform Expression Playground
+  initTransformPlayground();
 }
 
 function isStepAvailable(targetStep) {
@@ -3539,6 +3551,89 @@ function computeTransformedValue(raw, prop) {
   return { clean, op };
 }
 
+function evaluateTransformExpression(expr, val) {
+  if (val === null || val === undefined) return { result: "None", ok: true };
+  const strVal = String(val);
+  const cleanExpr = (expr || "").trim();
+  if (!cleanExpr) return { result: strVal, ok: true };
+
+  try {
+    let jsExpr = cleanExpr
+      .replace(/\bval\.strip\(\)/g, "strVal.trim()")
+      .replace(/\bval\.upper\(\)/g, "strVal.toUpperCase()")
+      .replace(/\bval\.lower\(\)/g, "strVal.toLowerCase()")
+      .replace(/\bval\.title\(\)/g, "strVal.replace(/\\b\\w/g, c => c.toUpperCase())")
+      .replace(/\bfloat\(val\)/g, "parseFloat(strVal)")
+      .replace(/\bint\(val\)/g, "parseInt(strVal, 10)")
+      .replace(/\bround\(([^,]+),\s*(\d+)\)/g, "Number(($1).toFixed($2))")
+      .replace(/\bval\b/g, "strVal");
+
+    const fn = new Function("strVal", `return ${jsExpr};`);
+    const res = fn(strVal);
+    return { result: String(res), ok: true };
+  } catch (err) {
+    return { result: `Error: ${err.message}`, ok: false };
+  }
+}
+
+function renderPlaygroundPreview(expr, sampleVals) {
+  const previewBox = document.getElementById("drawer-playground-preview");
+  if (!previewBox) return;
+
+  if (!sampleVals || sampleVals.length === 0) {
+    previewBox.innerHTML = `<div style="padding: 8px 10px; font-size: 11px; color: var(--recon-text-muted);">No sample values available for testing.</div>`;
+    return;
+  }
+
+  let html = `
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px; font-family: var(--font-mono);">
+      <thead>
+        <tr style="background: var(--recon-bg-subtle); color: var(--recon-text-muted); border-bottom: 1px solid var(--recon-border-subtle);">
+          <th style="padding: 4px 8px; text-align: left; font-size: 10px;">Raw Input</th>
+          <th style="padding: 4px 8px; text-align: center; width: 18px; font-size: 10px;">→</th>
+          <th style="padding: 4px 8px; text-align: left; font-size: 10px;">Computed Output</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  sampleVals.slice(0, 4).forEach(v => {
+    const raw = String(v);
+    const { result, ok } = evaluateTransformExpression(expr, raw);
+    html += `
+      <tr style="border-bottom: 1px solid var(--recon-border-subtle);">
+        <td style="padding: 4px 8px; color: var(--recon-text-secondary); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(raw)}">${escapeHtml(raw)}</td>
+        <td style="padding: 4px 8px; text-align: center; color: var(--recon-text-muted);">→</td>
+        <td style="padding: 4px 8px; font-weight: 600; color: ${ok ? '#30D158' : '#FF453A'}; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(result)}">${escapeHtml(result)}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  previewBox.innerHTML = html;
+}
+
+function initTransformPlayground() {
+  const input = document.getElementById("drawer-transform-expr-input");
+  if (input) {
+    input.addEventListener("input", () => {
+      renderPlaygroundPreview(input.value, currentPlaygroundSamples);
+    });
+  }
+
+  const chips = document.querySelectorAll("#drawer-transform-chips button");
+  chips.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const expr = btn.dataset.expr;
+      if (input && expr) {
+        input.value = expr;
+        renderPlaygroundPreview(expr, currentPlaygroundSamples);
+        SoundEngine.playClick();
+      }
+    });
+  });
+}
+
 function openDrawerForMapping(prop, openDrawer = true) {
   if (openDrawer) {
     openInspectorDrawer(true);
@@ -3702,6 +3797,7 @@ function openDrawerForMapping(prop, openDrawer = true) {
     if (sampleVals.length === 0 && currentAssessment.source.sample_rows) {
       sampleVals = currentAssessment.source.sample_rows.map(r => r[chosenSource]).filter(v => v !== undefined && v !== null);
     }
+    currentPlaygroundSamples = sampleVals;
 
     const firstRaw = sampleVals.length > 0 ? String(sampleVals[0]) : "null";
     const { clean: firstClean } = computeTransformedValue(firstRaw, prop);
@@ -3754,22 +3850,36 @@ function openDrawerForMapping(prop, openDrawer = true) {
     document.getElementById("drawer-cardinality-meta").textContent = "";
   }
 
-  // Tab 3: AST Transform Formula
+  // Tab 3: AST Transform Formula & Live Expression Playground
   const astCode = document.getElementById("drawer-ast-code");
+  let defaultExpr = "val.strip()";
   if (chosenSource) {
     if (prop.target_type === "float") {
       astCode.textContent = `output['${prop.target_field}'] = float(source['${chosenSource}']) if source.get('${chosenSource}') not in (None, '') else None`;
+      defaultExpr = "float(val)";
     } else if (prop.target_type === "integer") {
       astCode.textContent = `output['${prop.target_field}'] = int(source['${chosenSource}']) if source.get('${chosenSource}') not in (None, '') else None`;
+      defaultExpr = "int(val)";
     } else if (prop.target_type === "datetime") {
       astCode.textContent = `output['${prop.target_field}'] = parse_iso_datetime(source['${chosenSource}'])`;
+      defaultExpr = "val.strip()";
     } else if (prop.allowed_values && prop.allowed_values.length > 0) {
       astCode.textContent = `output['${prop.target_field}'] = str(source['${chosenSource}']).strip().upper()`;
+      defaultExpr = "val.strip().upper()";
     } else {
       astCode.textContent = `output['${prop.target_field}'] = str(source['${chosenSource}']).strip() if source.get('${chosenSource}') is not None else None`;
+      defaultExpr = "val.strip()";
     }
   } else {
     astCode.textContent = `# Field '${prop.target_field}' unmapped. No transform emitted.\n# Validation will enforce required=True and non-null constraints.`;
+    defaultExpr = "val";
+    currentPlaygroundSamples = [];
+  }
+
+  const exprInput = document.getElementById("drawer-transform-expr-input");
+  if (exprInput) {
+    exprInput.value = defaultExpr;
+    renderPlaygroundPreview(defaultExpr, currentPlaygroundSamples);
   }
 
   // Tab 4: Schema Meta
