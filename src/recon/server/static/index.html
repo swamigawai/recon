@@ -27,21 +27,22 @@
             <path class="circuit-hub-check" d="M 54 36.5 L 58.5 41 L 66 31.5" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <span class="recon-brand-title">recon</span>
-          <span class="badge badge-indigo" style="font-size: 9px; padding: 2px 6px; font-weight: 700; letter-spacing: 0.05em;">RECON // 01</span>
+          <span class="brand-spec font-mono text-muted" style="font-size: 10px; letter-spacing: 0.04em; margin-left: 6px;">RECON // 01</span>
         </a>
       </div>
 
       <div class="recon-header-center">
-        <div class="recon-capsule" id="session-capsule">
-          <span class="status-dot" id="header-pulse" style="width: 7px; height: 7px;"></span>
-          <span class="recon-capsule-tag">Session</span>
-          <span id="session-id-display">sess_empty</span>
-          <span class="recon-capsule-tag">In-Memory</span>
+        <div class="recon-session-strip" id="session-capsule">
+          <span class="font-mono text-muted" style="font-size: 11px;">session:</span>
+          <span id="session-id-display" class="font-mono text-secondary" style="font-size: 11px;">sess_empty</span>
+          <span id="header-pulse" class="hidden"></span>
+          <span class="hidden">In-Memory</span>
         </div>
-        <div class="recon-capsule hidden" id="contract-capsule">
-          <span class="recon-capsule-tag">Target</span>
-          <span id="contract-name-display">-</span>
-          <span class="badge badge-indigo" id="contract-version-pill">v1.0.0</span>
+        <div class="recon-contract-strip hidden" id="contract-capsule">
+          <span class="recon-crumb-sep" style="margin: 0 4px; color: var(--recon-border-strong);">/</span>
+          <span class="font-mono text-muted" style="font-size: 11px;">contract:</span>
+          <span id="contract-name-display" class="font-mono text-secondary" style="font-size: 11px;">-</span>
+          <span id="contract-version-pill" class="font-mono text-muted" style="font-size: 10px;">v1.0.0</span>
         </div>
       </div>
 
@@ -70,35 +71,41 @@
     <!-- ====================================================================
          2. Persistent Engineering Workflow Stepper (01 to 07)
          ==================================================================== -->
-    <nav class="recon-stepper" id="workflow-stepper">
-      <div class="recon-step-item active" data-step="1" id="step-nav-1" title="Step 01: Dual-Port Ingest Cockpit (Active)">
+    <nav class="recon-stepper" id="workflow-stepper" aria-label="Workflow Navigation">
+      <div class="recon-step-item active" data-step="1" id="step-nav-1" title="01 Ingest Dock">
         <span class="recon-step-num">01</span>
-        <span class="recon-step-label">INGEST</span>
+        <span class="recon-step-label">Ingest</span>
       </div>
-      <div class="recon-step-item" data-step="2" id="step-nav-2" title="Step 02: Source Dataset Profile Matrix (Unlocks after Ingest Inspection)">
+      <span class="recon-crumb-sep" aria-hidden="true">/</span>
+      <div class="recon-step-item" data-step="2" id="step-nav-2" title="02 Profile Matrix">
         <span class="recon-step-num">02</span>
-        <span class="recon-step-label">PROFILE</span>
+        <span class="recon-step-label">Profile</span>
       </div>
-      <div class="recon-step-item" data-step="3" id="step-nav-3" title="Step 03: Mapping Review Studio (Unlocks after Ingest Inspection)">
+      <span class="recon-crumb-sep" aria-hidden="true">/</span>
+      <div class="recon-step-item" data-step="3" id="step-nav-3" title="03 Mapping Studio">
         <span class="recon-step-num">03</span>
-        <span class="recon-step-label">MAP</span>
+        <span class="recon-step-label">Map</span>
       </div>
-      <div class="recon-step-item" data-step="4" id="step-nav-4" title="Step 04: Risk Radar & Approval Gate (Unlocks after Ingest Inspection)">
+      <span class="recon-crumb-sep" aria-hidden="true">/</span>
+      <div class="recon-step-item" data-step="4" id="step-nav-4" title="04 Risk Radar & Approval">
         <span class="recon-step-num">04</span>
-        <span class="recon-step-label">AUDIT</span>
+        <span class="recon-step-label">Audit</span>
         <span class="recon-step-dot hidden" id="step-audit-dot"></span>
       </div>
-      <div class="recon-step-item" data-step="5" id="step-nav-5" title="Step 05: Adapter Code Review (Unlocks after Approval)">
+      <span class="recon-crumb-sep" aria-hidden="true">/</span>
+      <div class="recon-step-item" data-step="5" id="step-nav-5" title="05 Adapter Code Review">
         <span class="recon-step-num">05</span>
-        <span class="recon-step-label">ADAPTER</span>
+        <span class="recon-step-label">Adapter</span>
       </div>
-      <div class="recon-step-item" data-step="6" id="step-nav-6" title="Step 06: Validation & Quarantine Ledger (Unlocks after Approval)">
+      <span class="recon-crumb-sep" aria-hidden="true">/</span>
+      <div class="recon-step-item" data-step="6" id="step-nav-6" title="06 Validation & Quarantine Ledger">
         <span class="recon-step-num">06</span>
-        <span class="recon-step-label">VALIDATE</span>
+        <span class="recon-step-label">Validate</span>
       </div>
-      <div class="recon-step-item" data-step="7" id="step-nav-7" title="Step 07: Readiness Dossier & Downloads (Unlocks after Validation)">
+      <span class="recon-crumb-sep" aria-hidden="true">/</span>
+      <div class="recon-step-item" data-step="7" id="step-nav-7" title="07 Readiness Dossier">
         <span class="recon-step-num">07</span>
-        <span class="recon-step-label">DOSSIER</span>
+        <span class="recon-step-label">Dossier</span>
       </div>
     </nav>
 
@@ -124,7 +131,7 @@
           <div class="section-header">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
               <div>
-                <h2 class="section-title">01 Ingest Cockpit</h2>
+                <h2 class="section-title">01 Ingest Dock</h2>
                 <p class="section-desc">Stage raw source records and target contract schema to evaluate integration readiness.</p>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -149,9 +156,11 @@
                 <span class="badge badge-muted" id="source-format-pill">CSV / JSON</span>
               </div>
               <div class="port-dropzone" id="source-dropzone" role="button" tabindex="0" aria-label="Drop raw source dataset or click to browse">
-                <div class="port-dropzone-icon">↑</div>
-                <div style="font-weight: 600; margin-bottom: 4px;">Drop raw source dataset or click to browse</div>
-                <div class="text-muted" style="font-size: 11px;">Supported: .csv, .tsv, .txt, .json, .jsonl (Max 100MB)</div>
+                <div class="port-dropzone-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div style="font-weight: 500; font-size: 13px; margin-bottom: 3px;">Drop raw source dataset or click to browse</div>
+                <div class="text-muted font-mono" style="font-size: 11px;">.csv, .tsv, .txt, .json, .jsonl (Max 100MB)</div>
                 <input type="file" id="source-file-input" accept=".csv,.tsv,.txt,.json,.jsonl" class="hidden">
               </div>
 
@@ -172,7 +181,7 @@
             <div class="port-card port-target" id="port-target-card">
               <div class="port-header">
                 <span class="port-title">Port 2: Target Schema Contract</span>
-                <span class="badge badge-indigo">Governing Standard</span>
+                <span class="font-mono text-muted" style="font-size: 11px;">JSON Schema / OpenAPI</span>
               </div>
 
               <!-- Contract Tabs -->
@@ -191,9 +200,11 @@
 
               <div id="ctab-content-upload" class="hidden">
                 <div class="port-dropzone" id="contract-dropzone" role="button" tabindex="0" aria-label="Drop target contract schema or click to browse">
-                  <div class="port-dropzone-icon">↑</div>
-                  <div style="font-weight: 600; margin-bottom: 4px;">Drop target contract schema (.json)</div>
-                  <div class="text-muted" style="font-size: 11px;">Supported: Native Recon, JSON Schema (Draft-07/2020-12), OpenAPI 3.x</div>
+                  <div class="port-dropzone-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <div style="font-weight: 500; font-size: 13px; margin-bottom: 3px;">Drop target contract schema (.json) or click to browse</div>
+                  <div class="text-muted font-mono" style="font-size: 11px;">Native Recon, JSON Schema (Draft-07/2020-12), OpenAPI 3.x</div>
                   <input type="file" id="contract-file-input" accept=".json" class="hidden">
                 </div>
               </div>
@@ -512,7 +523,7 @@
           <div class="recon-card" style="border-color: var(--recon-border-strong);">
             <div class="recon-card-header">
               <span style="font-weight: 600; font-size: 13px;">Explicit Human Approval Ceremony</span>
-              <span class="badge badge-muted">Irreversible In-Memory Commit</span>
+              <span class="font-mono text-muted" style="font-size: 11px;">In-Memory Execution</span>
             </div>
             <div class="recon-card-body">
               <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: center; margin-bottom: 16px;">
@@ -728,7 +739,7 @@
                 <div style="font-size: 12px; margin-top: 4px;" id="dossier-rationale-text">All required fields mapped and contract validated.</div>
               </div>
             </div>
-            <span class="badge badge-emerald holographic-pill" id="dossier-state-badge">CERTIFIED READY</span>
+            <span class="badge badge-emerald" id="dossier-state-badge">CERTIFIED READY</span>
           </div>
 
           <!-- Certified Artifacts Grid -->
@@ -915,7 +926,7 @@
             <div class="recon-drawer-section" style="margin-top: 14px;">
               <div class="recon-drawer-section-title" style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Live Expression Playground</span>
-                <span class="badge badge-indigo" style="font-size: 9px; font-weight: 700;">INTERACTIVE</span>
+                
               </div>
               <p class="text-muted" style="font-size: 11px; margin-bottom: 8px;">Test inline transforms on observed sample values in real time:</p>
               
