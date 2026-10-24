@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=9.0">
+  <link rel="stylesheet" href="style.css?v=10.0">
 </head>
 <body class="recon-app">
   <!-- Top Application Header (44px) -->
@@ -14,6 +14,7 @@
       <span class="brand-spec font-mono text-muted" style="font-size: 10px; margin-left: 6px; letter-spacing: 0.04em;">RECON // 01</span>
       <span class="nav-slash">/</span>
       <span class="session-crumb" id="session-label">sessions / #<span id="session-id-display">sess_empty</span></span>
+      <span class="craft-badge font-mono" title="Awwwards DevTool Standard · First-Principles Engine">AWWWARDS DEVTOOL · 2026</span>
     </div>
     <div class="header-center">
       <div class="contract-pair-pill" id="contract-pair-pill">
@@ -23,6 +24,7 @@
       </div>
     </div>
     <div class="header-right">
+      <button class="nav-btn font-mono" id="btn-sound-toggle" title="Toggle Mechanical Audio FX (S)">🔊 SFX</button>
       <button class="nav-btn" id="btn-command-palette" title="Quick Command Palette (⌘K)"><kbd>⌘K</kbd></button>
       <button class="nav-btn" id="btn-shortcuts" title="Keyboard Shortcuts (?)">?</button>
       <button class="nav-btn" id="btn-theme-toggle" title="Toggle Theme (◐)">◐</button>
@@ -83,7 +85,7 @@
         <!-- Port 1: Source Data Port -->
         <div class="port-bay" id="bay-source">
           <div class="port-bay-header">
-            <div class="port-bay-tag">PORT 01: SOURCE DATASET</div>
+            <div class="port-bay-tag font-mono">PORT 01: SOURCE DATASET</div>
             <div class="port-bay-chips">
               <span class="format-chip">CSV</span>
               <span class="format-chip">JSON</span>
@@ -96,56 +98,54 @@
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
             <div class="port-drop-title" id="source-display-title">vendor_invoices.csv</div>
-            <div class="port-drop-sub font-mono" id="source-display-meta">Click or drag &amp; drop source dataset (Max 100MB)</div>
+            <div class="port-drop-sub font-mono" id="source-display-meta">CSV · 14 columns · 1.2MB · 5,000 rows</div>
             <input type="file" id="source-file-input" accept=".csv,.tsv,.txt,.json,.jsonl" class="hidden">
           </div>
 
-          <div class="port-status-strip">
+          <div class="port-bay-footer font-mono">
             <span class="status-indicator-dot online"></span>
-            <span class="status-strip-text font-mono" id="source-status-text">Staged: vendor_invoices.csv · 5,000 records</span>
+            <span id="source-status-text">Staged: vendor_invoices.csv · 5,000 records</span>
           </div>
         </div>
 
         <!-- Port 2: Target Contract Port -->
         <div class="port-bay" id="bay-target">
           <div class="port-bay-header">
-            <div class="port-bay-tag">PORT 02: TARGET SCHEMA CONTRACT</div>
+            <div class="port-bay-tag font-mono">PORT 02: TARGET SCHEMA CONTRACT</div>
             <div class="port-bay-chips">
               <span class="format-chip">JSON Schema</span>
               <span class="format-chip">OpenAPI 3.x</span>
             </div>
           </div>
 
-          <div class="port-drop-surface" id="drop-target" role="button" tabindex="0" title="Click or drop target contract schema">
+          <div class="port-drop-surface" id="drop-target" role="button" tabindex="0" title="Click or drop target contract JSON">
             <div class="port-drop-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             </div>
             <div class="port-drop-title" id="target-display-title">invoice_target_contract.json</div>
-            <div class="port-drop-sub font-mono" id="target-display-meta">Click or drag &amp; drop target JSON Schema / OpenAPI</div>
-            <input type="file" id="contract-file-input" accept=".json" class="hidden">
+            <div class="port-drop-sub font-mono" id="target-display-meta">JSON Schema Draft-07 · 12 fields · 6 required</div>
+            <input type="file" id="target-file-input" accept=".json,.yaml,.yml" class="hidden">
           </div>
 
-          <div class="port-status-strip">
+          <div class="port-bay-footer font-mono">
             <span class="status-indicator-dot online"></span>
-            <span class="status-strip-text font-mono" id="target-status-text">Validated: JSON Schema Draft-07 · 12 fields · 6 required</span>
+            <span id="target-status-text">Validated: JSON Schema Draft-07 · 12 fields · 6 required</span>
           </div>
         </div>
       </div>
 
-      <!-- Ingest Action Bar -->
-      <div class="ingest-action-bar">
-        <div class="conformance-callout font-mono">
-          <span class="status-dot"></span>
+      <!-- Action Bar -->
+      <div class="step-action-bar">
+        <div class="action-status-note font-mono">
+          <span class="status-indicator-dot online"></span>
           <span>Dual Ports Staged: Ready for automated pre-flight quality profiling</span>
         </div>
-        <button type="button" class="btn btn-primary btn-large" id="btn-assess">
-          Analyze Integration →
-        </button>
+        <button type="button" class="btn btn-primary" id="btn-analyze-ingest">Analyze Integration →</button>
       </div>
     </section>
 
     <!-- ====================================================================
-         STEP 02: SOURCE QUALITY & DISTRIBUTION PROFILE MATRIX
+         STEP 02: SOURCE SCHEMA QUALITY PROFILE
          ==================================================================== -->
     <section class="recon-step-screen" id="screen-2" data-screen="2">
       <div class="step-screen-header">
@@ -153,20 +153,20 @@
           <h2 class="step-screen-title">02 Source Schema Quality Profile</h2>
           <p class="step-screen-desc">Type discovery, 36px nullity micro-tracks, distinct cardinality, and distribution forensics.</p>
         </div>
-        <div class="font-mono text-muted" id="profile-meta-summary">
+        <div class="metrics-summary-tag font-mono" id="profile-summary-tag">
           14 COLUMNS PROFILED · 5,000 ROWS
         </div>
       </div>
 
-      <div class="table-container">
+      <div class="profile-table-wrap">
         <table class="profile-table">
           <thead>
             <tr>
-              <th width="180">FIELD NAME</th>
-              <th width="110">INFERRED TYPE</th>
-              <th width="180">NULLITY MICRO-TRACK</th>
-              <th width="120">NULL %</th>
-              <th width="120">CARDINALITY</th>
+              <th>FIELD NAME</th>
+              <th>INFERRED TYPE</th>
+              <th>NULLITY MICRO-TRACK</th>
+              <th>NULL %</th>
+              <th>CARDINALITY</th>
               <th>SAMPLE OBSERVED VALUES</th>
             </tr>
           </thead>
@@ -183,17 +183,17 @@
     </section>
 
     <!-- ====================================================================
-         STEP 03: INTERACTIVE VISUAL MAPPING STUDIO & FLOW GRAPH
+         STEP 03: INTERACTIVE MAPPING STUDIO & FIRST-PRINCIPLES INSPECTOR
          ==================================================================== -->
     <section class="recon-step-screen" id="screen-3" data-screen="3">
       <div class="step-screen-header">
         <div>
           <h2 class="step-screen-title">03 Interactive Mapping Studio</h2>
-          <p class="step-screen-desc">Visual node alignment with kinetic Bezier cables, data packet flow, and deterministic heuristics.</p>
+          <p class="step-screen-desc">Visual node alignment with kinetic Bezier cables, data packet flow, and Karpathy first-principles forensics.</p>
         </div>
-        <div class="view-toggle-bar">
-          <button type="button" class="view-tab-btn active" id="btn-view-graph">Visual Flow Graph</button>
-          <button type="button" class="view-tab-btn" id="btn-view-matrix">Dense Table Matrix</button>
+        <div class="view-switcher-group">
+          <button type="button" class="btn-micro active" id="btn-view-graph">Visual Flow Graph</button>
+          <button type="button" class="btn-micro" id="btn-view-matrix">Dense Table Matrix</button>
         </div>
       </div>
 
@@ -219,7 +219,7 @@
           <div class="flow-stage-container" id="flow-stage-view">
             <!-- Source Nodes Column -->
             <div class="flow-col flow-src-col" id="flow-source-col">
-              <div class="flow-col-title">SOURCE COLUMNS</div>
+              <div class="flow-col-title font-mono">SOURCE COLUMNS (CLICK TO WIRE)</div>
               <div class="flow-nodes-list" id="flow-source-nodes"></div>
             </div>
 
@@ -231,7 +231,7 @@
 
             <!-- Target Nodes Column -->
             <div class="flow-col flow-tgt-col" id="flow-target-col">
-              <div class="flow-col-title">TARGET CONTRACT TARGETS</div>
+              <div class="flow-col-title font-mono">TARGET CONTRACT (CLICK TO COMPLETE)</div>
               <div class="flow-nodes-list" id="flow-target-nodes"></div>
             </div>
 
@@ -265,38 +265,71 @@
         <!-- Pane 3: Contextual Inspector -->
         <aside class="pane-column pane-inspector" id="pane-inspector">
           <div class="column-header inspector-header">
-            <span class="column-title">Contextual Inspector</span>
+            <span class="column-title font-mono">Contextual Inspector</span>
             <button id="inspector-edge-tab" class="btn-micro" title="Toggle Inspector (O)">[O]</button>
           </div>
           <div class="inspector-tabs">
-            <button class="tab-item active" data-tab="tab-evidence" id="tab-btn-evidence">Evidence</button>
+            <button class="tab-item" data-tab="tab-evidence" id="tab-btn-evidence">Evidence</button>
+            <button class="tab-item active" data-tab="tab-karpathy" id="tab-btn-karpathy">⚡ Karpathy Engine</button>
             <button class="tab-item" data-tab="tab-samples" id="tab-btn-samples">Samples</button>
             <button class="tab-item" data-tab="tab-playground" id="tab-btn-playground">Diff / AST</button>
             <button class="tab-item" data-tab="tab-contract" id="tab-btn-contract">Contract</button>
           </div>
           <div class="inspector-content">
             <!-- Tab 1: Evidence Trace -->
-            <div class="tab-view active" id="tab-evidence">
+            <div class="tab-view" id="tab-evidence">
               <div class="inspector-card" id="flow-meter-panel">
-                <div class="card-title">DETERMINISTIC INFERENCE EVIDENCE</div>
+                <div class="card-title font-mono">DETERMINISTIC INFERENCE EVIDENCE</div>
                 <div class="evidence-body" id="flow-meter-evidence">
                   Select a wire or row to inspect match heuristics.
                 </div>
               </div>
             </div>
 
-            <!-- Tab 2: Samples & Top Values -->
+            <!-- Tab 2: Karpathy First-Principles Engine (Math & AST Sandbox) -->
+            <div class="tab-view active" id="tab-karpathy">
+              <div class="inspector-card">
+                <div class="card-title font-mono">FIRST-PRINCIPLES AFFINITY DERIVATION</div>
+                <div class="karpathy-formula-box">
+                  <code>Score = α·Levenshtein + β·TypeMatch + γ·NullityLoss</code>
+                  <div class="weights-breakdown font-mono">
+                    <span>α=0.45 (Syntax)</span>
+                    <span>β=0.40 (Type)</span>
+                    <span>γ=0.15 (Loss)</span>
+                  </div>
+                </div>
+
+                <div class="karpathy-affinity-breakdown" id="karpathy-affinity-breakdown">
+                  <!-- Live calculation bars -->
+                </div>
+
+                <div class="card-title font-mono" style="margin-top: 14px;">AST PARSER NODE TRACE</div>
+                <pre class="ast-tree-pre" id="karpathy-ast-tree"><code>ast.Assign(targets=[ast.Attribute(value=ast.Name(id='rec'), attr='invoice_id')], value=ast.Call(func=ast.Name(id='str'), args=[...]))</code></pre>
+
+                <div class="card-title font-mono" style="margin-top: 14px;">MICRO-DEBUGGER (TEST ARBITRARY TOKEN)</div>
+                <div class="micro-debugger-form">
+                  <input type="text" class="micro-input font-mono" id="karpathy-test-input" placeholder="Enter sample token (e.g. '$1,250.00')...">
+                  <div class="micro-output-card" id="karpathy-test-result">
+                    <span class="micro-label font-mono">Transformed Output:</span>
+                    <code class="micro-val font-mono" id="karpathy-output-val">"1250.00"</code>
+                    <span class="micro-badge valid" id="karpathy-output-status">VALID CONFORMANCE</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Samples & Top Values -->
             <div class="tab-view" id="tab-samples">
               <div class="inspector-card">
-                <div class="card-title">OBSERVED SOURCE SAMPLES</div>
+                <div class="card-title font-mono">OBSERVED SOURCE SAMPLES</div>
                 <ul class="sample-list" id="sample-list"></ul>
               </div>
             </div>
 
-            <!-- Tab 3: Morphing Diff -->
+            <!-- Tab 4: Morphing Diff -->
             <div class="tab-view" id="tab-playground">
               <div class="inspector-card morph-diff-container" id="morphing-diff-view">
-                <div class="card-title">BEFORE / AFTER VALUE TRANSFORM</div>
+                <div class="card-title font-mono">BEFORE / AFTER VALUE TRANSFORM</div>
                 <div class="morph-wipe-card" id="morph-wipe-card">
                   <input type="range" class="morph-scrub-slider" id="diff-scrub-input" min="0" max="100" value="50">
                   <div class="morph-sample-card" id="morph-sample-card">
@@ -309,10 +342,10 @@
               </div>
             </div>
 
-            <!-- Tab 4: Target Schema Spec -->
+            <!-- Tab 5: Target Schema Spec -->
             <div class="tab-view" id="tab-contract">
               <div class="inspector-card">
-                <div class="card-title">TARGET SCHEMA SPECIFICATION</div>
+                <div class="card-title font-mono">TARGET SCHEMA SPECIFICATION</div>
                 <pre class="schema-spec-pre" id="schema-spec-view"></pre>
               </div>
             </div>
@@ -343,31 +376,31 @@
 
       <div class="radar-grid">
         <div class="radar-card" id="radar-card-r001">
-          <div class="radar-card-code">R001 · REQUIRED FIELDS</div>
+          <div class="radar-card-code font-mono">R001 · REQUIRED FIELDS</div>
           <div class="radar-card-title">Missing Required Attributes</div>
           <div class="radar-card-desc">Target contract requires strict non-null values. Unmapped required fields will cause production pipeline crash.</div>
-          <div class="radar-status" id="radar-status-r001">Status: Fatal Blocker (vendor_tax_id unmapped)</div>
+          <div class="radar-status font-mono" id="radar-status-r001">Status: Fatal Blocker (vendor_tax_id unmapped)</div>
         </div>
 
         <div class="radar-card" id="radar-card-r002">
-          <div class="radar-card-code">R002 · TYPE COMPATIBILITY</div>
+          <div class="radar-card-code font-mono">R002 · TYPE COMPATIBILITY</div>
           <div class="radar-card-title">Coercion Safety &amp; Invariance</div>
           <div class="radar-card-desc">Detects safe transformations (str → float, string → ISO-8601 UTC timestamp) without silent truncation.</div>
-          <div class="radar-status cleared">Status: 2 Safe Coercions Detected</div>
+          <div class="radar-status font-mono" id="radar-status-r002">Status: 2 Safe Coercions Detected</div>
         </div>
 
         <div class="radar-card" id="radar-card-r003">
-          <div class="radar-card-code">R003 · NULLABILITY CONFLICTS</div>
+          <div class="radar-card-code font-mono">R003 · NULLABILITY CONFLICTS</div>
           <div class="radar-card-title">Unexpected Null Distribution</div>
           <div class="radar-card-desc">Evaluates null frequencies in source records against target nullable: false constraints.</div>
-          <div class="radar-status cleared">Status: Guarded (Quarantine diversion active)</div>
+          <div class="radar-status font-mono" id="radar-status-r003">Status: Guarded (Quarantine diversion active)</div>
         </div>
 
         <div class="radar-card" id="radar-card-r005">
-          <div class="radar-card-code">R005 · ENUM &amp; BOUNDARIES</div>
+          <div class="radar-card-code font-mono">R005 · ENUM &amp; BOUNDARIES</div>
           <div class="radar-card-title">Domain Boundary Conformance</div>
           <div class="radar-card-desc">Validates categorical enum sets and range boundaries. Non-conforming rows are routed to the Quarantine Ledger.</div>
-          <div class="radar-status cleared">Status: Passing Verification</div>
+          <div class="radar-status font-mono" id="radar-status-r005">Status: Passing Verification</div>
         </div>
       </div>
 
@@ -378,7 +411,7 @@
     </section>
 
     <!-- ====================================================================
-         STEP 05: ADAPTER WORKBENCH & ZERO-LOSS ACCOUNTING LEDGER
+         STEP 05: SYNTHESIZED AST ADAPTER & ZERO-LOSS LEDGER
          ==================================================================== -->
     <section class="recon-step-screen" id="screen-5" data-screen="5">
       <div class="step-screen-header">
@@ -386,15 +419,15 @@
           <h2 class="step-screen-title">05 Synthesized AST Adapter &amp; Zero-Loss Ledger</h2>
           <p class="step-screen-desc">Deterministic AST Python code generation and mathematical zero-loss quarantine accounting.</p>
         </div>
-        <div class="ledger-formula font-mono" id="ledger-formula-display">
+        <div class="zero-loss-formula font-mono">
           N_total (5,000) = N_valid (4,700) + N_quarantine (300)
         </div>
       </div>
 
-      <div class="workbench-bottom-deck full-height">
+      <div class="deploy-grid">
         <div class="sub-pane code-pane">
           <div class="sub-pane-header">
-            <span>SYNTHESIZED PYTHON ADAPTER (adapter.py)</span>
+            <span class="font-mono">SYNTHESIZED PYTHON ADAPTER (adapter.py)</span>
             <div style="display: flex; gap: 6px;">
               <button class="btn-micro" id="btn-copy-code">Copy Code</button>
               <button class="btn-micro" id="btn-download-adapter">Download .py</button>
@@ -405,7 +438,7 @@
 
         <div class="sub-pane ledger-pane">
           <div class="sub-pane-header">
-            <span>ZERO-LOSS ACCOUNTING LEDGER (QUARANTINE FORENSICS)</span>
+            <span class="font-mono">ZERO-LOSS ACCOUNTING LEDGER (QUARANTINE FORENSICS)</span>
             <span class="status-indicator-dot online"></span>
           </div>
           <div class="ledger-table-wrap" id="quarantine-log-view">
@@ -417,10 +450,10 @@
       <div class="download-hub-bar">
         <div class="download-hub-title font-mono">EXPORTABLE ARTIFACTS:</div>
         <div class="download-pills">
-          <a class="download-pill" id="dl-adapter" href="#">adapter.py</a>
-          <a class="download-pill" id="dl-valid" href="#">valid_records.jsonl (4,700 rows)</a>
-          <a class="download-pill" id="dl-quarantine" href="#">quarantine_records.jsonl (300 rows)</a>
-          <a class="download-pill" id="dl-dossier" href="#">readiness_dossier.json</a>
+          <a class="download-pill font-mono" id="dl-adapter" href="#">adapter.py</a>
+          <a class="download-pill font-mono" id="dl-valid" href="#">valid_records.jsonl (4,700 rows)</a>
+          <a class="download-pill font-mono" id="dl-quarantine" href="#">quarantine_records.jsonl (300 rows)</a>
+          <a class="download-pill font-mono" id="dl-dossier" href="#">readiness_dossier.json</a>
         </div>
       </div>
 
@@ -448,6 +481,9 @@
       <span class="kbd-guide"><kbd>↵</kbd> Approve</span>
       <span class="kbd-guide"><kbd>U</kbd> Unmap</span>
       <span class="kbd-guide"><kbd>O</kbd> Inspector</span>
+      <span class="kbd-guide"><kbd>M</kbd> View</span>
+      <span class="kbd-guide"><kbd>S</kbd> SFX</span>
+      <span class="kbd-guide"><kbd>?</kbd> Help</span>
     </div>
   </footer>
 
@@ -462,7 +498,29 @@
         <div class="cmd-row" data-act="step-4"><span>Step 04: Pre-Flight Risk Radar</span><kbd>4</kbd></div>
         <div class="cmd-row" data-act="step-5"><span>Step 05: Adapter &amp; Zero-Loss Ledger</span><kbd>5</kbd></div>
         <div class="cmd-row" data-act="approve"><span>Approve All Proposed Mappings</span><kbd>A</kbd></div>
+        <div class="cmd-row" data-act="sound"><span>Toggle Mechanical Audio FX</span><kbd>S</kbd></div>
         <div class="cmd-row" data-act="compile"><span>Compile Adapter &amp; Run Ledger</span><kbd>⌘↵</kbd></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Cheat Sheet Modal -->
+  <div class="cmd-overlay" id="modal-shortcuts" hidden>
+    <div class="cmd-box shortcuts-box">
+      <div class="shortcuts-header">
+        <h3 class="shortcuts-title font-mono">RECON STUDIO COCKPIT SHORTCUTS</h3>
+        <button class="btn-micro" id="btn-close-shortcuts" title="Close (Esc)">✕</button>
+      </div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-entry"><kbd>1</kbd> – <kbd>5</kbd><span>Jump directly to Steps 01 through 05</span></div>
+        <div class="shortcut-entry"><kbd>J</kbd> / <kbd>K</kbd><span>Navigate between Target fields</span></div>
+        <div class="shortcut-entry"><kbd>↵</kbd> (Enter)<span>Approve selected mapping</span></div>
+        <div class="shortcut-entry"><kbd>U</kbd><span>Unmap selected field</span></div>
+        <div class="shortcut-entry"><kbd>O</kbd><span>Toggle Contextual Inspector</span></div>
+        <div class="shortcut-entry"><kbd>M</kbd><span>Toggle Graph vs Table Matrix view</span></div>
+        <div class="shortcut-entry"><kbd>S</kbd><span>Toggle Tactical Mechanical Audio FX</span></div>
+        <div class="shortcut-entry"><kbd>⌘K</kbd> / <kbd>^K</kbd><span>Universal Command Palette</span></div>
+        <div class="shortcut-entry"><kbd>Esc</kbd><span>Close modals and overlays</span></div>
       </div>
     </div>
   </div>
@@ -485,6 +543,6 @@
     <textarea id="contract-text-area"></textarea>
   </div>
 
-  <script src="app.js?v=9.0"></script>
+  <script src="app.js?v=10.0"></script>
 </body>
 </html>

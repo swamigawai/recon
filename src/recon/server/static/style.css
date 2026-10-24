@@ -1128,3 +1128,239 @@ kbd {
   opacity: 1;
 }
 .hidden { display: none !important; }
+
+
+/* ==========================================================================
+   AWWWARDS DEVTOOL & FIRST-PRINCIPLES CRAFTSMANSHIP ENHANCEMENTS
+   ========================================================================== */
+
+.craft-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(39, 39, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-left: 8px;
+  text-wrap: nowrap;
+}
+
+#btn-sound-toggle.muted {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* Shortcuts Cheat Sheet Modal */
+.shortcuts-box {
+  max-width: 520px;
+  width: 90%;
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-focus);
+  border-radius: 6px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+.shortcuts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.shortcuts-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.shortcut-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.shortcut-entry kbd {
+  display: inline-block;
+  min-width: 24px;
+  text-align: center;
+  padding: 2px 6px;
+  background: var(--bg-root);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+/* Karpathy First-Principles Inspector Engine */
+.karpathy-formula-box {
+  background: var(--bg-root);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.karpathy-formula-box code {
+  display: block;
+  font-size: 11px;
+  color: var(--accent-primary);
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+}
+
+.weights-breakdown {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.karpathy-affinity-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.affinity-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.affinity-bar-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.affinity-track {
+  height: 4px;
+  background: var(--bg-root);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.affinity-fill {
+  height: 100%;
+  background: var(--accent-success);
+  transition: width 0.2s ease;
+}
+
+.ast-tree-pre {
+  background: var(--bg-root);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 100px;
+}
+
+.micro-debugger-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.micro-input {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-root);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 11px;
+  outline: none;
+}
+
+.micro-input:focus {
+  border-color: var(--accent-primary);
+}
+
+.micro-output-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--bg-root);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.micro-label {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.micro-val {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.micro-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.micro-badge.valid {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.micro-badge.quarantine {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Kinetic Wire Hover & Interactive Connection Feedback */
+.flow-node.connecting {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+.flow-node.connecting .port-dot {
+  background: var(--accent-primary) !important;
+  transform: scale(1.4);
+}
+
+.flow-node:hover {
+  border-color: var(--border-focus);
+}
+
+.cable-path {
+  transition: stroke 0.15s ease, stroke-width 0.15s ease;
+  cursor: pointer;
+}
+
+.cable-path:hover, .cable-path.highlighted {
+  stroke: var(--accent-primary) !important;
+  stroke-width: 2.5px !important;
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
+}
