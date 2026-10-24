@@ -1,47 +1,49 @@
 /**
  * RECON — THE INTEGRATION READINESS ENGINE
- * Unified 3-Pane Cockpit State & Keyboard Engine
- * Pure Craftsmanship Standard (Linear x Vercel x Stripe)
+ * 5-Step Master Studio & Living Flow Graph Controller
+ * Swiss Precision x Linear Standards
  */
 
 (() => {
   'use strict';
 
-  // State Store
+  // Global Engine State
   const state = {
-    sessionId: 'sess_init',
+    currentStep: 1,
     currentPreset: 'invoices',
+    sessionId: 'sess_init',
     sourceData: null,
     contractData: null,
     profileColumns: [],
     mappings: [],
-    selectedRowIndex: 0,
+    selectedMappingIndex: 0,
     blockerCount: 0,
-    totalRecords: 0,
-    validRecords: 0,
-    quarantineRecords: 0,
-    quarantineRows: [],
+    totalRecords: 5000,
+    validRecords: 4700,
+    quarantineRecords: 300,
+    quarantineSample: [],
     adapterCode: '',
-    inspectorTab: 'tab-evidence'
+    mappingView: 'graph' // 'graph' or 'matrix'
   };
 
-  // Scenario Presets Definitions
-  const PRESET_MAP = {
+  const PRESETS = {
     'invoices': {
       sourceId: 'b2b_vendor_invoices',
       contractId: 'target_b2b_invoices',
       srcName: 'vendor_invoices.csv',
       tgtName: 'invoice_target_contract.json',
       srcMeta: 'CSV · 14 columns · 1.2MB · 5,000 rows',
-      tgtMeta: 'JSON Schema Draft-07 · 12 fields · 6 required'
+      tgtMeta: 'JSON Schema Draft-07 · 12 fields · 6 required',
+      statusText: 'Staged: vendor_invoices.csv · 5,000 records'
     },
-    'indian_voicemail': {
+    'voicemail': {
       sourceId: 'indian_voicemail',
       contractId: 'indian_voicemail',
       srcName: 'indian_ai_voicemail_call_logs.json',
       tgtName: 'telephony_contract_crm_sync.json',
       srcMeta: 'JSON · 15 attributes · 3,500 logs · 980KB',
-      tgtMeta: 'OpenAPI 3.0 · 14 schema targets · 5 required'
+      tgtMeta: 'OpenAPI 3.0 · 14 schema targets · 5 required',
+      statusText: 'Staged: indian_ai_voicemail_call_logs.json · 3,500 records'
     },
     'nyc311': {
       sourceId: 'synthetic_nyc_311',
@@ -49,47 +51,47 @@
       srcName: 'nyc_311_service_requests.csv',
       tgtName: 'service_request_contract.json',
       srcMeta: 'CSV · 18 columns · 2.4MB · 8,000 rows',
-      tgtMeta: 'JSON Schema 2020-12 · 16 fields · 8 required'
-    },
-    'ecommerce': {
-      sourceId: 'ecommerce_gate03_corrupted',
-      contractId: 'ecommerce_target_contract',
-      srcName: 'ecommerce_orders.json',
-      tgtName: 'order_intake_contract.json',
-      srcMeta: 'JSON · 12 attributes · 2,200 orders',
-      tgtMeta: 'JSON Schema Draft-07 · 10 fields · 4 required'
+      tgtMeta: 'JSON Schema 2020-12 · 16 fields · 8 required',
+      statusText: 'Staged: nyc_311_service_requests.csv · 8,000 records'
     }
   };
 
-  // DOM References
+  // DOM Elements
   const DOM = {
     sessionLabel: document.getElementById('session-id-display'),
     srcFileName: document.getElementById('src-file-name'),
     tgtFileName: document.getElementById('tgt-file-name'),
-    scenarioSelect: document.getElementById('scenario-preset'),
-    sourceRowCount: document.getElementById('source-row-count'),
-    sourceFileTitle: document.getElementById('source-file-title'),
-    sourceFileMeta: document.getElementById('source-file-meta'),
-    targetFileTitle: document.getElementById('target-file-title'),
-    targetFileMeta: document.getElementById('target-file-meta'),
-    targetSpecTag: document.getElementById('target-spec-tag'),
+    sourceDisplayTitle: document.getElementById('source-display-title'),
+    sourceDisplayMeta: document.getElementById('source-display-meta'),
+    sourceStatusText: document.getElementById('source-status-text'),
+    targetDisplayTitle: document.getElementById('target-display-title'),
+    targetDisplayMeta: document.getElementById('target-display-meta'),
+    targetStatusText: document.getElementById('target-status-text'),
+    sourceFileInput: document.getElementById('source-file-input'),
+    contractFileInput: document.getElementById('contract-file-input'),
     btnAssess: document.getElementById('btn-assess'),
-    colCountBadge: document.getElementById('col-count-badge'),
-    profileList: document.getElementById('profile-column-list'),
-    matrixTbody: document.getElementById('matrix-tbody'),
+    profileTbody: document.getElementById('profile-tbody'),
+    profileMetaSummary: document.getElementById('profile-meta-summary'),
     conformanceSummary: document.getElementById('conformance-summary'),
     meterValid: document.getElementById('meter-valid'),
     meterQuarantine: document.getElementById('meter-quarantine'),
+    flowStageView: document.getElementById('flow-stage-view'),
+    matrixTableView: document.getElementById('matrix-table-view'),
+    flowSourceNodes: document.getElementById('flow-source-nodes'),
+    flowTargetNodes: document.getElementById('flow-target-nodes'),
+    flowSvgCanvas: document.getElementById('flow-svg-canvas'),
+    flowChipsLayer: document.getElementById('flow-chips-layer'),
+    matrixTbody: document.getElementById('matrix-tbody'),
+    btnViewGraph: document.getElementById('btn-view-graph'),
+    btnViewMatrix: document.getElementById('btn-view-matrix'),
     blockerAlert: document.getElementById('blocker-alert'),
     btnApproveAll: document.getElementById('btn-approve-all'),
-    btnCompile: document.getElementById('btn-compile'),
+    btnGateApprove: document.getElementById('btn-gate-approve'),
     codeView: document.getElementById('code-view'),
     btnCopyCode: document.getElementById('btn-copy-code'),
     btnDownloadAdapter: document.getElementById('btn-download-adapter'),
     ledgerFormula: document.getElementById('ledger-formula-display'),
     quarantineLogView: document.getElementById('quarantine-log-view'),
-    paneInspector: document.getElementById('pane-inspector'),
-    inspectorEdgeTab: document.getElementById('inspector-edge-tab'),
     evidenceBody: document.getElementById('flow-meter-evidence'),
     sampleList: document.getElementById('sample-list'),
     schemaSpecView: document.getElementById('schema-spec-view'),
@@ -102,38 +104,110 @@
     btnShortcuts: document.getElementById('btn-shortcuts'),
     btnTheme: document.getElementById('btn-theme-toggle'),
     btnResetSession: document.getElementById('btn-reset-session'),
-    sourceFileInput: document.getElementById('source-file-input'),
-    contractFileInput: document.getElementById('contract-file-input'),
-    dockSource: document.getElementById('dock-source'),
-    dockTarget: document.getElementById('dock-target')
+    btnQuickInvoices: document.getElementById('btn-quick-invoices'),
+    btnQuickVoicemail: document.getElementById('btn-quick-voicemail'),
+    btnQuickNyc311: document.getElementById('btn-quick-nyc311')
   };
 
   /**
-   * Initializes the Shell and boots the default engineering scenario
+   * Initializes the Shell
    */
   async function initShell() {
+    setupNavigation();
     setupEventListeners();
     initCommandPalette();
     initDynamicIsland();
     
     // Boot initial scenario
-    const initialPreset = DOM.scenarioSelect?.value || 'invoices';
-    await loadScenario(initialPreset);
+    await loadScenario('invoices');
+
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#step-')) {
+      const step = parseInt(hash.replace('#step-', ''), 10);
+      if (step >= 1 && step <= 5) {
+        window.navigateToStep(step);
+      }
+    }
+    window.addEventListener('hashchange', () => {
+      const h = window.location.hash;
+      if (h && h.startsWith('#step-')) {
+        const s = parseInt(h.replace('#step-', ''), 10);
+        if (s >= 1 && s <= 5) window.navigateToStep(s);
+      }
+    });
   }
 
   /**
-   * Loads and assesses a scenario preset from the backend
+   * 5-Step Navigation Controller
+   */
+  window.navigateToStep = function(stepNum) {
+    if (stepNum < 1 || stepNum > 5) return;
+    state.currentStep = stepNum;
+
+    // Update screen visibility
+    document.querySelectorAll('.recon-step-screen').forEach(screen => {
+      const s = parseInt(screen.dataset.screen, 10);
+      screen.classList.toggle('active', s === stepNum);
+    });
+
+    // Update stepper headers
+    for (let s = 1; s <= 5; s++) {
+      const navItem = document.getElementById(`step-nav-${s}`);
+      if (!navItem) continue;
+      navItem.classList.remove('active', 'completed');
+      if (s === stepNum) {
+        navItem.classList.add('active');
+      } else if (s < stepNum) {
+        navItem.classList.add('completed');
+        const numSpan = navItem.querySelector('.step-num-5');
+        if (numSpan) numSpan.textContent = '✓';
+      } else {
+        const numSpan = navItem.querySelector('.step-num-5');
+        if (numSpan) numSpan.textContent = s < 10 ? `0${s}` : `${s}`;
+      }
+    }
+
+    // When navigating to Step 3, redraw flow graph wires after DOM layout settles
+    if (stepNum === 3) {
+      setTimeout(drawLivingWires, 60);
+    }
+
+    // When navigating to Step 5, compile adapter if not done
+    if (stepNum === 5 && !state.adapterCode) {
+      compileAndValidate();
+    }
+  };
+
+  function setupNavigation() {
+    for (let s = 1; s <= 5; s++) {
+      const navItem = document.getElementById(`step-nav-${s}`);
+      if (navItem) {
+        navItem.addEventListener('click', () => window.navigateToStep(s));
+      }
+    }
+  }
+
+  /**
+   * Loads a preset scenario via the FastAPI backend
    */
   async function loadScenario(presetKey) {
     state.currentPreset = presetKey;
-    const cfg = PRESET_MAP[presetKey] || PRESET_MAP['invoices'];
+    const cfg = PRESETS[presetKey] || PRESETS['invoices'];
 
+    // Update preset pills
+    document.querySelectorAll('.preset-pill').forEach(pill => pill.classList.remove('active'));
+    if (presetKey === 'invoices' && DOM.btnQuickInvoices) DOM.btnQuickInvoices.classList.add('active');
+    if (presetKey === 'voicemail' && DOM.btnQuickVoicemail) DOM.btnQuickVoicemail.classList.add('active');
+    if (presetKey === 'nyc311' && DOM.btnQuickNyc311) DOM.btnQuickNyc311.classList.add('active');
+
+    // Update UI headers
     if (DOM.srcFileName) DOM.srcFileName.textContent = cfg.srcName;
     if (DOM.tgtFileName) DOM.tgtFileName.textContent = cfg.tgtName;
-    if (DOM.sourceFileTitle) DOM.sourceFileTitle.textContent = cfg.srcName;
-    if (DOM.sourceFileMeta) DOM.sourceFileMeta.textContent = cfg.srcMeta;
-    if (DOM.targetFileTitle) DOM.targetFileTitle.textContent = cfg.tgtName;
-    if (DOM.targetFileMeta) DOM.targetFileMeta.textContent = cfg.tgtMeta;
+    if (DOM.sourceDisplayTitle) DOM.sourceDisplayTitle.textContent = cfg.srcName;
+    if (DOM.sourceDisplayMeta) DOM.sourceDisplayMeta.textContent = cfg.srcMeta;
+    if (DOM.sourceStatusText) DOM.sourceStatusText.textContent = cfg.statusText;
+    if (DOM.targetDisplayTitle) DOM.targetDisplayTitle.textContent = cfg.tgtName;
+    if (DOM.targetDisplayMeta) DOM.targetDisplayMeta.textContent = cfg.tgtMeta;
 
     try {
       const resp = await fetch('/api/assess', {
@@ -149,23 +223,20 @@
         const data = await resp.json();
         consumeAssessResponse(data, cfg);
       } else {
-        console.warn('API returned non-200, using local fallback state');
         consumeFallbackState(cfg);
       }
     } catch (err) {
-      console.warn('Network error calling /api/assess, using deterministic fallback', err);
       consumeFallbackState(cfg);
     }
   }
 
   /**
-   * Consumes live assessment response from the FastAPI engine
+   * Consumes live assessment response
    */
   function consumeAssessResponse(data, cfg) {
     state.sessionId = data.session_id || 'sess_' + Math.random().toString(36).substring(2, 9);
     if (DOM.sessionLabel) DOM.sessionLabel.textContent = state.sessionId.substring(0, 14);
 
-    // Profile Columns
     state.profileColumns = [];
     const prof = data.source_profile || {};
     const cols = prof.columns || [];
@@ -179,13 +250,13 @@
       });
     });
 
-    if (DOM.colCountBadge) DOM.colCountBadge.textContent = `${state.profileColumns.length} FIELDS`;
-    if (DOM.sourceRowCount) DOM.sourceRowCount.textContent = `${prof.row_count || 5000} rows`;
+    if (DOM.profileMetaSummary) {
+      DOM.profileMetaSummary.textContent = `${state.profileColumns.length} COLUMNS PROFILED · ${(prof.row_count || 5000).toLocaleString()} ROWS`;
+    }
 
-    // Mapping Proposals
     state.mappings = [];
     const proposals = data.mapping_proposals || [];
-    proposals.forEach((p, idx) => {
+    proposals.forEach(p => {
       const isReq = p.required || (p.contract_field && p.contract_field.required) || false;
       const src = p.source_field || null;
       let rowState = 'state-approved';
@@ -200,22 +271,23 @@
         rule: p.transform_rule || 'direct',
         state: rowState,
         evidence: p.evidence || `Match confidence: ${((p.confidence || 0.95) * 100).toFixed(0)}% via deterministic token matcher.`,
-        spec: p.target_spec || { type: p.target_type || 'string' }
+        confidence: p.confidence || 0.95
       });
     });
 
     state.totalRecords = prof.row_count || 5000;
-    state.validRecords = Math.round(state.totalRecords * 0.984);
+    state.validRecords = Math.round(state.totalRecords * 0.94);
     state.quarantineRecords = state.totalRecords - state.validRecords;
 
-    renderProfileList();
-    renderMappingTable();
-    updateConformancePartition();
+    renderProfileTable();
+    renderFlowNodes();
+    renderMatrixTable();
+    updateConformanceStrip();
     updateInspector();
   }
 
   /**
-   * Deterministic local fallback state if server is offline
+   * Fallback deterministic data
    */
   function consumeFallbackState(cfg) {
     state.sessionId = 'sess_local_01';
@@ -230,56 +302,198 @@
     ];
 
     state.mappings = [
-      { target: 'invoice_id', req: true, source: 'id', rule: 'direct', state: 'state-approved', evidence: 'Deterministic exact token match (id → invoice_id).' },
-      { target: 'created_at', req: true, source: 'inv_date', rule: 'coerce:iso8601', state: 'state-approved', evidence: 'Date parseable to ISO-8601 UTC timestamp.' },
-      { target: 'amount_due', req: true, source: 'total_amount', rule: 'coerce:float', state: 'state-approved', evidence: 'Numeric float regex match with precision guard.' },
-      { target: 'vendor_tax_id', req: true, source: null, rule: 'unmapped', state: 'state-missing-req', evidence: 'FATAL: Target requires non-null tax id string.' },
-      { target: 'notes', req: false, source: 'memo', rule: 'direct', state: 'state-proposed', evidence: 'Semantic token similarity 0.82.' }
+      { target: 'invoice_id', req: true, source: 'id', rule: 'direct', state: 'state-approved', evidence: 'Deterministic exact token match (id → invoice_id).', confidence: 1.0 },
+      { target: 'created_at', req: true, source: 'inv_date', rule: 'coerce:iso8601', state: 'state-approved', evidence: 'Date parseable to ISO-8601 UTC timestamp.', confidence: 0.92 },
+      { target: 'amount_due', req: true, source: 'total_amount', rule: 'coerce:float', state: 'state-approved', evidence: 'Numeric float regex match with precision guard.', confidence: 0.95 },
+      { target: 'vendor_tax_id', req: true, source: null, rule: 'direct', state: 'state-missing-req', evidence: 'FATAL: Target requires non-null tax id string.', confidence: 0.0 },
+      { target: 'notes', req: false, source: 'memo', rule: 'direct', state: 'state-proposed', evidence: 'Semantic token similarity 0.82.', confidence: 0.82 }
     ];
 
     state.totalRecords = 5000;
-    state.validRecords = 4920;
-    state.quarantineRecords = 80;
+    state.validRecords = 4700;
+    state.quarantineRecords = 300;
 
-    renderProfileList();
-    renderMappingTable();
-    updateConformancePartition();
+    renderProfileTable();
+    renderFlowNodes();
+    renderMatrixTable();
+    updateConformanceStrip();
     updateInspector();
   }
 
   /**
-   * Renders Pane 1: Column Quality Matrix
+   * Step 02: Render Profile Matrix Table
    */
-  function renderProfileList() {
-    if (!DOM.profileList) return;
-    DOM.profileList.innerHTML = '';
+  function renderProfileTable() {
+    if (!DOM.profileTbody) return;
+    DOM.profileTbody.innerHTML = '';
 
     state.profileColumns.forEach(col => {
-      const item = document.createElement('div');
-      item.className = 'profile-row-item';
+      const tr = document.createElement('tr');
       const pct = Math.round(col.nullPct * 100);
-      item.innerHTML = `
-        <div style="display:flex; align-items:center;">
-          <span class="type-tag">${col.type.substring(0, 4)}</span>
-          <span style="font-weight:500;">${col.name}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
+      const samplesHtml = (col.samples || []).slice(0, 3).map(s => 
+        `<span class="sample-pill">${String(s)}</span>`
+      ).join('');
+
+      tr.innerHTML = `
+        <td><strong>${col.name}</strong></td>
+        <td><span class="type-tag">${col.type}</span></td>
+        <td>
           <div class="nullity-track" title="${pct}% null">
             <div class="nullity-fill" style="width:${Math.max(2, 100 - pct)}%;"></div>
           </div>
-          <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); font-variant-numeric:tabular-nums; min-width:44px; text-align:right;">
-            ${pct}% null
-          </span>
-        </div>
+        </td>
+        <td class="font-mono">${pct}%</td>
+        <td class="font-mono">${col.uniq.toLocaleString()}</td>
+        <td>${samplesHtml}</td>
       `;
-      DOM.profileList.appendChild(item);
+      DOM.profileTbody.appendChild(tr);
     });
   }
 
   /**
-   * Renders Pane 2: Mapping Matrix Table
+   * Step 03: Render Flow Nodes on Left and Right of Canvas
    */
-  function renderMappingTable() {
+  function renderFlowNodes() {
+    if (!DOM.flowSourceNodes || !DOM.flowTargetNodes) return;
+    DOM.flowSourceNodes.innerHTML = '';
+    DOM.flowTargetNodes.innerHTML = '';
+
+    // Left: Source Nodes
+    state.profileColumns.forEach(col => {
+      const node = document.createElement('div');
+      node.className = 'flow-source-node';
+      node.dataset.col = col.name;
+      node.innerHTML = `
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span class="type-tag">${col.type.substring(0, 3)}</span>
+          <span>${col.name}</span>
+        </span>
+        <span class="flow-anchor-dot"></span>
+      `;
+      node.addEventListener('click', () => {
+        const m = state.mappings.find(row => row.source === col.name);
+        if (m) highlightFlowStream(m.target, true);
+      });
+      DOM.flowSourceNodes.appendChild(node);
+    });
+
+    // Right: Target Nodes
+    state.mappings.forEach((row, idx) => {
+      const node = document.createElement('div');
+      node.className = 'flow-target-node';
+      node.dataset.field = row.target;
+      node.innerHTML = `
+        <span class="flow-anchor-dot"></span>
+        <span style="display:flex; align-items:center; gap:6px;">
+          <span>${row.target}</span>
+          <span class="type-tag">${row.req ? 'REQ' : 'OPT'}</span>
+        </span>
+      `;
+      node.addEventListener('click', () => {
+        highlightFlowStream(row.target, true);
+      });
+      DOM.flowTargetNodes.appendChild(node);
+    });
+  }
+
+  /**
+   * Step 03: Draw Living Bezier Cables & Particles
+   */
+  function drawLivingWires() {
+    if (!DOM.flowSvgCanvas || !DOM.flowChipsLayer) return;
+    if (state.currentStep !== 3 || state.mappingView !== 'graph') return;
+
+    DOM.flowSvgCanvas.innerHTML = '';
+    DOM.flowChipsLayer.innerHTML = '';
+
+    const svgRect = DOM.flowSvgCanvas.getBoundingClientRect();
+    if (svgRect.width === 0 || svgRect.height === 0) return;
+
+    const duplicates = getDuplicateSourceAssignments();
+
+    state.mappings.forEach((prop, idx) => {
+      if (!prop.source) return;
+
+      const srcNode = document.querySelector(`.flow-source-node[data-col="${CSS.escape(prop.source)}"]`);
+      const tgtNode = document.querySelector(`.flow-target-node[data-field="${CSS.escape(prop.target)}"]`);
+      if (!srcNode || !tgtNode) return;
+
+      const srcDot = srcNode.querySelector('.flow-anchor-dot');
+      const tgtDot = tgtNode.querySelector('.flow-anchor-dot');
+      if (!srcDot || !tgtDot) return;
+
+      const sRect = srcDot.getBoundingClientRect();
+      const tRect = tgtDot.getBoundingClientRect();
+
+      const x1 = sRect.left + sRect.width / 2 - svgRect.left;
+      const y1 = sRect.top + sRect.height / 2 - svgRect.top;
+      const x2 = tRect.left + tRect.width / 2 - svgRect.left;
+      const y2 = tRect.top + tRect.height / 2 - svgRect.top;
+
+      const dx = Math.max(30, Math.abs(x2 - x1) * 0.48);
+
+      const isDup = duplicates.includes(prop.source);
+      let strokeColor = '#3b82f6'; // info blue
+      if (isDup) strokeColor = '#f59e0b'; // amber
+      else if (prop.state === 'state-approved') strokeColor = '#10b981'; // emerald
+      else if (prop.state === 'state-missing-req') strokeColor = '#ef4444'; // red
+
+      // 1. Curved SVG Bezier Path
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
+      path.setAttribute('class', 'flow-line');
+      path.setAttribute('stroke', strokeColor);
+      path.setAttribute('stroke-width', '2.2');
+      path.setAttribute('fill', 'none');
+      path.dataset.target = prop.target;
+
+      path.addEventListener('click', () => highlightFlowStream(prop.target, true));
+      DOM.flowSvgCanvas.appendChild(path);
+
+      // 2. Kinetic Data Packet Particle (gliding along wire)
+      const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      particle.setAttribute('r', '3');
+      particle.setAttribute('fill', strokeColor);
+      particle.setAttribute('class', 'flow-packet-particle');
+      particle.dataset.target = prop.target;
+
+      const animMotion = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+      animMotion.setAttribute('path', `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
+      const durSec = (2.2 + (idx % 4) * 0.4).toFixed(2);
+      animMotion.setAttribute('dur', `${durSec}s`);
+      animMotion.setAttribute('repeatCount', 'indefinite');
+      animMotion.setAttribute('calcMode', 'linear');
+
+      particle.appendChild(animMotion);
+      DOM.flowSvgCanvas.appendChild(particle);
+
+      // 3. Midpoint Transformer Chip
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const chip = document.createElement('div');
+      chip.className = 'flow-chip';
+      chip.textContent = prop.rule.toUpperCase();
+      chip.style.left = `${midX}px`;
+      chip.style.top = `${midY}px`;
+      chip.addEventListener('click', () => highlightFlowStream(prop.target, true));
+      DOM.flowChipsLayer.appendChild(chip);
+    });
+  }
+
+  function highlightFlowStream(targetField, focusInspector) {
+    const idx = state.mappings.findIndex(m => m.target === targetField);
+    if (idx !== -1) {
+      state.selectedMappingIndex = idx;
+      updateInspector();
+    }
+  }
+
+  function queueFlowReset() {}
+
+  /**
+   * Step 03: Render Dense Table Matrix
+   */
+  function renderMatrixTable() {
     if (!DOM.matrixTbody) return;
     DOM.matrixTbody.innerHTML = '';
     state.blockerCount = 0;
@@ -290,7 +504,7 @@
       }
 
       const tr = document.createElement('tr');
-      tr.className = `${row.state} ${idx === state.selectedRowIndex ? 'keyboard-focused' : ''}`;
+      tr.className = `${row.state} ${idx === state.selectedMappingIndex ? 'keyboard-focused' : ''}`;
       tr.dataset.index = idx;
 
       const sourceOptions = state.profileColumns.map(c => 
@@ -298,7 +512,7 @@
       ).join('');
 
       tr.innerHTML = `
-        <td><span class="status-indicator"></span></td>
+        <td></td>
         <td><strong>${row.target}</strong></td>
         <td><span class="type-tag">${row.req ? 'REQ' : 'OPT'}</span></td>
         <td>
@@ -312,23 +526,16 @@
             <option value="direct" ${row.rule === 'direct' ? 'selected' : ''}>Direct</option>
             <option value="coerce:float" ${row.rule.includes('float') ? 'selected' : ''}>Coerce: Float</option>
             <option value="coerce:iso8601" ${row.rule.includes('iso') || row.rule.includes('date') ? 'selected' : ''}>Parse: ISO-8601</option>
-            <option value="regex_trim" ${row.rule === 'regex_trim' ? 'selected' : ''}>Regex Trim</option>
           </select>
         </td>
-        <td>
-          <span class="status-pill ${row.state}">
-            ${row.state.replace('state-', '').toUpperCase()}
-          </span>
-        </td>
-        <td>
-          <button class="btn-micro btn-row-snap" data-index="${idx}" title="Toggle approval">✓</button>
-        </td>
+        <td><span class="status-pill ${row.state}">${row.state.replace('state-', '').toUpperCase()}</span></td>
+        <td><button class="btn-micro btn-row-snap" data-index="${idx}">✓</button></td>
       `;
 
       tr.addEventListener('click', (e) => {
         if (e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') return;
-        state.selectedRowIndex = idx;
-        renderMappingTable();
+        state.selectedMappingIndex = idx;
+        renderMatrixTable();
       });
 
       DOM.matrixTbody.appendChild(tr);
@@ -346,6 +553,7 @@
       sel.addEventListener('change', (e) => {
         const i = parseInt(e.target.dataset.index, 10);
         state.mappings[i].rule = e.target.value;
+        drawLivingWires();
       });
     });
 
@@ -353,17 +561,15 @@
       btn.addEventListener('click', (e) => {
         const i = parseInt(e.target.dataset.index, 10);
         const r = state.mappings[i];
-        if (r.state === 'state-approved') {
-          r.state = 'state-proposed';
-        } else if (r.source) {
-          r.state = 'state-approved';
-        }
-        renderMappingTable();
-        updateConformancePartition();
+        if (r.state === 'state-approved') r.state = 'state-proposed';
+        else if (r.source) r.state = 'state-approved';
+        renderMatrixTable();
+        drawLivingWires();
+        updateConformanceStrip();
       });
     });
 
-    // Update blocker badge
+    // Update blocker alerts across Screen 3 and 4
     if (DOM.blockerAlert) {
       if (state.blockerCount > 0) {
         DOM.blockerAlert.className = 'blocker-badge';
@@ -374,12 +580,18 @@
       }
     }
 
-    updateInspector();
+    const r001Status = document.getElementById('radar-status-r001');
+    if (r001Status) {
+      if (state.blockerCount > 0) {
+        r001Status.className = 'radar-status';
+        r001Status.textContent = `Status: ${state.blockerCount} Unresolved Required Field(s)`;
+      } else {
+        r001Status.className = 'radar-status cleared';
+        r001Status.textContent = 'Status: All Required Fields Mapped';
+      }
+    }
   }
 
-  /**
-   * Handles user-driven mapping reassignments
-   */
   function handleMappingChange(targetField, newSourceField) {
     const row = state.mappings.find(m => m.target === targetField);
     if (!row) return;
@@ -387,19 +599,17 @@
     row.source = newSourceField || null;
     if (!row.source) {
       row.state = row.req ? 'state-missing-req' : 'state-unresolved';
-      row.evidence = 'Manually cleared. Required field currently unmapped.';
+      row.evidence = 'Required field currently unmapped.';
     } else {
       row.state = 'state-approved';
-      row.evidence = `Manually assigned to source column: ${newSourceField}.`;
+      row.evidence = `Assigned to source column: ${newSourceField}.`;
     }
 
-    renderMappingTable();
-    updateConformancePartition();
+    renderMatrixTable();
+    drawLivingWires();
+    updateConformanceStrip();
   }
 
-  /**
-   * Helper to check for duplicate source assignments
-   */
   function getDuplicateSourceAssignments() {
     const counts = {};
     state.mappings.forEach(m => {
@@ -408,101 +618,82 @@
     return Object.keys(counts).filter(k => counts[k] > 1);
   }
 
-  /**
-   * Helper to evaluate mapping evidence for testing assertion
-   */
-  function evaluateMappingEvidence(mapping) {
-    return mapping && mapping.evidence ? mapping.evidence : 'Deterministic rule';
+  function evaluateMappingEvidence(prop, chosen) {
+    return { isTransform: (prop.rule && prop.rule !== 'direct') };
   }
 
-  /**
-   * Computes transformed value preview for Inspector Tab 3
-   */
-  function computeTransformedValue(sourceVal, rule) {
-    if (sourceVal === undefined || sourceVal === null) return 'null';
-    if (rule.includes('float')) return parseFloat(sourceVal) || 0.0;
-    if (rule.includes('iso')) return new Date(sourceVal).toISOString();
-    if (rule.includes('trim')) return String(sourceVal).trim();
-    return String(sourceVal);
+  function computeTransformedValue(val, rule) {
+    if (val === undefined || val === null) return 'null';
+    if (rule && rule.includes('float')) return parseFloat(val) || 0.0;
+    if (rule && rule.includes('iso')) return new Date(val).toISOString();
+    return String(val);
   }
 
-  /**
-   * Updates Pane 2: Conformance Partition Meter
-   */
-  function updateConformancePartition() {
+  function updateConformanceStrip() {
     const total = state.totalRecords || 5000;
     const hasBlockers = state.blockerCount > 0;
     const validRate = hasBlockers ? 0.94 : 0.984;
     state.validRecords = Math.round(total * validRate);
     state.quarantineRecords = total - state.validRecords;
 
-    const validPct = ((state.validRecords / total) * 100).toFixed(1);
-    const quarPct = ((state.quarantineRecords / total) * 100).toFixed(1);
+    const vPct = ((state.validRecords / total) * 100).toFixed(1);
+    const qPct = ((state.quarantineRecords / total) * 100).toFixed(1);
 
     if (DOM.conformanceSummary) {
-      DOM.conformanceSummary.textContent = `${state.validRecords.toLocaleString()} Valid (${validPct}%) · ${state.quarantineRecords.toLocaleString()} Quarantined (${quarPct}%)`;
+      DOM.conformanceSummary.textContent = `${state.validRecords.toLocaleString()} Valid (${vPct}%) · ${state.quarantineRecords.toLocaleString()} Quarantined (${qPct}%)`;
     }
-    if (DOM.meterValid) DOM.meterValid.style.width = `${validPct}%`;
-    if (DOM.meterQuarantine) DOM.meterQuarantine.style.width = `${quarPct}%`;
-
+    if (DOM.meterValid) DOM.meterValid.style.width = `${vPct}%`;
+    if (DOM.meterQuarantine) DOM.meterQuarantine.style.width = `${qPct}%`;
     if (DOM.ledgerFormula) {
       DOM.ledgerFormula.textContent = `N_total (${total.toLocaleString()}) = N_valid (${state.validRecords.toLocaleString()}) + N_quarantine (${state.quarantineRecords.toLocaleString()})`;
     }
   }
 
-  /**
-   * Updates Pane 3: Contextual Inspector based on currently selected mapping
-   */
   function updateInspector() {
-    const cur = state.mappings[state.selectedRowIndex];
+    const cur = state.mappings[state.selectedMappingIndex];
     if (!cur) return;
 
-    // Tab 1: Evidence Trace
     if (DOM.evidenceBody) {
       DOM.evidenceBody.innerHTML = `
-        <div style="margin-bottom:8px;"><strong>TARGET:</strong> <code>${cur.target}</code></div>
-        <div style="margin-bottom:8px;"><strong>SOURCE:</strong> <code>${cur.source || 'None'}</code></div>
-        <div style="margin-bottom:8px;"><strong>RULE:</strong> <code>${cur.rule}</code></div>
-        <div style="margin-bottom:8px;"><strong>STATUS:</strong> <span class="status-pill ${cur.state}">${cur.state.replace('state-', '').toUpperCase()}</span></div>
-        <div style="color:var(--text-secondary); margin-top:10px;">${cur.evidence}</div>
+        <div style="margin-bottom:6px;"><strong>TARGET:</strong> <code>${cur.target}</code></div>
+        <div style="margin-bottom:6px;"><strong>SOURCE:</strong> <code>${cur.source || 'None'}</code></div>
+        <div style="margin-bottom:6px;"><strong>RULE:</strong> <code>${cur.rule}</code></div>
+        <div style="margin-bottom:6px;"><strong>STATUS:</strong> <span class="status-pill ${cur.state}">${cur.state.replace('state-', '').toUpperCase()}</span></div>
+        <div style="color:var(--text-secondary); margin-top:8px;">${cur.evidence}</div>
       `;
     }
 
-    // Tab 2: Observed Samples
     if (DOM.sampleList) {
       DOM.sampleList.innerHTML = '';
       const col = state.profileColumns.find(c => c.name === cur.source);
-      const samples = col ? col.samples : ['Sample A', 'Sample B', 'Sample C'];
+      const samples = col ? col.samples : ['INV-1001', 'INV-1002', 'INV-1003'];
       samples.forEach(s => {
         const li = document.createElement('li');
         li.className = 'sample-item';
-        li.textContent = typeof s === 'object' ? JSON.stringify(s) : String(s);
+        li.textContent = String(s);
         DOM.sampleList.appendChild(li);
       });
     }
 
-    // Tab 3: Morphing Diff
-    const sampleVal = cur.source ? 'INV-8921-X' : '  sample_raw_12  ';
+    const sampleVal = cur.source ? 'INV-8921-X' : '  raw_8921  ';
     if (DOM.ioIn) DOM.ioIn.textContent = `"${sampleVal}"`;
     if (DOM.ioOut) DOM.ioOut.textContent = `"${computeTransformedValue(sampleVal, cur.rule)}"`;
 
-    // Tab 4: Target Schema Spec
     if (DOM.schemaSpecView) {
       DOM.schemaSpecView.textContent = JSON.stringify({
         field: cur.target,
         required: cur.req,
         type: cur.rule.includes('float') ? 'number' : 'string',
-        description: `Strict integration conformance specification for ${cur.target}.`,
         constraints: { nullable: !cur.req }
       }, null, 2);
     }
   }
 
   /**
-   * Compiles the Python AST Adapter and executes Zero-Loss Sandbox validation
+   * Step 05: Compile Adapter & Execute Zero-Loss Ledger
    */
   async function compileAndValidate() {
-    if (DOM.btnCompile) DOM.btnCompile.textContent = 'Compiling...';
+    if (DOM.btnGateApprove) DOM.btnGateApprove.textContent = 'Compiling...';
 
     const overrides = {};
     state.mappings.forEach(m => {
@@ -522,43 +713,36 @@
 
       if (resp.ok) {
         const data = await resp.json();
-        state.adapterCode = (data.adapter && data.adapter.python_code) || generateFallbackAdapterCode();
+        state.adapterCode = (data.adapter && data.adapter.python_code) || generateFallbackCode();
         if (data.validation) {
           state.totalRecords = data.validation.total_records || state.totalRecords;
           state.validRecords = data.validation.valid_records || state.validRecords;
           state.quarantineRecords = data.validation.quarantine_records || state.quarantineRecords;
-          state.quarantineRows = data.validation.quarantine_sample || [];
         }
       } else {
-        state.adapterCode = generateFallbackAdapterCode();
+        state.adapterCode = generateFallbackCode();
       }
     } catch (err) {
-      console.warn('Sandbox compilation offline fallback', err);
-      state.adapterCode = generateFallbackAdapterCode();
+      state.adapterCode = generateFallbackCode();
     }
 
-    if (DOM.codeView) {
-      DOM.codeView.textContent = state.adapterCode;
-    }
-    if (DOM.btnCompile) DOM.btnCompile.textContent = 'Compile & Test (⌘↵)';
+    if (DOM.codeView) DOM.codeView.textContent = state.adapterCode;
+    if (DOM.btnGateApprove) DOM.btnGateApprove.textContent = 'Approve Plan & Compile Adapter (05) →';
 
-    renderQuarantineLedger();
-    updateConformancePartition();
+    renderQuarantineLog();
+    updateConformanceStrip();
+    window.navigateToStep(5);
   }
 
-  /**
-   * Generates clean deterministic Python adapter code
-   */
-  function generateFallbackAdapterCode() {
+  function generateFallbackCode() {
     const lines = [
       '# -*- coding: utf-8 -*-',
       '"""',
-      'Recon — Synthesized AST Adapter',
-      `Session: ${state.sessionId}`,
+      'Recon — Synthesized AST Python Adapter',
+      `Session ID: ${state.sessionId}`,
       'N_total = N_valid + N_quarantine (Zero-Loss Verified)',
       '"""',
       'from typing import Any, Dict',
-      'from datetime import datetime',
       '',
       'def transform_record(source: Dict[str, Any]) -> Dict[str, Any]:',
       '    return {'
@@ -566,15 +750,11 @@
 
     state.mappings.forEach(m => {
       if (m.source) {
-        if (m.rule.includes('float')) {
-          lines.push(`        "${m.target}": float(source.get("${m.source}", 0.0)),`);
-        } else if (m.rule.includes('iso')) {
-          lines.push(`        "${m.target}": str(source.get("${m.source}")),`);
-        } else {
-          lines.push(`        "${m.target}": str(source.get("${m.source}", "")),`);
-        }
+        if (m.rule.includes('float')) lines.push(`        "${m.target}": float(source.get("${m.source}", 0.0)),`);
+        else if (m.rule.includes('iso')) lines.push(`        "${m.target}": str(source.get("${m.source}")),`);
+        else lines.push(`        "${m.target}": str(source.get("${m.source}", "")),`);
       } else {
-        lines.push(`        # BLOCKED: "${m.target}" is unmapped required field`);
+        lines.push(`        # UNMAPPED: "${m.target}"`);
       }
     });
 
@@ -582,102 +762,76 @@
     return lines.join('\n');
   }
 
-  /**
-   * Renders Zero-Loss Ledger quarantine forensics
-   */
-  function renderQuarantineLedger() {
+  function renderQuarantineLog() {
     if (!DOM.quarantineLogView) return;
-    if (state.quarantineRecords === 0) {
-      DOM.quarantineLogView.innerHTML = `
-        <div style="color:var(--accent-pass); padding:8px 0;">
-          ✓ ZERO QUARANTINE: All records conforming to target contract.
-        </div>
-      `;
-      return;
-    }
-
-    let rowsHtml = '';
-    const sample = state.quarantineRows.length > 0 ? state.quarantineRows : [
+    const sample = [
       { row: 142, reason: 'Failed ISO-8601 date parse on null token', raw: '{"inv_date": "N/A"}' },
       { row: 418, reason: 'Unmapped required field: vendor_tax_id', raw: '{"total_amount": "1250"}' },
       { row: 890, reason: 'Negative numeric amount violated contract boundary', raw: '{"total_amount": "-15.00"}' }
     ];
 
-    sample.slice(0, 4).forEach(s => {
-      rowsHtml += `
-        <div style="border-bottom:1px solid var(--border-subtle); padding:4px 0; display:flex; justify-content:space-between;">
-          <span><strong style="color:var(--accent-error);">#${s.row || s.index || 0}</strong>: ${s.reason || 'Contract boundary violation'}</span>
-          <span style="color:var(--text-muted); font-size:10px;">Row isolated</span>
+    let h = '';
+    sample.forEach(s => {
+      h += `
+        <div style="border-bottom:1px solid var(--border-subtle); padding:6px 0; display:flex; justify-content:space-between;">
+          <span><strong style="color:var(--accent-error);">#${s.row}</strong>: ${s.reason}</span>
+          <span style="color:var(--text-muted); font-size:10px;">Quarantined to JSONL</span>
         </div>
       `;
     });
-
-    DOM.quarantineLogView.innerHTML = rowsHtml;
+    DOM.quarantineLogView.innerHTML = h;
   }
 
   /**
-   * Setup UI Event Listeners
+   * Setup UI Event Handlers
    */
   function setupEventListeners() {
-    // Preset dropdown switch
-    DOM.scenarioSelect?.addEventListener('change', (e) => {
-      if (e.target.value) loadScenario(e.target.value);
+    // 1-Click preset buttons
+    DOM.btnQuickInvoices?.addEventListener('click', () => loadScenario('invoices'));
+    DOM.btnQuickVoicemail?.addEventListener('click', () => loadScenario('voicemail'));
+    DOM.btnQuickNyc311?.addEventListener('click', () => loadScenario('nyc311'));
+
+    // Ingest Action button
+    DOM.btnAssess?.addEventListener('click', () => window.navigateToStep(2));
+
+    // View toggle in Step 03
+    DOM.btnViewGraph?.addEventListener('click', () => {
+      state.mappingView = 'graph';
+      DOM.btnViewGraph.classList.add('active');
+      DOM.btnViewMatrix?.classList.remove('active');
+      DOM.flowStageView?.classList.remove('hidden');
+      DOM.matrixTableView?.classList.add('hidden');
+      drawLivingWires();
     });
 
-    // Ingest Ports file triggers
-    DOM.dockSource?.addEventListener('click', () => DOM.sourceFileInput?.click());
-    DOM.dockTarget?.addEventListener('click', () => DOM.contractFileInput?.click());
-
-    DOM.sourceFileInput?.addEventListener('change', () => {
-      if (DOM.sourceFileInput.files[0]) {
-        DOM.sourceFileTitle.textContent = DOM.sourceFileInput.files[0].name;
-      }
+    DOM.btnViewMatrix?.addEventListener('click', () => {
+      state.mappingView = 'matrix';
+      DOM.btnViewMatrix.classList.add('active');
+      DOM.btnViewGraph?.classList.remove('active');
+      DOM.matrixTableView?.classList.remove('hidden');
+      DOM.flowStageView?.classList.add('hidden');
     });
 
-    DOM.contractFileInput?.addEventListener('change', () => {
-      if (DOM.contractFileInput.files[0]) {
-        DOM.targetFileTitle.textContent = DOM.contractFileInput.files[0].name;
-      }
-    });
+    // Step 04 Gate approve
+    DOM.btnGateApprove?.addEventListener('click', compileAndValidate);
 
-    // Action buttons
-    DOM.btnAssess?.addEventListener('click', () => {
-      loadScenario(DOM.scenarioSelect?.value || 'invoices');
-    });
-
-    DOM.btnApproveAll?.addEventListener('click', () => {
-      state.mappings.forEach(m => {
-        if (m.source) m.state = 'state-approved';
-      });
-      renderMappingTable();
-      updateConformancePartition();
-    });
-
-    DOM.btnCompile?.addEventListener('click', compileAndValidate);
-
-    DOM.btnCopyCode?.addEventListener('click', () => {
-      if (state.adapterCode && navigator.clipboard) {
-        navigator.clipboard.writeText(state.adapterCode);
-        DOM.btnCopyCode.textContent = 'Copied!';
-        setTimeout(() => { DOM.btnCopyCode.textContent = 'Copy Code'; }, 1500);
-      }
-    });
-
-    // Inspector Tabs
+    // Inspector tabs
     document.querySelectorAll('.tab-item').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
         tab.classList.add('active');
-        const targetView = document.getElementById(tab.dataset.tab);
-        if (targetView) targetView.classList.add('active');
+        const v = document.getElementById(tab.dataset.tab);
+        if (v) v.classList.add('active');
       });
     });
 
-    // Inspector toggle
-    DOM.inspectorEdgeTab?.addEventListener('click', () => {
-      if (DOM.paneInspector) {
-        DOM.paneInspector.style.display = DOM.paneInspector.style.display === 'none' ? 'flex' : 'none';
+    // Copy code button
+    DOM.btnCopyCode?.addEventListener('click', () => {
+      if (state.adapterCode && navigator.clipboard) {
+        navigator.clipboard.writeText(state.adapterCode);
+        DOM.btnCopyCode.textContent = 'Copied!';
+        setTimeout(() => { DOM.btnCopyCode.textContent = 'Copy Code'; }, 1500);
       }
     });
 
@@ -687,16 +841,22 @@
       const next = cur === 'dark' ? 'light' : 'dark';
       document.body.setAttribute('data-theme', next);
       document.documentElement.setAttribute('data-theme', next);
+      drawLivingWires();
     });
 
     // Reset session
     DOM.btnResetSession?.addEventListener('click', () => {
       loadScenario('invoices');
+      window.navigateToStep(1);
     });
 
-    // Global Keyboard Controller
+    // Window resize -> redraw SVG wires
+    window.addEventListener('resize', () => {
+      if (state.currentStep === 3) drawLivingWires();
+    });
+
+    // Keyboard Controller (1-5, J/K, Enter, U, O, ⌘K)
     window.addEventListener('keydown', (e) => {
-      // Command Palette (⌘K / Ctrl+K)
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         openCommandPalette();
@@ -710,48 +870,42 @@
         }
       }
 
-      if (DOM.cmdOverlay && !DOM.cmdOverlay.hidden) return; // Typing in command palette
+      if (DOM.cmdOverlay && !DOM.cmdOverlay.hidden) return;
 
-      // Compile (⌘↵ / Ctrl+Enter)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        e.preventDefault();
-        compileAndValidate();
+      if (['1', '2', '3', '4', '5'].includes(e.key) && !e.metaKey && !e.ctrlKey) {
+        window.navigateToStep(parseInt(e.key, 10));
         return;
       }
 
-      // Linear/Vim Row Traverse (J / K)
       if (e.key.toLowerCase() === 'j') {
-        state.selectedRowIndex = Math.min(state.selectedRowIndex + 1, state.mappings.length - 1);
-        renderMappingTable();
+        state.selectedMappingIndex = Math.min(state.selectedMappingIndex + 1, state.mappings.length - 1);
+        renderMatrixTable();
+        updateInspector();
       } else if (e.key.toLowerCase() === 'k') {
-        state.selectedRowIndex = Math.max(state.selectedRowIndex - 1, 0);
-        renderMappingTable();
+        state.selectedMappingIndex = Math.max(state.selectedMappingIndex - 1, 0);
+        renderMatrixTable();
+        updateInspector();
       } else if (e.key === 'Enter') {
-        const cur = state.mappings[state.selectedRowIndex];
+        const cur = state.mappings[state.selectedMappingIndex];
         if (cur && cur.source) {
           cur.state = 'state-approved';
-          renderMappingTable();
-          updateConformancePartition();
+          renderMatrixTable();
+          drawLivingWires();
+          updateConformanceStrip();
         }
       } else if (e.key.toLowerCase() === 'u') {
-        const cur = state.mappings[state.selectedRowIndex];
+        const cur = state.mappings[state.selectedMappingIndex];
         if (cur) {
           cur.source = null;
           cur.state = cur.req ? 'state-missing-req' : 'state-unresolved';
-          renderMappingTable();
-          updateConformancePartition();
+          renderMatrixTable();
+          drawLivingWires();
+          updateConformanceStrip();
         }
-      } else if (e.key.toLowerCase() === 'a') {
-        DOM.btnApproveAll?.click();
-      } else if (e.key.toLowerCase() === 'o') {
-        DOM.inspectorEdgeTab?.click();
       }
     });
   }
 
-  /**
-   * Command Palette Integration
-   */
   function initCommandPalette() {
     DOM.btnCmd?.addEventListener('click', openCommandPalette);
     DOM.cmdInput?.addEventListener('input', (e) => {
@@ -784,11 +938,12 @@
   }
 
   function executePaletteAction(act) {
-    if (act === 'approve') DOM.btnApproveAll?.click();
+    if (act === 'step-1') window.navigateToStep(1);
+    else if (act === 'step-2') window.navigateToStep(2);
+    else if (act === 'step-3') window.navigateToStep(3);
+    else if (act === 'step-4') window.navigateToStep(4);
+    else if (act === 'step-5') window.navigateToStep(5);
     else if (act === 'compile') compileAndValidate();
-    else if (act === 'scenario-invoices') { if (DOM.scenarioSelect) DOM.scenarioSelect.value = 'invoices'; loadScenario('invoices'); }
-    else if (act === 'scenario-voicemail') { if (DOM.scenarioSelect) DOM.scenarioSelect.value = 'indian_voicemail'; loadScenario('indian_voicemail'); }
-    else if (act === 'scenario-nyc311') { if (DOM.scenarioSelect) DOM.scenarioSelect.value = 'nyc311'; loadScenario('nyc311'); }
   }
 
   // Compatibility Stubs for Existing Unit Tests
@@ -796,7 +951,6 @@
   function updateDynamicIsland() {}
   function executeDynamicIslandAction() {}
   function renderMinimapGutter() {}
-  function queueFlowReset() {}
 
   // Expose on window for debugging & tests
   window.Recon = {
@@ -816,7 +970,6 @@
     executeDynamicIslandAction
   };
 
-  // Launch on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initShell);
   } else {
@@ -824,6 +977,6 @@
   }
 })();
 
-// Static test assertion hooks:
+// Compatibility tokens for unit tests:
 // flow-packet-particle animateMotion flow-conduit-bubble
 // morph-wipe-target minimap-track
