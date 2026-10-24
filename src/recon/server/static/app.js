@@ -1665,11 +1665,16 @@ async function handleAssessIntegration() {
     mappingOverrides = {};
 
     // Update Header Capsule
-    document.getElementById("header-pulse").classList.add("active");
-    document.getElementById("session-id-display").textContent = currentSessionId.slice(0, 12);
-    document.getElementById("contract-capsule").classList.remove("hidden");
-    document.getElementById("contract-name-display").textContent = data.contract.contract_name;
-    document.getElementById("contract-version-pill").textContent = `v${data.contract.version}`;
+    const headerPulse = document.getElementById("header-pulse");
+    if (headerPulse) headerPulse.classList.add("active");
+    const sessionDisplay = document.getElementById("session-id-display");
+    if (sessionDisplay) sessionDisplay.textContent = currentSessionId.slice(0, 12);
+    const contractCapsule = document.getElementById("contract-capsule");
+    if (contractCapsule) contractCapsule.classList.remove("hidden");
+    const contractNameDisplay = document.getElementById("contract-name-display");
+    if (contractNameDisplay) contractNameDisplay.textContent = data.contract.contract_name;
+    const contractVersionPill = document.getElementById("contract-version-pill");
+    if (contractVersionPill) contractVersionPill.textContent = `v${data.contract.version}`;
 
     // Render downstream screens
     renderProfileMatrix(data);
@@ -3484,9 +3489,12 @@ async function handlePurgeSession() {
   stagedSourceFile = null;
   stagedContractFile = null;
 
-  document.getElementById("header-pulse").classList.remove("active");
-  document.getElementById("session-id-display").textContent = "sess_empty";
-  document.getElementById("contract-capsule").classList.add("hidden");
+  const headerPulse = document.getElementById("header-pulse");
+  if (headerPulse) headerPulse.classList.remove("active");
+  const sessionDisplay = document.getElementById("session-id-display");
+  if (sessionDisplay) sessionDisplay.textContent = "sess_empty";
+  const contractCapsule = document.getElementById("contract-capsule");
+  if (contractCapsule) contractCapsule.classList.add("hidden");
 
   // Reset inputs
   document.getElementById("source-file-input").value = "";
