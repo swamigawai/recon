@@ -3,318 +3,368 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recon — The Integration Readiness Engine</title>
+  <title>Recon — The Quantum Integration Readiness Engine</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="recon-studio">
-  <!-- Minimalist Global Command Header (48px) -->
-  <header class="studio-header">
-    <div class="header-left">
-      <div class="brand-glyph">⬡</div>
-      <span class="brand-name">recon</span>
-      <span class="header-divider">/</span>
-      <span class="session-crumb" id="session-display">#sess_local_ephemeral</span>
-      <span class="spec-tag" title="Engine Specification Standard">RECON // 01</span>
-    </div>
-    <div class="header-center">
-      <div class="contract-chip" id="contract-chip-pair" title="Active Source Dataset → Target Schema Contract">
-        <span class="source-chip" id="chip-source-name">vendor_invoices.csv</span>
-        <span class="chip-arrow">→</span>
-        <span class="target-chip" id="chip-target-name">invoice_schema.json</span>
+<body class="recon-quantum-studio">
+  <!-- Interactive Dynamic Background Canvas (Grid & Dust Particles) -->
+  <canvas id="ambient-canvas" class="ambient-canvas"></canvas>
+
+  <!-- Level 10 Cybernetic Command Header (48px) -->
+  <header class="hud-header">
+    <div class="hud-left">
+      <div class="brand-reactor" id="brand-reactor" title="Engine Core Online">
+        <div class="reactor-core"></div>
+        <div class="reactor-ring"></div>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">RECON</span>
+        <span class="brand-subtitle">QUANTUM ENGINE</span>
+        <span class="spec-quantum-tag" title="Standard Specification">RECON // 01</span>
+      </div>
+      <div class="hud-divider"></div>
+      <div class="hud-session-pill">
+        <span class="pulse-dot"></span>
+        <span id="session-tag">#ENV_PROD_SIM_09</span>
       </div>
     </div>
-    <div class="header-right">
-      <button class="kbd-pill btn-command-palette" id="btn-cmd-palette" title="Open Command Palette (⌘K / Ctrl+K)">⌘K</button>
-      <button class="icon-btn" id="btn-shortcuts" title="Keyboard Shortcuts (?)">?</button>
-      <button class="icon-btn" id="btn-theme-toggle" title="Toggle Dark/Light Mode">◐</button>
-      <button class="icon-btn" id="btn-audio-toggle" title="Toggle Mechanical Audio Feedback">♫</button>
+
+    <div class="hud-center">
+      <div class="stream-bridge-pill" id="contract-chip-pair" title="Source Emitter Stream ──⚡──► Target Schema Contract">
+        <span class="stream-source" id="stream-src-name">vendor_invoices.csv</span>
+        <span class="stream-particle-anim">
+          <i></i><i></i><i></i>
+        </span>
+        <span class="stream-target" id="stream-tgt-name">invoice_schema.json</span>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <div class="scenario-warp-selector">
+        <label for="warp-preset">WARP:</label>
+        <select id="warp-preset" class="hud-select" title="Switch Pilot Warp Scenario">
+          <option value="b2b_vendor_invoices">B2B Vendor Invoices</option>
+          <option value="indian_ai_voicemail_calls">Indian AI Voicemail</option>
+          <option value="ecommerce_orders">E-Commerce Stream</option>
+          <option value="synthetic_nyc_311">NYC 311 Requests</option>
+        </select>
+      </div>
+      <button class="hud-btn btn-command-palette" id="btn-cmd-palette" title="Open Command Palette (⌘K / Ctrl+K)"><kbd>⌘K</kbd></button>
+      <button class="hud-btn audio-toggle active" id="btn-audio-toggle" title="Procedural Web Audio FM Synthesizer">♫</button>
+      <button class="hud-btn" id="btn-theme-toggle" title="Toggle Surface Specular Light Mode">◐</button>
+      <button class="hud-btn" id="btn-shortcuts" title="Keyboard Navigation Reference (?)">?</button>
     </div>
   </header>
 
-  <!-- Unified 3-Pane Cockpit -->
-  <main class="studio-canvas">
+  <!-- 3-Pane High-Energy Studio Workspace -->
+  <main class="cockpit-viewport">
     
-    <!-- PANE 1: DUAL-PORT INGEST & DEEP PROFILING DOCK (340px Fixed Dock) -->
-    <aside class="studio-pane pane-ingest" id="pane-ingest">
-      <div class="pane-header">
-        <span class="pane-title">INGEST & PROFILE</span>
-        <div class="scenario-dropdown-wrap">
-          <select id="scenario-selector" class="dense-select" title="Switch Pilot Scenario">
-            <option value="b2b_vendor_invoices">Preset: B2B Invoices</option>
-            <option value="indian_ai_voicemail_calls">Preset: Indian AI Voicemail</option>
-            <option value="ecommerce_orders">Preset: E-Commerce Stream</option>
-            <option value="synthetic_nyc_311">Preset: NYC 311 Service Requests</option>
-          </select>
+    <!-- PANE 1: DUAL-PORT INGEST & SPECTRAL PROFILE DOCK (350px) -->
+    <aside class="cockpit-pane pane-dock" id="pane-dock">
+      <div class="pane-hud-title">
+        <span>PORT INGESTION & WAVEFORMS</span>
+        <span class="badge-quantum" id="port-status-badge">READY</span>
+      </div>
+
+      <!-- Magnetic Docking Ports -->
+      <div class="magnetic-dock-container">
+        <div class="magnetic-port" id="port-source-zone" data-active="true" title="Click or drop file to ingest Source Data">
+          <div class="port-glow"></div>
+          <div class="port-meta-header">
+            <span class="port-id">PORT 01 // SOURCE EMITTER</span>
+            <span class="port-speed" id="port-src-speed">5,000 ROWS</span>
+          </div>
+          <div class="port-name" id="port-source-label">vendor_invoices.csv</div>
+          <div class="port-sub" id="port-source-sub">CSV · 1.2MB · 14 COLUMNS</div>
+          <input type="file" id="source-file-input" accept=".csv,.json,.tsv,.jsonl" hidden>
+        </div>
+
+        <div class="magnetic-port" id="port-target-zone" data-active="true" title="Click or drop contract schema to inspect">
+          <div class="port-glow"></div>
+          <div class="port-meta-header">
+            <span class="port-id">PORT 02 // TARGET CONTRACT</span>
+            <span class="port-speed" id="port-tgt-speed">STRICT V2020</span>
+          </div>
+          <div class="port-name" id="port-target-label">invoice_schema.json</div>
+          <div class="port-sub" id="port-target-sub">JSON SCHEMA · 12 PROPS · 6 REQ</div>
+          <input type="file" id="target-file-input" accept=".json,.yaml,.yml" hidden>
         </div>
       </div>
 
-      <!-- Dual-Port Ingest Targets -->
-      <div class="ingest-ports-grid">
-        <div class="dock-port" id="port-source" title="Click or drop file to ingest Source Data">
-          <div class="port-label">PORT 01: SOURCE DATA</div>
-          <div class="port-filename" id="port-source-name">vendor_invoices.csv</div>
-          <div class="port-meta" id="port-source-meta">5,000 records · 14 cols · 1.2MB</div>
-          <input type="file" id="file-source-input" accept=".csv,.json,.tsv,.jsonl" hidden>
+      <!-- Spectral Column Profile Ribbons -->
+      <div class="spectral-profile-deck">
+        <div class="deck-header">
+          <span>SOURCE FIELD SPECTROGRAM</span>
+          <span id="spectral-col-count">14 FIELDS</span>
         </div>
-        <div class="dock-port" id="port-target" title="Click or drop file to ingest Target Contract">
-          <div class="port-label">PORT 02: TARGET CONTRACT</div>
-          <div class="port-filename" id="port-target-name">invoice_schema.json</div>
-          <div class="port-meta" id="port-target-meta">Draft-07 · 12 props · 6 required</div>
-          <input type="file" id="file-target-input" accept=".json,.yaml,.yml" hidden>
+        <div class="spectral-filter-wrap">
+          <input type="text" id="spectral-search-input" class="hud-filter-input" placeholder="Filter carrier columns...">
         </div>
-      </div>
-
-      <!-- Deep Column Profile Matrix -->
-      <div class="profile-section">
-        <div class="section-subhead">
-          <span>SOURCE SCHEMA PROFILE</span>
-          <span class="col-count" id="source-col-count">14 FIELDS</span>
-        </div>
-        <div class="profile-filter-bar">
-          <input type="text" id="profile-search-input" class="dense-filter-input" placeholder="Filter incoming columns...">
-        </div>
-        <div class="profile-matrix-scroll" id="profile-matrix-list">
-          <!-- Dynamically populated: column name, inferred type tag, 44px nullity micro-meter, uniq -->
+        <div class="spectral-scroll-list" id="spectral-list">
+          <!-- Populated by JavaScript with dynamic spectral canvas waves -->
         </div>
       </div>
     </aside>
 
-    <!-- PANE 2: MAPPING & READINESS WORKBENCH (Flexible Central Canvas) -->
-    <section class="studio-pane pane-workbench" id="pane-workbench">
+    <!-- PANE 2: THE KINETIC CABLE LOOM & RECORD COLLIDER (Central Arena) -->
+    <section class="cockpit-pane pane-arena" id="pane-arena">
       
-      <!-- High-Density Batch Conformance Partition Meter -->
-      <div class="conformance-banner">
-        <div class="conformance-header">
-          <span class="conformance-title">BATCH CONFORMANCE PARTITION</span>
-          <span class="conformance-metrics" id="conformance-stats">492 / 500 CONFORMING (98.4%) · 8 QUARANTINED</span>
-        </div>
-        <div class="partition-strip" title="Batch Conformance Visual Partition">
-          <div class="partition-fill valid" id="partition-valid-bar" style="width: 98.4%;"></div>
-          <div class="partition-fill quarantine" id="partition-quarantine-bar" style="width: 1.6%;"></div>
-        </div>
-        <!-- Micro-cell Record Conformance Grid (500 micro-cells) -->
-        <div class="record-grid-preview" id="record-grid-cells" title="Every dot represents a record (Green = Conforming, Rose = Quarantined)">
-          <!-- 500 micro-cells populated by JS -->
-        </div>
-      </div>
-
-      <!-- Mapping Studio Table -->
-      <div class="mapping-table-wrap">
-        <div class="table-toolbar">
+      <!-- Top Arena: Interactive Cable Loom Studio -->
+      <div class="cable-loom-arena">
+        <div class="arena-toolbar">
           <div class="toolbar-left">
-            <span class="table-heading">SOURCE-TO-TARGET MAPPING MATRIX</span>
-            <span class="filter-pill" id="filter-blockers-only">Blockers: 0</span>
+            <span class="arena-label">INTERACTIVE CABLE LOOM MATRIX</span>
+            <span class="blocker-radar-tag" id="blocker-count-pill">0 FATAL BLOCKERS</span>
           </div>
           <div class="toolbar-right">
-            <button class="action-btn" id="btn-approve-all" title="Approve all proposed mappings (A)">Approve All Proposed (A)</button>
-            <button class="action-btn primary" id="btn-generate-adapter" title="Compile AST Python Adapter (⌘↵ / Ctrl+Enter)">Compile Adapter (⌘↵)</button>
+            <button class="hud-action-btn" id="btn-snap-all" title="Auto-Loom All Proposed Mappings (A)">Auto-Loom (A)</button>
+            <button class="hud-action-btn primary" id="btn-compile-ast" title="Synthesize AST Adapter & Fire Collider (⌘↵)">Synthesize AST Adapter (⌘↵)</button>
           </div>
         </div>
-        
-        <div class="matrix-workbench-body">
-          <!-- Gutter Minimap Track -->
+
+        <!-- The Kinetic Canvas Cable Layer + Mapping Row Grid -->
+        <div class="loom-viewport" id="loom-viewport">
+          <canvas id="cable-loom-canvas" class="cable-loom-canvas"></canvas>
+          
+          <!-- Xcode-Style Minimap Gutter -->
           <div class="flow-minimap-gutter" id="flow-minimap-gutter" title="Field Conformance Minimap">
             <div class="minimap-track" id="minimap-track"></div>
           </div>
 
-          <!-- Main Table Container -->
-          <div class="table-container">
-            <table class="dense-matrix-table" id="matrix-table">
+          <div class="loom-matrix-container">
+            <table class="loom-table" id="loom-table">
               <thead>
                 <tr>
-                  <th style="width: 36px;"></th>
+                  <th style="width: 44px; text-align: center;">LOOM</th>
                   <th>TARGET FIELD</th>
-                  <th style="width: 90px;">TYPE / REQ</th>
-                  <th>MAPPED SOURCE FIELD</th>
-                  <th style="width: 130px;">TRANSFORM METHOD</th>
+                  <th style="width: 100px;">SPEC / TYPE</th>
+                  <th>SOURCE CARRIER</th>
+                  <th style="width: 140px;">TRANSFORMATION</th>
                   <th style="width: 110px;">STATUS</th>
-                  <th style="width: 54px; text-align: center;">ACT</th>
+                  <th style="width: 60px; text-align: center;">ACTION</th>
                 </tr>
               </thead>
-              <tbody id="matrix-table-body">
-                <!-- Dynamically rendered rows with 3px status borders -->
+              <tbody id="loom-table-body">
+                <!-- Injected dynamically with 3px status borders and cable anchors -->
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- AST Adapter Code & Zero-Loss Ledger Sub-Deck -->
-      <div class="workbench-subdeck">
-        <div class="code-workbench-pane">
-          <div class="subdeck-header">
-            <span>SYNTHESIZED AST ADAPTER (adapter.py)</span>
-            <div class="subdeck-actions">
-              <button class="micro-btn" id="btn-copy-code" title="Copy Python Adapter Code">Copy AST Code</button>
-              <button class="micro-btn" id="btn-download-adapter" title="Download adapter.py">Download .py</button>
-            </div>
+      <!-- Bottom Arena: 60FPS Record Particle Collider & Quantum Zero-Loss Tank -->
+      <div class="particle-collider-deck">
+        <div class="collider-header">
+          <div class="collider-title">
+            <span class="pulse-indicator"></span>
+            <span>REAL-TIME RECORD PARTICLE COLLIDER</span>
           </div>
-          <pre class="code-viewport" id="adapter-code-view"><code># Generated AST Adapter will appear here...</code></pre>
+          <div class="ledger-equation-hud">
+            <span class="eq-term total">N<sub>total</sub>: <strong id="eq-total">5000</strong></span>
+            <span class="eq-symbol">=</span>
+            <span class="eq-term valid">N<sub>valid</sub>: <strong id="eq-valid">4920</strong></span>
+            <span class="eq-symbol">+</span>
+            <span class="eq-term quarantine">N<sub>quarantine</sub>: <strong id="eq-quarantine">80</strong></span>
+            <span class="ledger-status-tag" id="ledger-badge">INVARIANT CONSERVED</span>
+          </div>
         </div>
-
-        <div class="ledger-workbench-pane">
-          <div class="subdeck-header">
-            <span>ZERO-LOSS ACCOUNTING LEDGER</span>
-            <span class="equation-pill" id="ledger-equation-display">N_total = N_valid + N_quarantine</span>
-          </div>
-          <div class="quarantine-log-scroll" id="quarantine-log-table">
-            <!-- Quarantine diagnostic violations and JSON diffs -->
-            <div class="ledger-empty-msg">No quarantined records. Invariant perfectly preserved.</div>
+        <div class="collider-viewport-wrap">
+          <canvas id="particle-collider-canvas" class="particle-collider-canvas"></canvas>
+          
+          <!-- Cryo-Quarantine Forensic Inspection Panel -->
+          <div class="quarantine-hud-drawer" id="quarantine-hud-drawer" hidden>
+            <div class="quarantine-hud-title">
+              <span>CRYO-CONTAINMENT FORENSICS</span>
+              <button class="micro-hud-btn" id="btn-close-quarantine">✕</button>
+            </div>
+            <div class="quarantine-hud-scroll" id="quarantine-hud-list"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PANE 3: CONTEXTUAL INSPECTOR DRAWER (360px Fixed Dock) -->
-    <aside class="studio-pane pane-inspector" id="pane-inspector">
-      <div class="pane-header inspector-header">
-        <span class="pane-title" id="inspector-title">Contextual Inspector</span>
-        <span class="active-field-badge" id="inspector-active-field">--</span>
-      </div>
-      
-      <div class="inspector-tabs" id="inspector-edge-tab">
-        <button class="tab-btn active" data-tab="tab-evidence" id="tab-btn-evidence">Evidence</button>
-        <button class="tab-btn" data-tab="tab-samples" id="tab-btn-samples">Samples</button>
-        <button class="tab-btn" data-tab="tab-playground" id="tab-btn-playground">Playground</button>
-        <button class="tab-btn" data-tab="tab-schema" id="tab-btn-schema">Contract</button>
+    <!-- PANE 3: CONTEXTUAL HOLO-INSPECTOR DRAWER (380px) -->
+    <aside class="cockpit-pane pane-inspector" id="pane-inspector">
+      <div class="inspector-header-bar">
+        <span class="inspector-main-title" id="inspector-title">Contextual Inspector</span>
+        <span class="active-target-badge" id="inspector-active-target">--</span>
       </div>
 
-      <div class="inspector-content">
-        <!-- Tab 1: Evidence Trace -->
-        <div class="tab-panel active" id="tab-evidence">
-          <div class="panel-card" id="flow-meter-panel">
-            <div class="panel-label">HEURISTIC PROPOSAL LOGIC & CONFIDENCE</div>
-            <div class="flow-meter-evidence" id="flow-meter-evidence">
-              <div class="evidence-trace-body" id="evidence-trace-content">
-                Select a mapping row to inspect deterministic inference evidence, Levenshtein distance, and type heuristics.
-              </div>
+      <div class="inspector-nav" id="inspector-edge-tab">
+        <button class="insp-tab active" data-tab="tab-radar" id="tab-btn-radar">Sonar Radar</button>
+        <button class="insp-tab" data-tab="tab-evidence" id="tab-btn-evidence">Evidence</button>
+        <button class="insp-tab" data-tab="tab-sandbox" id="tab-btn-sandbox">Live Coerce</button>
+        <button class="insp-tab" data-tab="tab-ast" id="tab-btn-ast">AST Code</button>
+      </div>
+
+      <div class="inspector-viewport">
+        <!-- Tab 1: 360° Polar Sonar Risk Radar -->
+        <div class="insp-panel active" id="tab-radar">
+          <div class="holo-card">
+            <div class="card-caption">360° POLAR RISK RADAR SCANNER</div>
+            <div class="radar-box">
+              <canvas id="sonar-radar-canvas" width="300" height="300"></canvas>
+            </div>
+            <div class="radar-legend">
+              <div class="leg-item"><span class="leg-dot red"></span> Fatal Blockers (<span id="radar-blockers-count">0</span>)</div>
+              <div class="leg-item"><span class="leg-dot amber"></span> Coercion Stress (<span id="radar-stress-count">2</span>)</div>
+              <div class="leg-item"><span class="leg-dot blue"></span> Safe Streams (<span id="radar-safe-count">12</span>)</div>
             </div>
           </div>
         </div>
 
-        <!-- Tab 2: Samples & Top Values / Morphing Diff -->
-        <div class="tab-panel" id="tab-samples">
-          <div class="panel-card morph-diff-container" id="morphing-diff-view">
-            <div class="panel-label">BEFORE / AFTER MORPHING DIFF</div>
+        <!-- Tab 2: Deep Heuristic Evidence & Raw Diffs -->
+        <div class="insp-panel" id="tab-evidence">
+          <div class="holo-card" id="flow-meter-panel">
+            <div class="card-caption">HEURISTIC INFERENCE TRACE & CONFIDENCE</div>
+            <div class="flow-meter-evidence" id="flow-meter-evidence">
+              <div class="evidence-body" id="evidence-trace-output">
+                Select an active cable row to inspect deterministic inference metrics, string distances, and contract compliance.
+              </div>
+            </div>
+          </div>
+          <div class="holo-card" style="margin-top: 12px;">
+            <div class="card-caption">TOP OBSERVED SOURCE CARRIER VALUES</div>
+            <ul class="spectral-sample-list" id="spectral-samples-list">
+              <li class="sample-item"><span>Select a mapped row to inspect raw payload samples.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: Live Coercion Sandbox & Morphing Diff -->
+        <div class="insp-panel" id="tab-sandbox">
+          <div class="holo-card morph-diff-container" id="morphing-diff-view">
+            <div class="card-caption">BEFORE / AFTER MORPHING DIFF</div>
             <div class="morph-scrub-wrap">
               <input type="range" class="diff-scrub-input morph-scrub-slider" id="diff-scrub-input" min="0" max="100" value="50">
             </div>
             <div class="morph-wipe-card" id="morph-wipe-card">
               <div class="morph-sample-card source-card">
-                <span class="card-tag">RAW SOURCE</span>
-                <code id="morph-wipe-source">"inv_9821_delhi"</code>
+                <span class="card-tag">RAW SOURCE STREAM</span>
+                <code id="sandbox-in-val">"  inv_9821_delhi  "</code>
               </div>
               <div class="morph-sample-card target-card">
-                <span class="card-tag">COERCED TARGET</span>
-                <code id="morph-wipe-target">"INV_9821_DELHI"</code>
+                <span class="card-tag">COERCED TARGET PAYLOAD</span>
+                <code id="sandbox-out-val" class="morph-wipe-target">"INV_9821_DELHI"</code>
               </div>
             </div>
           </div>
-          <div class="panel-card" style="margin-top: 10px;">
-            <div class="panel-label">TOP OBSERVED SOURCE VALUES</div>
-            <ul class="sample-list" id="sample-values-list">
-              <li class="sample-item"><span>Select a mapped row to view observed samples.</span></li>
-            </ul>
+
+          <div class="holo-card" style="margin-top: 12px;">
+            <div class="card-caption">COERCION EXPRESSION REACTOR</div>
+            <input type="text" class="hud-input" id="sandbox-input-expr" value="value.strip().upper()">
+            <p class="hud-help-text">Type Python or JS coercion logic to evaluate live transformations.</p>
           </div>
         </div>
 
-        <!-- Tab 3: Live Expression Playground -->
-        <div class="tab-panel" id="tab-playground">
-          <div class="panel-card">
-            <div class="panel-label">INTERACTIVE COERCION TESTER</div>
-            <input type="text" class="dense-input" id="playground-expr" value="value.strip().upper()">
-            <div class="playground-io">
-              <div class="io-box"><span>Input:</span> <code id="play-in">"  inv-9821  "</code></div>
-              <div class="io-box"><span>Output:</span> <code id="play-out">"INV-9821"</code></div>
+        <!-- Tab 4: Real-Time Synthesized AST Adapter Code -->
+        <div class="insp-panel" id="tab-ast">
+          <div class="holo-card code-card">
+            <div class="card-caption-bar">
+              <span>SYNTHESIZED adapter.py</span>
+              <div class="code-actions">
+                <button class="micro-hud-btn" id="btn-copy-ast">Copy AST</button>
+                <button class="micro-hud-btn" id="btn-download-ast">Download .py</button>
+              </div>
             </div>
-            <p class="io-help-text">Type Python/JS expression to evaluate against selected source values.</p>
-          </div>
-        </div>
-
-        <!-- Tab 4: Target Schema Contract -->
-        <div class="tab-panel" id="tab-schema">
-          <div class="panel-card">
-            <div class="panel-label">TARGET SCHEMA CONTRACT SPECIFICATION</div>
-            <pre class="schema-code-view" id="schema-meta-view"><code>Select a field to view JSON Schema constraint rules.</code></pre>
+            <pre class="ast-code-pre" id="ast-code-view"><code># Generated AST Python Adapter will decompile here...</code></pre>
           </div>
         </div>
       </div>
     </aside>
   </main>
 
-  <!-- Pinned Global Footer Status Bar (32px) -->
-  <footer class="studio-footer">
+  <!-- Level 10 Status Telemetry Strip (32px) -->
+  <footer class="hud-footer">
     <div class="footer-left">
-      <span class="status-indicator-dot online" id="engine-status-dot"></span>
-      <span class="footer-stat" id="footer-engine-stat">Engine: Recon v0.1.0</span>
-      <span class="footer-separator">|</span>
-      <span class="footer-stat" id="footer-tests-stat">Tests: 155 Passing</span>
-      <span class="footer-separator">|</span>
-      <span class="footer-stat" id="footer-ledger-stat">Zero-Loss Identity: Verified</span>
-      <span class="footer-separator">|</span>
-      <span class="footer-stat" id="footer-quarantine-stat">Quarantine: 0.0%</span>
+      <span class="telemetry-chip">ENGINE // V0.1.0-QUANTUM</span>
+      <span class="footer-sep">·</span>
+      <span class="telemetry-chip">FPS: <strong id="fps-counter">60</strong></span>
+      <span class="footer-sep">·</span>
+      <span class="telemetry-chip">ZERO-LOSS IDENT: <strong style="color:var(--plasma-emerald)">100% CONSERVED</strong></span>
+      <span class="footer-sep">·</span>
+      <span class="telemetry-chip">QUARANTINE: <strong id="footer-quarantine-pct" style="color:var(--plasma-cyan)">0.0%</strong></span>
     </div>
     <div class="footer-right">
-      <span class="kbd-hint"><kbd>J</kbd>/<kbd>K</kbd> Navigate</span>
-      <span class="kbd-hint"><kbd>↵</kbd> Approve</span>
-      <span class="kbd-hint"><kbd>U</kbd> Unmap</span>
-      <span class="kbd-hint"><kbd>O</kbd> Inspector</span>
-      <span class="kbd-hint"><kbd>⌘K</kbd> Palette</span>
+      <span class="hud-shortcut-pill"><kbd>J</kbd>/<kbd>K</kbd> Traverse</span>
+      <span class="hud-shortcut-pill"><kbd>↵</kbd> Snap Cable</span>
+      <span class="hud-shortcut-pill"><kbd>U</kbd> Sever</span>
+      <span class="hud-shortcut-pill"><kbd>A</kbd> Auto-Loom</span>
+      <span class="hud-shortcut-pill"><kbd>⌘↵</kbd> Compile</span>
+      <span class="hud-shortcut-pill"><kbd>⌘K</kbd> Palette</span>
     </div>
   </footer>
 
-  <!-- Living Flow Canvas & Particles (Overlay conduit for visual signals) -->
-  <div class="flow-svg-canvas" id="flow-svg-canvas" aria-hidden="true" style="pointer-events: none; position: fixed; inset: 0; z-index: 10; display: none;">
+  <!-- Living Flow Conduit / Particle Overlay -->
+  <div class="flow-svg-canvas" id="flow-svg-canvas" aria-hidden="true" style="pointer-events: none; position: fixed; inset: 0; z-index: 15; display: none;">
     <div class="flow-chips-layer" id="flow-chips-layer"></div>
   </div>
 
-  <!-- Dynamic Island Notification Pill -->
+  <!-- Dynamic Island HUD Notification Pill -->
   <div class="recon-dynamic-island" id="recon-dynamic-island">
     <div class="island-pill" id="island-pill-trigger">
       <span class="island-dot"></span>
-      <span class="island-text" id="island-status-text">Recon Studio Active</span>
-      <button class="island-primary-action" id="island-primary-action">Details</button>
+      <span class="island-text" id="island-status-text">Recon Quantum Core Synchronized</span>
+      <button class="island-primary-action" id="island-primary-action">Diagnostics</button>
     </div>
     <div class="island-expanded-tray" id="island-expanded-tray" hidden>
       <div class="tray-content" id="island-tray-content">
-        <span class="tray-title">System Status:</span> All contracts conforming, zero unhandled errors.
+        Quantum Collider active: zero dropped packets, cryptographic invariant held.
       </div>
     </div>
   </div>
 
-  <!-- Command Palette Modal (⌘K / Ctrl+K) -->
-  <div class="cmd-palette-backdrop modal-command-palette recon-palette-backdrop" id="cmd-palette-modal" hidden>
-    <div class="cmd-palette-box recon-palette-container">
-      <input type="text" class="cmd-input palette-search-input" id="cmd-search-input" placeholder="Type a command or search fields... (Esc to close)">
-      <div class="cmd-results-list" id="cmd-results">
-        <div class="cmd-item" data-action="approve-all"><span>Approve All Proposed Mappings</span> <kbd>A</kbd></div>
-        <div class="cmd-item" data-action="run-validation"><span>Compile AST Adapter & Execute Sandbox</span> <kbd>⌘↵</kbd></div>
-        <div class="cmd-item" data-action="copy-adapter"><span>Copy AST Adapter to Clipboard</span> <kbd>C</kbd></div>
-        <div class="cmd-item" data-action="scenario-voicemail"><span>Switch Scenario: Indian AI Voicemail</span> <kbd>1</kbd></div>
-        <div class="cmd-item" data-action="scenario-b2b"><span>Switch Scenario: B2B Invoices</span> <kbd>2</kbd></div>
-        <div class="cmd-item" data-action="toggle-theme"><span>Toggle Dark / Light Mode</span> <kbd>T</kbd></div>
-        <div class="cmd-item" data-action="toggle-sound"><span>Toggle Mechanical Audio Feedback</span> <kbd>M</kbd></div>
+  <!-- Command Palette HUD Modal (⌘K / Ctrl+K) -->
+  <div class="cmd-hud-overlay modal-command-palette recon-palette-backdrop" id="cmd-modal" hidden>
+    <div class="cmd-hud-window recon-palette-container">
+      <div class="cmd-input-bar">
+        <span class="cmd-icon">⚡</span>
+        <input type="text" id="cmd-input" class="palette-search-input" placeholder="Enter command or search fields... (Esc to dismiss)">
+      </div>
+      <div class="cmd-suggestions" id="cmd-list">
+        <div class="cmd-action" data-act="auto-loom"><span>Auto-Loom All Heuristic Cables</span><kbd>A</kbd></div>
+        <div class="cmd-action" data-act="compile"><span>Synthesize AST Adapter & Fire Collider</span><kbd>⌘↵</kbd></div>
+        <div class="cmd-action" data-act="copy-ast"><span>Copy AST Adapter to Clipboard</span><kbd>C</kbd></div>
+        <div class="cmd-action" data-act="scenario-voicemail"><span>Warp Preset: Indian AI Voicemail</span><kbd>1</kbd></div>
+        <div class="cmd-action" data-act="scenario-b2b"><span>Warp Preset: B2B Invoices</span><kbd>2</kbd></div>
+        <div class="cmd-action" data-act="toggle-audio"><span>Toggle Procedural Web Audio Synth</span><kbd>M</kbd></div>
+        <div class="cmd-action" data-act="toggle-theme"><span>Toggle Specular Light Mode</span><kbd>T</kbd></div>
       </div>
     </div>
   </div>
 
   <!-- Keyboard Shortcuts Cheat-sheet Modal (?) -->
-  <div class="cmd-palette-backdrop" id="shortcuts-modal" hidden>
-    <div class="cmd-palette-box" style="max-width: 460px;">
-      <div class="shortcuts-header">
-        <span>KEYBOARD NAVIGATION REFERENCE</span>
-        <button class="micro-btn" id="btn-close-shortcuts">Esc</button>
+  <div class="cmd-hud-overlay" id="shortcuts-modal" hidden>
+    <div class="cmd-hud-window" style="max-width: 460px;">
+      <div class="cmd-input-bar" style="justify-content: space-between;">
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--plasma-cyan);">QUANTUM COCKPIT SHORTCUTS</span>
+        <button class="micro-hud-btn" id="btn-close-shortcuts">Esc</button>
       </div>
-      <div class="shortcuts-list">
-        <div class="shortcut-row"><span class="sc-desc">Move selection down</span> <kbd>J</kbd> or <kbd>↓</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Move selection up</span> <kbd>K</kbd> or <kbd>↑</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Approve selected mapping</span> <kbd>Enter</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Clear / Unmap selected field</span> <kbd>U</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Approve all proposed mappings</span> <kbd>A</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Compile adapter and run sandbox</span> <kbd>⌘</kbd> + <kbd>Enter</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Toggle Contextual Inspector</span> <kbd>O</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Open Command Palette</span> <kbd>⌘K</kbd> / <kbd>Ctrl+K</kbd></div>
-        <div class="shortcut-row"><span class="sc-desc">Dismiss modals / palette</span> <kbd>Esc</kbd></div>
+      <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+        <div class="sc-row" style="display:flex; justify-content:space-between; font-size:11px;">
+          <span style="color:#94A3B8;">Traverse mapping cables</span>
+          <span><kbd>J</kbd> / <kbd>K</kbd> or <kbd>↓</kbd> / <kbd>↑</kbd></span>
+        </div>
+        <div class="sc-row" style="display:flex; justify-content:space-between; font-size:11px;">
+          <span style="color:#94A3B8;">Snap / Confirm selected cable</span>
+          <span><kbd>Enter</kbd></span>
+        </div>
+        <div class="sc-row" style="display:flex; justify-content:space-between; font-size:11px;">
+          <span style="color:#94A3B8;">Sever selected cable</span>
+          <span><kbd>U</kbd></span>
+        </div>
+        <div class="sc-row" style="display:flex; justify-content:space-between; font-size:11px;">
+          <span style="color:#94A3B8;">Auto-Loom all proposed cables</span>
+          <span><kbd>A</kbd></span>
+        </div>
+        <div class="sc-row" style="display:flex; justify-content:space-between; font-size:11px;">
+          <span style="color:#94A3B8;">Synthesize AST & Run Collider</span>
+          <span><kbd>⌘</kbd> + <kbd>Enter</kbd></span>
+        </div>
+        <div class="sc-row" style="display:flex; justify-content:space-between; font-size:11px;">
+          <span style="color:#94A3B8;">Open Command Palette</span>
+          <span><kbd>⌘K</kbd> / <kbd>Ctrl+K</kbd></span>
+        </div>
       </div>
     </div>
   </div>
