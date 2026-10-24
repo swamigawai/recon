@@ -1,1556 +1,5034 @@
 /**
- * RECON — THE QUANTUM INTEGRATION READINESS ENGINE
- * Level 10 Creative Technologist Engine (Physics, Canvas Loom, Synthesizer)
- * Standards: Awwwards Site of the Year × Apple Design Award × Linear 2.0
- */
+   RECON — THE INTEGRATION READINESS ENGINE
+   World-Class UI/UX Design Strategy & Engineering Specification
+   Technical Brutalism meets Swiss Precision Frontend Controller
+   Zero Client-Side Logic Creep | Strict Human-in-the-Loop Approval
+   ========================================================================== */
 
-(() => {
-  'use strict';
+// Global State
+let currentSessionId = null;
+let currentAssessment = null;
+let currentResults = null;
+let currentStep = 1;
+let activeContractTab = "sample";
+let activeDrawerTab = "evidence";
+let activeMapFilter = "all";
+let mappingOverrides = {};
+let sampleContractsMap = {};
+let sampleDatasetsMap = {};
 
-  // =========================================================================
-  // 1. PROCEDURAL WEB AUDIO SYNTHESIZER ENGINE (Zero External Sound Files)
-  // =========================================================================
-  class QuantumSoundEngine {
-    constructor() {
-      this.enabled = true;
-      this.ctx = null;
-    }
+// Inspector Drawer State (Global Module Scope)
+let isDrawerPinned = false;
+let drawerHoverTimer = null;
+let currentPlaygroundSamples = [];
 
-    init() {
-      if (!this.ctx) {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) this.ctx = new AudioCtx();
-      }
-      if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume();
-      }
-    }
+function updateInspectorUI(isOpen, isPinned) {
+  const edgeTab = document.getElementById("inspector-edge-tab");
+  const topBtn = document.getElementById("btn-inspector-toggle");
+  if (edgeTab) edgeTab.classList.toggle("active", isOpen);
+  if (topBtn) {
+    topBtn.classList.toggle("active", isPinned || isOpen);
+    topBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
+}
 
-    // Latch sound when a cable snaps into a target socket
-    playSnap() {
-      if (!this.enabled) return;
-      try {
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.04);
-        gain.gain.setValueAtTime(0.10, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.04);
-      } catch (err) {}
-    }
+function openInspectorDrawer(pin = false) {
+  clearTimeout(drawerHoverTimer);
+  const drawer = document.getElementById("contextual-drawer");
+  if (drawer) drawer.classList.remove("collapsed");
+  if (pin) isDrawerPinned = true;
+  updateInspectorUI(true, isDrawerPinned);
+}
 
-    // Major third harmonic chord on Zero-Loss Invariant Confirmation
-    playHarmonicLock() {
-      if (!this.enabled) return;
-      try {
-        this.init();
-        if (!this.ctx) return;
-        const freqs = [523.25, 659.25]; // C5 + E5 chord
-        freqs.forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.06, this.ctx.currentTime + idx * 0.03);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start(this.ctx.currentTime + idx * 0.03);
-          osc.stop(this.ctx.currentTime + 0.35);
-        });
-      } catch (err) {}
-    }
+function closeInspectorDrawer(force = false) {
+  clearTimeout(drawerHoverTimer);
+  const drawer = document.getElementById("contextual-drawer");
+  if (force || !isDrawerPinned) {
+    if (force) isDrawerPinned = false;
+    if (drawer) drawer.classList.add("collapsed");
+    updateInspectorUI(false, isDrawerPinned);
+  }
+}
 
-    // Low dissonance buzz for unmapped fatal blockers
-    playBlockerBuzz() {
-      if (!this.enabled) return;
-      try {
-        this.init();
-        if (!this.ctx) return;
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc1.type = 'sawtooth';
-        osc2.type = 'square';
-        osc1.frequency.setValueAtTime(180, this.ctx.currentTime);
-        osc2.frequency.setValueAtTime(195, this.ctx.currentTime); // 15Hz beat
-        gain.gain.setValueAtTime(0.09, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc1.start();
-        osc2.start();
-        osc1.stop(this.ctx.currentTime + 0.18);
-        osc2.stop(this.ctx.currentTime + 0.18);
-      } catch (err) {}
-    }
+function toggleInspectorDrawerPin() {
+  const drawer = document.getElementById("contextual-drawer");
+  isDrawerPinned = !isDrawerPinned;
+  if (drawer) drawer.classList.toggle("collapsed", !isDrawerPinned);
+  updateInspectorUI(isDrawerPinned, isDrawerPinned);
+}
 
-    // Smooth low-pass sweep on scenario warp
-    playWarpSweep() {
-      if (!this.enabled) return;
-      try {
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.15);
-      } catch (err) {}
-    }
+// Active row selection for keyboard navigation
+let selectedMappingIndex = 0;
+let selectedProfileIndex = 0;
+let selectedQuarantineIndex = 0;
+
+// Staged files
+let stagedSourceFile = null;
+let stagedContractFile = null;
+let stagedMappingSpecFile = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  initShell();
+  initGuide();
+  initCommandPalette();
+  initDynamicIsland();
+  initPresetBenchmarks();
+  initMappingViewToggle();
+  loadSampleDatasets();
+  loadSampleContracts();
+  bindDropZones();
+  bindKeyboardNavigation();
+  bindActions();
+});
+
+// =============================================================================
+// Theme Controller (Cyber Dark Mode Default / High-Tech Developer Tool)
+// =============================================================================
+
+function initTheme() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlTheme = urlParams.get("theme");
+  const isEmbed = urlParams.get("embed") === "true";
+
+  if (isEmbed) {
+    document.body.classList.add("is-embed-mode");
   }
 
-  // =========================================================================
-  // 2. AMBIENT BACKGROUND CANVAS (Micro-Dots & Dust Particles)
-  // =========================================================================
-  class AmbientCanvas {
-    constructor(canvasId) {
-      this.canvas = document.getElementById(canvasId);
-      if (!this.canvas) return;
-      this.ctx = this.canvas.getContext('2d');
-      this.dots = [];
-      this.mouse = { x: -1000, y: -1000 };
-      this.resize();
-      window.addEventListener('resize', () => this.resize());
-      window.addEventListener('pointermove', (e) => {
-        this.mouse.x = e.clientX;
-        this.mouse.y = e.clientY;
-      });
-    }
-
-    resize() {
-      if (!this.canvas) return;
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
-      this.initDots();
-    }
-
-    initDots() {
-      this.dots = [];
-      const spacing = 36;
-      for (let x = 0; x < this.canvas.width; x += spacing) {
-        for (let y = 0; y < this.canvas.height; y += spacing) {
-          this.dots.push({ x, y, baseAlpha: 0.12 });
-        }
-      }
-    }
-
-    render() {
-      if (!this.ctx) return;
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.fillStyle = '#00F0FF';
-
-      for (let i = 0; i < this.dots.length; i++) {
-        const d = this.dots[i];
-        const dx = d.x - this.mouse.x;
-        const dy = d.y - this.mouse.y;
-        const distSq = dx * dx + dy * dy;
-        let alpha = d.baseAlpha;
-
-        if (distSq < 22500) { // 150px proximity
-          const factor = 1 - Math.sqrt(distSq) / 150;
-          alpha += factor * 0.45;
-        }
-
-        this.ctx.globalAlpha = alpha;
-        this.ctx.fillRect(d.x, d.y, 1.2, 1.2);
-      }
-      this.ctx.globalAlpha = 1.0;
-    }
+  let savedTheme = urlTheme || localStorage.getItem("recon-theme-v4");
+  if (!savedTheme) {
+    savedTheme = "dark";
+    localStorage.setItem("recon-theme-v4", "dark");
   }
+  applyTheme(savedTheme);
 
-  // =========================================================================
-  // 3. 60FPS RECORD PARTICLE COLLIDER SIMULATION (Canvas Physics)
-  // =========================================================================
-  class ParticleCollider {
-    constructor(canvasId) {
-      this.canvas = document.getElementById(canvasId);
-      if (!this.canvas) return;
-      this.ctx = this.canvas.getContext('2d');
-      this.particles = [];
-      this.maxParticles = 90;
-      this.frameCount = 0;
-      this.fps = 60;
-      this.lastTime = performance.now();
-      this.resize();
-      window.addEventListener('resize', () => this.resize());
-    }
-
-    resize() {
-      if (!this.canvas || !this.canvas.parentElement) return;
-      const rect = this.canvas.parentElement.getBoundingClientRect();
-      this.canvas.width = rect.width || 600;
-      this.canvas.height = rect.height || 180;
-    }
-
-    spawnParticle() {
-      const qRate = state.totalRecords > 0 ? (state.quarantineRecords / state.totalRecords) : 0.02;
-      const isQuarantine = Math.random() < Math.max(0.015, Math.min(0.25, qRate));
-      this.particles.push({
-        x: 0,
-        y: this.canvas.height * 0.5 + (Math.random() - 0.5) * 20,
-        vx: 3.8 + Math.random() * 2,
-        vy: (Math.random() - 0.5) * 0.4,
-        isQuarantine: isQuarantine,
-        radius: isQuarantine ? 3.2 : 2.2,
-        phase: 'stream'
-      });
-    }
-
-    render() {
-      if (!this.ctx) return;
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-      // FPS Calculation
-      this.frameCount++;
-      const now = performance.now();
-      if (now - this.lastTime >= 1000) {
-        this.fps = Math.round((this.frameCount * 1000) / (now - this.lastTime));
-        this.frameCount = 0;
-        this.lastTime = now;
-        const fpsEl = document.getElementById('fps-counter');
-        if (fpsEl) fpsEl.textContent = this.fps;
-      }
-
-      // Prism Divider Position
-      const prismX = this.canvas.width * 0.45;
-
-      // Draw Prism Forcefield Beam
-      this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
-      this.ctx.setLineDash([4, 4]);
-      this.ctx.beginPath();
-      this.ctx.moveTo(prismX, 0);
-      this.ctx.lineTo(prismX, this.canvas.height);
-      this.ctx.stroke();
-      this.ctx.setLineDash([]);
-
-      // Spawn new particles
-      if (this.particles.length < this.maxParticles && Math.random() < 0.35) {
-        this.spawnParticle();
-      }
-
-      // Update & Draw Particles
-      for (let i = this.particles.length - 1; i >= 0; i--) {
-        const p = this.particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Forcefield Interaction
-        if (p.x >= prismX && p.phase === 'stream') {
-          if (p.isQuarantine) {
-            p.phase = 'deflected';
-            p.vx = 2.4;
-            p.vy = 2.0 + Math.random() * 1.5; // Arc downward into Cryo-Quarantine
-          } else {
-            p.phase = 'refracted';
-            p.vx = 4.2;
-            p.vy = -1.2 + (Math.random() - 0.5) * 0.5; // Arc into Valid Buffer
-          }
-        }
-
-        // Draw Glow & Particle
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        if (p.isQuarantine) {
-          this.ctx.fillStyle = '#FF0055';
-          this.ctx.shadowColor = '#FF0055';
-          this.ctx.shadowBlur = 8;
-        } else {
-          this.ctx.fillStyle = '#00FF9D';
-          this.ctx.shadowColor = '#00FF9D';
-          this.ctx.shadowBlur = 6;
-        }
-        this.ctx.fill();
-        this.ctx.shadowBlur = 0;
-
-        // Cleanup off-screen particles
-        if (p.x > this.canvas.width || p.y > this.canvas.height || p.y < 0) {
-          this.particles.splice(i, 1);
-        }
-      }
-    }
-  }
-
-  // =========================================================================
-  // 4. 360° POLAR SONAR RISK RADAR (Canvas Polar Scanner)
-  // =========================================================================
-  class SonarRadar {
-    constructor(canvasId) {
-      this.canvas = document.getElementById(canvasId);
-      if (!this.canvas) return;
-      this.ctx = this.canvas.getContext('2d');
-      this.angle = 0;
-      this.cx = this.canvas.width / 2;
-      this.cy = this.canvas.height / 2;
-      this.radius = 120;
-    }
-
-    render() {
-      if (!this.ctx) return;
-      this.ctx.fillStyle = 'rgba(14, 19, 30, 0.16)'; // Phosphor persistence trail
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-      // Concentric Distance Rings
-      this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
-      this.ctx.lineWidth = 1;
-      [30, 60, 90, 120].forEach(r => {
-        this.ctx.beginPath();
-        this.ctx.arc(this.cx, this.cy, r, 0, Math.PI * 2);
-        this.ctx.stroke();
-      });
-
-      // Axis Crosshairs
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.cx, this.cy - 120);
-      this.ctx.lineTo(this.cx, this.cy + 120);
-      this.ctx.moveTo(this.cx - 120, this.cy);
-      this.ctx.lineTo(this.cx + 120, this.cy);
-      this.ctx.stroke();
-
-      // Sweeping Sonar Beam
-      this.angle += 0.035;
-      const beamX = this.cx + Math.cos(this.angle) * this.radius;
-      const beamY = this.cy + Math.sin(this.angle) * this.radius;
-      this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.8)';
-      this.ctx.lineWidth = 2;
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.cx, this.cy);
-      this.ctx.lineTo(beamX, beamY);
-      this.ctx.stroke();
-
-      // Blocker Radar Blips
-      const blockers = state.mappings.filter(m => m.state === 'state-missing-req').length;
-      if (blockers > 0) {
-        this.ctx.beginPath();
-        this.ctx.arc(this.cx + 45, this.cy - 60, 4.5, 0, Math.PI * 2);
-        this.ctx.fillStyle = '#FF0055';
-        this.ctx.shadowColor = '#FF0055';
-        this.ctx.shadowBlur = 12;
-        this.ctx.fill();
-      }
-
-      // Coercion Stress Blip (Amber)
-      this.ctx.beginPath();
-      this.ctx.arc(this.cx - 70, this.cy + 35, 3.5, 0, Math.PI * 2);
-      this.ctx.fillStyle = '#FFB700';
-      this.ctx.shadowColor = '#FFB700';
-      this.ctx.shadowBlur = 8;
-      this.ctx.fill();
-
-      // Safe Stream Blips (Cyan)
-      this.ctx.beginPath();
-      this.ctx.arc(this.cx + 60, this.cy + 55, 3, 0, Math.PI * 2);
-      this.ctx.arc(this.cx - 40, this.cy - 50, 3, 0, Math.PI * 2);
-      this.ctx.fillStyle = '#00F0FF';
-      this.ctx.shadowColor = '#00F0FF';
-      this.ctx.shadowBlur = 6;
-      this.ctx.fill();
-      this.ctx.shadowBlur = 0;
-    }
-  }
-
-  // =========================================================================
-  // 5. KINETIC CABLE LOOM OVERLAY (Canvas Bezier & Data Pulses)
-  // =========================================================================
-  class CableLoom {
-    constructor(canvasId) {
-      this.canvas = document.getElementById(canvasId);
-      if (!this.canvas) return;
-      this.ctx = this.canvas.getContext('2d');
-      this.pulses = [];
-      this.resize();
-      window.addEventListener('resize', () => this.resize());
-    }
-
-    resize() {
-      if (!this.canvas || !this.canvas.parentElement) return;
-      const rect = this.canvas.parentElement.getBoundingClientRect();
-      this.canvas.width = rect.width || 800;
-      this.canvas.height = rect.height || 400;
-    }
-
-    render() {
-      if (!this.ctx) return;
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-      // Find table socket anchors
-      const rows = document.querySelectorAll('#loom-table-body tr');
-      const viewRect = this.canvas.getBoundingClientRect();
-      if (!rows || rows.length === 0) return;
-
-      rows.forEach((row, idx) => {
-        const socket = row.querySelector('.loom-socket');
-        const select = row.querySelector('.carrier-select');
-        if (!socket || !select) return;
-
-        const sRect = socket.getBoundingClientRect();
-        const cRect = select.getBoundingClientRect();
-
-        const x1 = sRect.left + sRect.width / 2 - viewRect.left;
-        const y1 = sRect.top + sRect.height / 2 - viewRect.top;
-        const x2 = cRect.left - viewRect.left;
-        const y2 = cRect.top + cRect.height / 2 - viewRect.top;
-
-        if (x1 < 0 || y1 < 0 || y1 > this.canvas.height) return;
-
-        const mapping = state.mappings[idx];
-        const isApproved = mapping && mapping.state === 'state-approved';
-        const isBlocker = mapping && mapping.state === 'state-missing-req';
-
-        // Draw Bezier Cable
-        this.ctx.beginPath();
-        this.ctx.moveTo(x1, y1);
-        const cp1x = x1 + (x2 - x1) * 0.4;
-        const cp1y = y1;
-        const cp2x = x1 + (x2 - x1) * 0.6;
-        const cp2y = y2;
-        this.ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
-
-        if (isBlocker) {
-          this.ctx.strokeStyle = 'rgba(255, 0, 85, 0.4)';
-          this.ctx.lineWidth = 1.5;
-          this.ctx.setLineDash([3, 3]);
-        } else if (isApproved) {
-          this.ctx.strokeStyle = 'rgba(0, 255, 157, 0.45)';
-          this.ctx.lineWidth = 2;
-          this.ctx.setLineDash([]);
-        } else {
-          this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
-          this.ctx.lineWidth = 1.5;
-          this.ctx.setLineDash([]);
-        }
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
-
-        // Pulse travelling along cable
-        if (!isBlocker && Math.random() < 0.05) {
-          this.pulses.push({
-            x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2,
-            t: 0,
-            color: isApproved ? '#00FF9D' : '#00F0FF'
-          });
-        }
-      });
-
-      // Update and render pulses
-      for (let i = this.pulses.length - 1; i >= 0; i--) {
-        const p = this.pulses[i];
-        p.t += 0.035;
-        if (p.t >= 1) {
-          this.pulses.splice(i, 1);
-          continue;
-        }
-
-        // Cubic Bezier interpolation
-        const u = 1 - p.t;
-        const tt = p.t * p.t;
-        const uu = u * u;
-        const uuu = uu * u;
-        const ttt = tt * p.t;
-
-        const px = uuu * p.x1 + 3 * uu * p.t * p.cp1x + 3 * u * tt * p.cp2x + ttt * p.x2;
-        const py = uuu * p.y1 + 3 * uu * p.t * p.cp1y + 3 * u * tt * p.cp2y + ttt * p.y2;
-
-        this.ctx.beginPath();
-        this.ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-        this.ctx.fillStyle = p.color;
-        this.ctx.shadowColor = p.color;
-        this.ctx.shadowBlur = 6;
-        this.ctx.fill();
-        this.ctx.shadowBlur = 0;
-      }
-    }
-  }
-
-  // =========================================================================
-  // 6. QUANTUM STUDIO REACTIVE STATE STORE
-  // =========================================================================
-  const state = {
-    sessionId: 'ENV_PROD_SIM_09',
-    selectedRow: 0,
-    activeScenario: 'b2b_vendor_invoices',
-    sourceDatasetName: 'vendor_invoices.csv',
-    targetContractName: 'invoice_schema.json',
-    totalRecords: 5000,
-    validRecords: 4920,
-    quarantineRecords: 80,
-    sourceColumns: [
-      { name: 'invoice_id', type: 'str', nullPct: 0.00, uniq: 5000, samples: ['INV-2026-001', 'INV-2026-002', 'INV-2026-003'] },
-      { name: 'invoice_date', type: 'date', nullPct: 0.00, uniq: 342, samples: ['2026-10-24', '2026-10-23', '2026-10-22'] },
-      { name: 'vendor_name', type: 'str', nullPct: 0.01, uniq: 120, samples: ['Acme Corp', 'Apex Global', 'Zenith AI'] },
-      { name: 'vendor_tax_id', type: 'str', nullPct: 0.14, uniq: 110, samples: ['GST-982144', 'VAT-88412', 'IN-09AAACH'] },
-      { name: 'total_amount', type: 'float', nullPct: 0.02, uniq: 4890, samples: ['14250.00', '9840.50', '2100.00'] },
-      { name: 'tax_amount', type: 'float', nullPct: 0.05, uniq: 2100, samples: ['2565.00', '1771.29', '378.00'] },
-      { name: 'currency', type: 'str', nullPct: 0.00, uniq: 3, samples: ['INR', 'USD', 'EUR'] },
-      { name: 'payment_status', type: 'str', nullPct: 0.00, uniq: 4, samples: ['PAID', 'PENDING', 'OVERDUE'] },
-      { name: 'due_date', type: 'date', nullPct: 0.03, uniq: 380, samples: ['2026-11-24', '2026-11-23', '2026-11-22'] },
-      { name: 'po_reference', type: 'str', nullPct: 0.22, uniq: 1940, samples: ['PO-991', 'PO-992', null] },
-      { name: 'line_items_count', type: 'int', nullPct: 0.00, uniq: 18, samples: ['4', '1', '12'] },
-      { name: 'remittance_account', type: 'str', nullPct: 0.08, uniq: 118, samples: ['AC-9821', 'AC-9822', 'AC-9823'] },
-      { name: 'billing_address', type: 'str', nullPct: 0.04, uniq: 112, samples: ['Sector 62, Noida', 'Whitefield, Bangalore'] },
-      { name: 'notes', type: 'str', nullPct: 0.35, uniq: 890, samples: ['Priority vendor', 'Net 30 terms', 'Expedited'] }
-    ],
-    targetProperties: {
-      'id': { type: 'string', required: true },
-      'created_at': { type: 'string', format: 'date-time', required: true },
-      'vendor': { type: 'string', required: true },
-      'tax_identifier': { type: 'string', required: true },
-      'amount': { type: 'number', required: true },
-      'currency_code': { type: 'string', required: true },
-      'status': { type: 'string', enum: ['PAID', 'PENDING', 'OVERDUE'], required: false },
-      'due_at': { type: 'string', format: 'date-time', required: false },
-      'line_count': { type: 'integer', required: false },
-      'memo': { type: 'string', required: false }
-    },
-    mappings: [
-      { target: 'id', req: true, source: 'invoice_id', method: 'direct', state: 'state-approved', evidence: '100% token signature match; verified non-null primary key.' },
-      { target: 'created_at', req: true, source: 'invoice_date', method: 'coerce:iso8601', state: 'state-approved', evidence: 'Date format parseable to UTC ISO-8601.' },
-      { target: 'vendor', req: true, source: 'vendor_name', method: 'direct', state: 'state-approved', evidence: 'Exact substring containment and string type compatibility.' },
-      { target: 'tax_identifier', req: true, source: 'vendor_tax_id', method: 'direct', state: 'state-proposed', evidence: 'Tax abbreviation match (tax_id ~ tax_identifier). Contains 14% null values.' },
-      { target: 'amount', req: true, source: 'total_amount', method: 'coerce:float', state: 'state-approved', evidence: 'Numeric currency field with 99.98% float parseability.' },
-      { target: 'currency_code', req: true, source: 'currency', method: 'direct', state: 'state-approved', evidence: 'ISO-4217 3-letter currency code match (INR, USD, EUR).' },
-      { target: 'status', req: false, source: 'payment_status', method: 'direct', state: 'state-proposed', evidence: 'Enum member intersection: PAID, PENDING, OVERDUE 100% matched.' },
-      { target: 'due_at', req: false, source: 'due_date', method: 'coerce:iso8601', state: 'state-proposed', evidence: 'Maturity date field converts to ISO-8601 UTC.' },
-      { target: 'line_count', req: false, source: 'line_items_count', method: 'coerce:int', state: 'state-proposed', evidence: 'Integer count heuristic match.' },
-      { target: 'memo', req: false, source: 'notes', method: 'direct', state: 'state-proposed', evidence: 'Semantic text embedding score 0.84; optional remark string.' }
-    ],
-    quarantinedSamples: [
-      { row: 42, reason: 'Null value in required field [tax_identifier]', payload: '{"invoice_id": "INV-042", "vendor_tax_id": null, "total_amount": "840.00"}' },
-      { row: 118, reason: 'Failed ISO-8601 datetime parsing on [created_at]', payload: '{"invoice_id": "INV-118", "invoice_date": "INVALID_TIMESTAMP", "total_amount": "1200.00"}' },
-      { row: 205, reason: 'Non-numeric string in float field [amount]', payload: '{"invoice_id": "INV-205", "total_amount": "PENDING_QUOTE"}' },
-      { row: 312, reason: 'Null value in required field [tax_identifier]', payload: '{"invoice_id": "INV-312", "vendor_tax_id": null, "total_amount": "3450.00"}' },
-      { row: 389, reason: 'Enum violation on [status]: "CANCELLED_UNPAID"', payload: '{"invoice_id": "INV-389", "payment_status": "CANCELLED_UNPAID"}' },
-      { row: 441, reason: 'Null value in required field [tax_identifier]', payload: '{"invoice_id": "INV-441", "vendor_tax_id": "", "total_amount": "9200.00"}' },
-      { row: 477, reason: 'Null value in required field [tax_identifier]', payload: '{"invoice_id": "INV-477", "vendor_tax_id": null, "total_amount": "150.00"}' },
-      { row: 498, reason: 'Negative float amount on [amount]: "-45.00"', payload: '{"invoice_id": "INV-498", "total_amount": "-45.00"}' }
-    ],
-    adapterCode: `# ==============================================================================
-# RECON SYNTHESIZED AST ADAPTER
-# Target Schema: invoice_schema.json (Strict Draft-07)
-# Deterministic Zero-Loss In-Process Transform Engine
-# ==============================================================================
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
-
-def parse_iso8601(val: Any) -> Optional[str]:
-    if not val:
-        return None
-    val_str = str(val).strip()
-    try:
-        dt = datetime.fromisoformat(val_str.replace("Z", "+00:00"))
-        return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    except Exception:
-        for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y"):
-            try:
-                dt = datetime.strptime(val_str, fmt).replace(tzinfo=timezone.utc)
-                return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-            except Exception:
-                pass
-        raise ValueError(f"Cannot parse datetime for field from '{val_str}'")
-
-def transform_record(source: Dict[str, Any]) -> Dict[str, Any]:
-    """Deterministically transforms raw record into contract conforming structure."""
-    transformed = {
-        "id": str(source.get("invoice_id")),
-        "created_at": parse_iso8601(source.get("invoice_date")),
-        "vendor": str(source.get("vendor_name")),
-        "tax_identifier": str(source.get("vendor_tax_id")) if source.get("vendor_tax_id") else None,
-        "amount": float(str(source.get("total_amount")).replace(",", "")),
-        "currency_code": str(source.get("currency", "INR")),
-        "status": str(source.get("payment_status", "PENDING")),
-        "due_at": parse_iso8601(source.get("due_date")),
-        "line_count": int(source.get("line_items_count", 0)),
-        "memo": str(source.get("notes")) if source.get("notes") else None,
-    }
-    return transformed
-`
-  };
-
-  const sound = new QuantumSoundEngine();
-  let ambientCanvas = null;
-  let collider = null;
-  let sonarRadar = null;
-  let cableLoom = null;
-
-  // DOM Cache
-  const dom = {
-    sessionTag: document.getElementById('session-tag'),
-    streamSrcName: document.getElementById('stream-src-name'),
-    streamTgtName: document.getElementById('stream-tgt-name'),
-    warpPreset: document.getElementById('warp-preset'),
-    portSourceZone: document.getElementById('port-source-zone'),
-    portTargetZone: document.getElementById('port-target-zone'),
-    portSourceLabel: document.getElementById('port-source-label'),
-    portTargetLabel: document.getElementById('port-target-label'),
-    portSourceSub: document.getElementById('port-source-sub'),
-    portTargetSub: document.getElementById('port-target-sub'),
-    portSrcSpeed: document.getElementById('port-src-speed'),
-    sourceFileInput: document.getElementById('source-file-input'),
-    targetFileInput: document.getElementById('target-file-input'),
-    spectralColCount: document.getElementById('spectral-col-count'),
-    spectralSearchInput: document.getElementById('spectral-search-input'),
-    spectralList: document.getElementById('spectral-list'),
-    blockerCountPill: document.getElementById('blocker-count-pill'),
-    btnSnapAll: document.getElementById('btn-snap-all'),
-    btnCompileAst: document.getElementById('btn-compile-ast'),
-    loomTableBody: document.getElementById('loom-table-body'),
-    minimapTrack: document.getElementById('minimap-track'),
-    eqTotal: document.getElementById('eq-total'),
-    eqValid: document.getElementById('eq-valid'),
-    eqQuarantine: document.getElementById('eq-quarantine'),
-    ledgerBadge: document.getElementById('ledger-badge'),
-    quarantineHudDrawer: document.getElementById('quarantine-hud-drawer'),
-    quarantineHudList: document.getElementById('quarantine-hud-list'),
-    btnCloseQuarantine: document.getElementById('btn-close-quarantine'),
-    inspectorActiveTarget: document.getElementById('inspector-active-target'),
-    radarBlockersCount: document.getElementById('radar-blockers-count'),
-    radarStressCount: document.getElementById('radar-stress-count'),
-    radarSafeCount: document.getElementById('radar-safe-count'),
-    evidenceTraceOutput: document.getElementById('evidence-trace-output'),
-    spectralSamplesList: document.getElementById('spectral-samples-list'),
-    diffScrubInput: document.getElementById('diff-scrub-input'),
-    sandboxInVal: document.getElementById('sandbox-in-val'),
-    sandboxOutVal: document.getElementById('sandbox-out-val'),
-    morphWipeTarget: document.getElementById('morph-wipe-target') || document.querySelector('.morph-wipe-target'),
-    sandboxInputExpr: document.getElementById('sandbox-input-expr'),
-    astCodeView: document.getElementById('ast-code-view'),
-    btnCopyAst: document.getElementById('btn-copy-ast'),
-    btnDownloadAst: document.getElementById('btn-download-ast'),
-    footerQuarantinePct: document.getElementById('footer-quarantine-pct'),
-    cmdModal: document.getElementById('cmd-modal'),
-    cmdInput: document.getElementById('cmd-input'),
-    cmdList: document.getElementById('cmd-list'),
-    shortcutsModal: document.getElementById('shortcuts-modal'),
-    btnCmdPalette: document.getElementById('btn-cmd-palette'),
-    btnShortcuts: document.getElementById('btn-shortcuts'),
-    btnCloseShortcuts: document.getElementById('btn-close-shortcuts'),
-    btnThemeToggle: document.getElementById('btn-theme-toggle'),
-    btnAudioToggle: document.getElementById('btn-audio-toggle'),
-    reconDynamicIsland: document.getElementById('recon-dynamic-island'),
-    islandPillTrigger: document.getElementById('island-pill-trigger'),
-    islandStatusText: document.getElementById('island-status-text'),
-    islandPrimaryAction: document.getElementById('island-primary-action'),
-    islandExpandedTray: document.getElementById('island-expanded-tray'),
-    islandTrayContent: document.getElementById('island-tray-content')
-  };
-
-  // =========================================================================
-  // 7. RENDERING & MATRIX ENGINE
-  // =========================================================================
-
-  function evaluateMappingEvidence(targetField, sourceCol) {
-    if (!sourceCol) return { confidence: 0.0, justification: 'Target field is unmapped. No source column assigned.' };
-    const tLower = targetField.toLowerCase();
-    const sLower = sourceCol.toLowerCase();
-    if (tLower === sLower) return { confidence: 1.0, justification: '100% token exact match on canonical identifier.' };
-    if (tLower.includes(sLower) || sLower.includes(tLower)) {
-      return { confidence: 0.92, justification: `Substring containment (${sourceCol} ↔ ${targetField}). Strong semantic compatibility.` };
-    }
-    return { confidence: 0.81, justification: `Heuristic type affinity and token n-gram similarity match.` };
-  }
-
-  function getDuplicateSourceAssignments() {
-    const counts = {};
-    state.mappings.forEach(m => {
-      if (m.source) counts[m.source] = (counts[m.source] || 0) + 1;
+  const themeBtn = document.getElementById("btn-theme-toggle");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = current === "dark" ? "light" : "dark";
+      applyTheme(next);
+      localStorage.setItem("recon-theme-v4", next);
+      SoundEngine.playClick();
     });
-    const duplicates = {};
-    Object.keys(counts).forEach(src => {
-      if (counts[src] > 1) duplicates[src] = counts[src];
+  }
+
+  const soundBtn = document.getElementById("btn-sound-toggle");
+  if (soundBtn) {
+    updateSoundButtonUI();
+    soundBtn.addEventListener("click", () => {
+      SoundEngine.toggleMute();
     });
-    return duplicates;
   }
+}
 
-  function computeTransformedValue(sourceVal, method) {
-    if (sourceVal === null || sourceVal === undefined) return 'null';
-    const s = String(sourceVal);
-    if (!method || method === 'direct') return s;
-    if (method.includes('upper')) return s.toUpperCase();
-    if (method.includes('lower')) return s.toLowerCase();
-    if (method.includes('iso8601')) {
-      if (s.includes('T')) return s;
-      return `${s}T00:00:00Z`;
-    }
-    if (method.includes('float')) {
-      const num = parseFloat(s.replace(/[^0-9.-]/g, ''));
-      return isNaN(num) ? s : num.toFixed(2);
-    }
-    if (method.includes('int')) {
-      const num = parseInt(s.replace(/[^0-9-]/g, ''), 10);
-      return isNaN(num) ? s : String(num);
-    }
-    return s;
-  }
-
-  function renderLoomTable() {
-    if (!dom.loomTableBody) return;
-    dom.loomTableBody.innerHTML = '';
-    const duplicates = getDuplicateSourceAssignments();
-    let blockerCount = 0;
-
-    state.mappings.forEach((row, idx) => {
-      if (row.req && (!row.source || row.source === '')) {
-        row.state = 'state-missing-req';
-        blockerCount++;
-      } else if (!row.req && (!row.source || row.source === '')) {
-        row.state = 'state-unresolved';
-      } else if (duplicates[row.source] && duplicates[row.source] > 1) {
-        row.state = 'state-ambiguous';
-      }
-
-      const tr = document.createElement('tr');
-      tr.className = `${row.state} ${idx === state.selectedRow ? 'keyboard-focused' : ''}`;
-      tr.dataset.index = idx;
-
-      const optionsHtml = ['<option value="">-- Unmapped --</option>']
-        .concat(state.sourceColumns.map(col => `<option value="${col.name}" ${col.name === row.source ? 'selected' : ''}>${col.name} (${col.type})</option>`))
-        .join('');
-
-      tr.innerHTML = `
-        <td style="text-align:center;"><div class="loom-socket ${row.state}"></div></td>
-        <td><strong style="color:#FFFFFF;">${row.target}</strong></td>
-        <td><span class="badge-type">${row.req ? 'REQUIRED' : 'OPTIONAL'}</span></td>
-        <td>
-          <select class="carrier-select" data-index="${idx}">
-            ${optionsHtml}
-          </select>
-        </td>
-        <td><code>${row.method || 'direct'}</code></td>
-        <td><span class="status-indicator-tag ${row.state}">${row.state.replace('state-', '').toUpperCase()}</span></td>
-        <td style="text-align:center;">
-          <button class="micro-hud-btn snap-btn" data-index="${idx}" title="Snap Cable">Snap</button>
-        </td>
-      `;
-
-      tr.addEventListener('click', (e) => {
-        if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'BUTTON') {
-          selectRow(idx);
-        }
-      });
-
-      const selectEl = tr.querySelector('.carrier-select');
-      selectEl.addEventListener('change', (e) => {
-        handleMappingChange(row.target, e.target.value);
-      });
-
-      const btnSnap = tr.querySelector('.snap-btn');
-      btnSnap.addEventListener('click', (e) => {
-        e.stopPropagation();
-        approveRow(idx);
-      });
-
-      dom.loomTableBody.appendChild(tr);
-    });
-
-    if (dom.blockerCountPill) {
-      dom.blockerCountPill.textContent = `${blockerCount} FATAL BLOCKERS`;
-      dom.blockerCountPill.style.display = blockerCount > 0 ? 'inline-block' : 'none';
-    }
-
-    if (dom.radarBlockersCount) dom.radarBlockersCount.textContent = blockerCount;
-
-    renderMinimapGutter();
-    updateInspector();
-  }
-
-  function handleMappingChange(targetField, newSource) {
-    const row = state.mappings.find(m => m.target === targetField);
-    if (!row) return;
-
-    row.source = newSource || null;
-    const evidence = evaluateMappingEvidence(targetField, newSource);
-    row.evidence = evidence.justification;
-
-    if (row.req && !row.source) {
-      row.state = 'state-missing-req';
-    } else if (!row.req && !row.source) {
-      row.state = 'state-unresolved';
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  const icon = document.getElementById("theme-toggle-icon");
+  const text = document.getElementById("theme-toggle-text");
+  if (icon && text) {
+    if (theme === "dark") {
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><circle cx="8" cy="8" r="3.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>`;
+      text.textContent = "Light";
     } else {
-      row.state = 'state-proposed';
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M13.5 9.5a6 6 0 1 1-7-7 5 5 0 0 0 7 7z"/></svg>`;
+      text.textContent = "Dark";
     }
-
-    sound.playSnap();
-    renderLoomTable();
-    updateDynamicIsland(`Cable patched: ${targetField} ← ${newSource || 'severed'}`, 'info');
   }
+}
 
-  function renderMinimapGutter() {
-    if (!dom.minimapTrack) return;
-    dom.minimapTrack.innerHTML = '';
-    const total = state.mappings.length;
-    if (total === 0) return;
+// =============================================================================
+// Interactive Guide & Spotlight Tour Controller
+// =============================================================================
 
-    state.mappings.forEach((m, idx) => {
-      const marker = document.createElement('div');
-      marker.className = `minimap-marker ${m.state}`;
-      marker.style.top = `${(idx / total) * 100}%`;
-      marker.style.height = `${Math.max(4, 100 / total)}%`;
-      dom.minimapTrack.appendChild(marker);
+const GUIDE_STEPS = [
+  {
+    step: 1,
+    num: "01",
+    name: "01 Dual-Port Ingest Cockpit",
+    badge: "Port 1 & Port 2",
+    screenId: "screen-ingest",
+    targetSelector: ".dual-port-container",
+    stepperNavId: "step-nav-1",
+    shortDesc: "Stage raw source records (CSV/JSON) on Port 1 and target contract on Port 2.",
+    desc: "Recon's workflow starts by staging raw incoming records on the left (Port 1) and your target destination schema on the right (Port 2). Recon validates structure and headers before transforming any data.",
+    cards: [
+      {
+        tag: "PORT 1: SOURCE DATASET",
+        desc: "Upload CSV, TSV, JSON, JSONL payloads up to 100MB or select a preloaded sample."
+      },
+      {
+        tag: "PORT 2: TARGET CONTRACT",
+        desc: "Ingest strict JSON Schema (Draft-07/2020-12), OpenAPI 3.0/3.1, or preloaded target schemas."
+      },
+      {
+        tag: "PRE-FLIGHT VALIDATION",
+        desc: "Instant client-side verification confirms payload presence, non-empty records, and syntax validity."
+      }
+    ]
+  },
+  {
+    step: 2,
+    num: "02",
+    name: "02 Source Dataset Profile Matrix",
+    badge: "Data Profiling",
+    screenId: "screen-profile",
+    targetSelector: "#screen-profile .table-container",
+    stepperNavId: "step-nav-2",
+    shortDesc: "Inspect inferred types, 44px nullity micro-bars, and quality anomalies per column.",
+    desc: "Recon inspects every column of the source dataset deterministically without guessing. It evaluates cardinality, null ratios, sample values, and flags dirty data like trailing whitespace or currency strings in numbers.",
+    cards: [
+      {
+        tag: "INFERRED DATA TYPES",
+        desc: "Identifies strings, integers, floats, timestamps, or booleans with rigorous type inference rules."
+      },
+      {
+        tag: "44PX NULLITY MICRO-BARS",
+        desc: "Instant visual mini-bars per column: green indicates filled values, amber/red indicates missing nulls."
+      },
+      {
+        tag: "QUALITY FORENSICS",
+        desc: "Highlights dirty data patterns like trailing whitespace, mixed formats, or currency strings."
+      }
+    ]
+  },
+  {
+    step: 3,
+    num: "03",
+    name: "03 Mapping Review Studio",
+    badge: "Heuristic Alignment",
+    screenId: "screen-map",
+    targetSelector: "#screen-map .table-container",
+    stepperNavId: "step-nav-3",
+    shortDesc: "Audit field mappings across 6 visual states. Missing required fields are flagged in red.",
+    desc: "Recon proposes mappings based on evidence, naming similarity, and semantic type compatibility. It adheres to a strict fail-closed policy: unmapped required fields are hard blockers that must be resolved by a human.",
+    cards: [
+      {
+        tag: "6 VISUAL STATES",
+        desc: "Approved (Green), Proposed (Indigo), Ambiguous (Amber), Missing Required (Red), Unresolved, and Type Cast."
+      },
+      {
+        tag: "MISSING REQUIRED ALERTS",
+        desc: "Unmapped required target fields glow in soft red with explicit [MISSING REQUIRED FIELD] dropdown alerts."
+      },
+      {
+        tag: "CONTEXTUAL INSPECTOR",
+        desc: "Click any row to open the 4-tab right drawer: Engine Evidence, Sample Values, Transform AST, and Meta."
+      }
+    ]
+  },
+  {
+    step: 4,
+    num: "04",
+    name: "04 Risk Radar & Approval Gate",
+    badge: "Mandatory Gate",
+    screenId: "screen-audit",
+    targetSelector: "#screen-audit .recon-card",
+    stepperNavId: "step-nav-4",
+    shortDesc: "Mandatory human sign-off boundary. Hard blockers prevent adapter compilation until resolved.",
+    desc: "A formal pre-flight audit prevents breaking integrations before they are compiled. If any required field is missing or ambiguous, Recon locks adapter generation and provides remediation instructions.",
+    cards: [
+      {
+        tag: "CRITICAL BLOCKERS",
+        desc: "Adapter synthesis is locked until all required target fields have verified source mappings."
+      },
+      {
+        tag: "REMEDIATION ACTIONS",
+        desc: "Every detected risk card provides direct, actionable advice on which screen and column to fix."
+      },
+      {
+        tag: "EXPLICIT ACKNOWLEDGMENT",
+        desc: "Requires human-in-the-loop developer check-off before synthesizing adapter code."
+      }
+    ]
+  },
+  {
+    step: 5,
+    num: "05",
+    name: "05 Adapter Code Workbench",
+    badge: "Code Synthesis",
+    screenId: "screen-adapter",
+    targetSelector: "#screen-adapter .code-workbench",
+    stepperNavId: "step-nav-5",
+    shortDesc: "Inspect synthesized, production-ready Python adapter code compiled from the mapping AST.",
+    desc: "Recon compiles the human-approved mapping decisions into a standalone Python 3.11 adapter. The adapter handles type casting, regex pattern validation, and invalid-record quarantine safely in local sandbox memory.",
+    cards: [
+      {
+        tag: "STANDALONE PYTHON CODE",
+        desc: "Production-ready transformation functions synthesized directly from the approved mapping plan."
+      },
+      {
+        tag: "SAFE LOCAL SANDBOX",
+        desc: "Executed in an isolated in-process memory sandbox with no remote calls or external egress."
+      },
+      {
+        tag: "INSTANT CODE EXPORT",
+        desc: "Copy or download the clean adapter script (.py) for direct inclusion into your ETL or microservice."
+      }
+    ]
+  },
+  {
+    step: 6,
+    num: "06",
+    name: "06 Validation Lab & Quarantine Ledger",
+    badge: "Zero Data Loss",
+    screenId: "screen-validate",
+    targetSelector: "#screen-validate .metrics-grid",
+    stepperNavId: "step-nav-6",
+    shortDesc: "Verify zero data loss accounting: Total Input = Valid Output + Quarantined Records.",
+    desc: "The engine transforms every row through the synthesized adapter. Recon's fundamental invariant is verified: every record must either pass cleanly or be quarantined with full forensic diagnostic reasons.",
+    cards: [
+      {
+        tag: "LEDGER ACCOUNTING IDENTITY",
+        desc: "Verified zero-loss equation: N_total = N_valid + N_quarantine. No record is ever silently lost."
+      },
+      {
+        tag: "SYNTHETIC TEST SUITE",
+        desc: "Executes 4 automated unit tests testing valid transforms, malformed dates, and missing keys."
+      },
+      {
+        tag: "QUARANTINE FORENSICS",
+        desc: "Quarantined records are preserved with original payloads and specific contract failure reasons."
+      }
+    ]
+  },
+  {
+    step: 7,
+    num: "07",
+    name: "07 Readiness Dossier & Certified Artifacts",
+    badge: "Certified Deliverables",
+    screenId: "screen-dossier",
+    targetSelector: "#screen-dossier .dossier-card-grid",
+    stepperNavId: "step-nav-7",
+    shortDesc: "Download complete integration deliverables, audit report, and reusable mapping spec.",
+    desc: "Recon outputs the final integration package: the certified Python adapter script, Markdown & JSON readiness reports, transformed valid records, quarantined diagnostics, and a reusable mapping specification.",
+    cards: [
+      {
+        tag: "READINESS VERDICT",
+        desc: "Formal integration certification score: READY (100% yield) or BLOCKED with exact error counts."
+      },
+      {
+        tag: "REUSABLE MAPPING SPEC",
+        desc: "Exports versioned mapping specification (.json) with SHA-256 fingerprint for automated CI/CD gates."
+      },
+      {
+        tag: "EPHEMERAL PURGE",
+        desc: "One-click memory purge guarantees ephemeral session privacy and cleans all temporary state."
+      }
+    ]
+  }
+];
+
+let currentGuideStepIndex = 0;
+let isSpotlightTourActive = false;
+
+function initGuide() {
+  const btnGuide = document.getElementById("btn-guide");
+  const btnGuideBar = document.getElementById("btn-guide-bar");
+  const btnCloseGuide = document.getElementById("btn-close-guide");
+  const btnPrev = document.getElementById("btn-guide-prev");
+  const btnNext = document.getElementById("btn-guide-next");
+  const btnSpotlightToggle = document.getElementById("btn-guide-spotlight-toggle");
+
+  if (btnGuide) btnGuide.addEventListener("click", () => openGuide(currentGuideStepIndex));
+  if (btnGuideBar) btnGuideBar.addEventListener("click", () => openGuide(currentGuideStepIndex));
+  if (btnCloseGuide) btnCloseGuide.addEventListener("click", closeGuide);
+
+  if (btnPrev) btnPrev.addEventListener("click", () => navigateGuideStep(-1));
+  if (btnNext) btnNext.addEventListener("click", () => navigateGuideStep(1));
+
+  if (btnSpotlightToggle) {
+    btnSpotlightToggle.addEventListener("click", () => {
+      startSpotlightTour(currentGuideStepIndex);
     });
   }
 
-  function renderSpectralList(filterText = '') {
-    if (!dom.spectralList) return;
-    dom.spectralList.innerHTML = '';
-    const filter = (filterText || '').trim().toLowerCase();
+  // Guide step tab clicks
+  const stepBtns = document.querySelectorAll("#guide-stepper-tabs button");
+  stepBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.getAttribute("data-gstep"), 10) - 1;
+      setGuideStep(idx);
+    });
+  });
 
-    const filtered = state.sourceColumns.filter(c => {
-      if (!filter) return true;
-      return c.name.toLowerCase().includes(filter) || c.type.toLowerCase().includes(filter);
+  // Guide dots clicks
+  const dots = document.querySelectorAll("#guide-dots-container .recon-guide-dot");
+  dots.forEach(dot => {
+    dot.addEventListener("click", () => {
+      const idx = parseInt(dot.getAttribute("data-gstep"), 10) - 1;
+      setGuideStep(idx);
+    });
+  });
+
+  // Quick Demo action inside Guide
+  const btnGuideDemo = document.getElementById("btn-guide-quick-demo");
+  if (btnGuideDemo) {
+    btnGuideDemo.addEventListener("click", () => {
+      closeGuide();
+      closeTour();
+      handleQuickDemoLoad();
+    });
+  }
+
+  // Floating Tour Card controls
+  const btnTourExpand = document.getElementById("btn-tour-expand");
+  const btnTourClose = document.getElementById("btn-tour-close");
+  const btnTourPrev = document.getElementById("btn-tour-prev");
+  const btnTourNext = document.getElementById("btn-tour-next");
+
+  if (btnTourExpand) {
+    btnTourExpand.addEventListener("click", () => {
+      closeTour();
+      openGuide(currentGuideStepIndex);
+    });
+  }
+  if (btnTourClose) btnTourClose.addEventListener("click", closeTour);
+  if (btnTourPrev) btnTourPrev.addEventListener("click", () => stepFloatingTour(-1));
+  if (btnTourNext) btnTourNext.addEventListener("click", () => stepFloatingTour(1));
+}
+
+function openGuide(stepIndex = 0) {
+  clearSpotlights();
+  closeTour();
+  currentGuideStepIndex = Math.max(0, Math.min(stepIndex, GUIDE_STEPS.length - 1));
+  document.getElementById("modal-guide").classList.remove("hidden");
+  renderGuideStep(currentGuideStepIndex);
+}
+
+function closeGuide() {
+  document.getElementById("modal-guide").classList.add("hidden");
+}
+
+function toggleGuideModal() {
+  const modal = document.getElementById("modal-guide");
+  if (modal.classList.contains("hidden")) {
+    openGuide(currentStep - 1);
+  } else {
+    closeGuide();
+  }
+}
+
+function setGuideStep(idx) {
+  currentGuideStepIndex = Math.max(0, Math.min(idx, GUIDE_STEPS.length - 1));
+  renderGuideStep(currentGuideStepIndex);
+}
+
+function navigateGuideStep(delta) {
+  const nextIdx = currentGuideStepIndex + delta;
+  if (nextIdx >= 0 && nextIdx < GUIDE_STEPS.length) {
+    setGuideStep(nextIdx);
+  }
+}
+
+function renderGuideStep(idx) {
+  const data = GUIDE_STEPS[idx];
+  if (!data) return;
+
+  // Update tabs
+  const tabBtns = document.querySelectorAll("#guide-stepper-tabs button");
+  tabBtns.forEach((b, i) => b.classList.toggle("active", i === idx));
+
+  // Update dots
+  const dots = document.querySelectorAll("#guide-dots-container .recon-guide-dot");
+  dots.forEach((d, i) => d.classList.toggle("active", i === idx));
+
+  // Update text
+  document.getElementById("guide-step-name").textContent = data.name;
+  document.getElementById("guide-step-badge").textContent = data.badge;
+  document.getElementById("guide-step-desc").textContent = data.desc;
+
+  // Render cards
+  const grid = document.getElementById("guide-cards-grid");
+  grid.innerHTML = data.cards.map(c => `
+    <div class="recon-guide-card">
+      <span class="recon-guide-card-tag">${escapeHtml(c.tag)}</span>
+      <span class="recon-guide-card-desc">${escapeHtml(c.desc)}</span>
+    </div>
+  `).join("");
+
+  // Prev / Next button state
+  const btnPrev = document.getElementById("btn-guide-prev");
+  const btnNext = document.getElementById("btn-guide-next");
+  if (btnPrev) btnPrev.disabled = (idx === 0);
+  if (btnNext) {
+    if (idx === GUIDE_STEPS.length - 1) {
+      btnNext.textContent = "Finish Guide";
+      btnNext.onclick = closeGuide;
+    } else {
+      btnNext.textContent = "Next Step →";
+      btnNext.onclick = () => navigateGuideStep(1);
+    }
+  }
+
+  // Quick Demo hint visibility
+  const actionBox = document.getElementById("guide-step-action-box");
+  if (actionBox) {
+    actionBox.classList.toggle("hidden", idx > 2 && currentAssessment !== null);
+  }
+}
+
+function startSpotlightTour(idx = 0) {
+  closeGuide();
+  isSpotlightTourActive = true;
+  currentGuideStepIndex = Math.max(0, Math.min(idx, GUIDE_STEPS.length - 1));
+  applySpotlightToStep(currentGuideStepIndex);
+}
+
+function applySpotlightToStep(idx) {
+  clearSpotlights();
+  const data = GUIDE_STEPS[idx];
+  if (!data) return;
+
+  // Update floating widget
+  const card = document.getElementById("recon-guide-floating-card");
+  card.classList.remove("hidden");
+  document.getElementById("tour-floating-step-label").textContent = data.name;
+  document.getElementById("tour-floating-desc").textContent = data.shortDesc;
+  document.getElementById("tour-floating-counter").textContent = `Step ${idx + 1} of ${GUIDE_STEPS.length}`;
+
+  const btnPrev = document.getElementById("btn-tour-prev");
+  const btnNext = document.getElementById("btn-tour-next");
+  if (btnPrev) btnPrev.disabled = (idx === 0);
+  if (btnNext) {
+    btnNext.textContent = (idx === GUIDE_STEPS.length - 1) ? "Done" : "Next →";
+  }
+
+  // If the target screen is already unlocked and not active, navigate to it
+  if (isStepAvailable(data.step) && currentStep !== data.step) {
+    navigateToStep(data.step);
+  }
+
+  // Find target element to spotlight
+  let targetEl = null;
+  if (currentStep === data.step) {
+    targetEl = document.querySelector(data.targetSelector);
+  }
+  // If target screen is not unlocked or not visible, spotlight the stepper tab
+  if (!targetEl) {
+    targetEl = document.getElementById(data.stepperNavId);
+  }
+
+  if (targetEl) {
+    targetEl.classList.add("recon-tour-spotlight");
+    targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function stepFloatingTour(delta) {
+  const nextIdx = currentGuideStepIndex + delta;
+  if (nextIdx >= 0 && nextIdx < GUIDE_STEPS.length) {
+    currentGuideStepIndex = nextIdx;
+    applySpotlightToStep(currentGuideStepIndex);
+  } else if (nextIdx >= GUIDE_STEPS.length) {
+    closeTour();
+  }
+}
+
+function clearSpotlights() {
+  document.querySelectorAll(".recon-tour-spotlight").forEach(el => {
+    el.classList.remove("recon-tour-spotlight");
+  });
+}
+
+function closeTour() {
+  clearSpotlights();
+  isSpotlightTourActive = false;
+  const card = document.getElementById("recon-guide-floating-card");
+  if (card) card.classList.add("hidden");
+}
+
+// =============================================================================
+// Shell & Stepper Navigation
+// =============================================================================
+
+function initShell() {
+  const steps = document.querySelectorAll(".recon-step-item");
+  steps.forEach(step => {
+    step.addEventListener("click", () => {
+      const targetStep = parseInt(step.getAttribute("data-step"), 10);
+      if (isStepAvailable(targetStep)) {
+        navigateToStep(targetStep);
+      } else {
+        triggerHapticFeedback(step);
+        if (!currentAssessment) {
+          showGlobalError(
+            "WORKFLOW GATED",
+            "Screen 02 (PROFILE) and 03 (MAP) unlock after inspection. Stage a dataset & contract in Screen 01, then click 'INITIALIZE RECON INSPECTION →' (or click Quick Load Sample Fixtures).",
+            step
+          );
+        } else if (!currentResults && targetStep >= 5) {
+          showGlobalError(
+            "APPROVAL REQUIRED",
+            "Screen 05 (ADAPTER) and 06 (VALIDATE) unlock after reviewing the Risk Radar in 04 AUDIT and clicking 'APPROVE & COMPILE ADAPTER →'.",
+            step
+          );
+        }
+      }
+    });
+  });
+
+  const btnQuickDemo = document.getElementById("btn-quick-demo");
+  if (btnQuickDemo) {
+    btnQuickDemo.addEventListener("click", handleQuickDemoLoad);
+  }
+
+  const btnQuickIndian = document.getElementById("btn-quick-indian-voicemail");
+  if (btnQuickIndian) {
+    btnQuickIndian.addEventListener("click", () => loadScenario("indian_voicemail"));
+  }
+
+  const btnQuickNyc = document.getElementById("btn-quick-nyc311");
+  if (btnQuickNyc) {
+    btnQuickNyc.addEventListener("click", () => loadScenario("nyc311"));
+  }
+
+  // Drawer tabs
+  const drawerTabs = document.querySelectorAll(".recon-drawer-tab-btn");
+  drawerTabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      drawerTabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeDrawerTab = btn.getAttribute("data-dtab");
+      switchDrawerTab(activeDrawerTab);
+    });
+  });
+
+  // Contract tabs in Screen A
+  const ctabBtns = document.querySelectorAll("[data-ctab]");
+  ctabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      ctabBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeContractTab = btn.getAttribute("data-ctab");
+      document.getElementById("ctab-content-sample").classList.toggle("hidden", activeContractTab !== "sample");
+      document.getElementById("ctab-content-upload").classList.toggle("hidden", activeContractTab !== "upload");
+      document.getElementById("ctab-content-paste").classList.toggle("hidden", activeContractTab !== "paste");
+      updatePreflightStatus();
+    });
+  });
+
+  // Mapping filter tabs in Screen C
+  const mapFilterBtns = document.querySelectorAll("[data-mapfilter]");
+  mapFilterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      mapFilterBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeMapFilter = btn.getAttribute("data-mapfilter");
+      filterMappingsTable();
+    });
+  });
+
+  // Drawer close & toggle buttons + Side-of-Screen Hover Pop-Out
+  const edgeTab = document.getElementById("inspector-edge-tab");
+  const drawer = document.getElementById("contextual-drawer");
+
+  if (edgeTab && drawer) {
+    // Hovering search logo tab pops out the drawer
+    edgeTab.addEventListener("mouseenter", () => {
+      openInspectorDrawer(false);
     });
 
-    if (dom.spectralColCount) {
-      dom.spectralColCount.textContent = `${filtered.length} OF ${state.sourceColumns.length} FIELDS`;
-    }
+    edgeTab.addEventListener("mouseleave", () => {
+      if (!isDrawerPinned) {
+        drawerHoverTimer = setTimeout(() => {
+          closeInspectorDrawer(false);
+        }, 320);
+      }
+    });
 
-    filtered.forEach(col => {
-      const item = document.createElement('div');
-      item.className = 'spectral-item';
+    // Clicking the tab pins/unpins open
+    edgeTab.addEventListener("click", () => {
+      toggleInspectorDrawerPin();
+    });
 
-      const canvas = document.createElement('canvas');
-      canvas.className = 'spec-canvas-wave';
-      canvas.width = 80;
-      canvas.height = 18;
-      drawSpectrogramWave(canvas, col);
+    // Mouse inside drawer keeps it open
+    drawer.addEventListener("mouseenter", () => {
+      clearTimeout(drawerHoverTimer);
+      if (edgeTab) edgeTab.classList.add("active");
+    });
 
-      item.innerHTML = `
-        <div class="spec-info" title="${col.name} (${col.type})">
-          <span class="spec-type-tag">${col.type}</span>
-          <span class="spec-name-tag">${col.name}</span>
-        </div>
-      `;
-      item.appendChild(canvas);
+    // Mouse leaving drawer slides it back into the edge if not pinned
+    drawer.addEventListener("mouseleave", () => {
+      if (!isDrawerPinned) {
+        drawerHoverTimer = setTimeout(() => {
+          closeInspectorDrawer(false);
+        }, 320);
+      }
+    });
 
-      item.addEventListener('click', () => {
-        const mappedIdx = state.mappings.findIndex(m => m.source === col.name);
-        if (mappedIdx !== -1) selectRow(mappedIdx);
+    const btnCloseDrawer = document.getElementById("btn-close-drawer");
+    if (btnCloseDrawer) {
+      btnCloseDrawer.addEventListener("click", () => {
+        closeInspectorDrawer(true);
       });
+    }
+  }
 
-      dom.spectralList.appendChild(item);
+  const btnToggleInspector = document.getElementById("btn-toggle-inspector");
+  if (btnToggleInspector && drawer) {
+    btnToggleInspector.addEventListener("click", () => {
+      toggleInspectorDrawerPin();
     });
   }
 
-  function drawSpectrogramWave(canvas, col) {
-    const ctx = canvas.getContext('2d');
+  const btnInspectorToggle = document.getElementById("btn-inspector-toggle");
+  if (btnInspectorToggle && drawer) {
+    btnInspectorToggle.addEventListener("click", () => {
+      toggleInspectorDrawerPin();
+    });
+  }
+
+  // Shortcuts modal
+  const btnShortcuts = document.getElementById("btn-shortcuts");
+  if (btnShortcuts) btnShortcuts.addEventListener("click", toggleShortcutsModal);
+  const btnShortcutsBar = document.getElementById("btn-shortcuts-bar");
+  if (btnShortcutsBar) btnShortcutsBar.addEventListener("click", toggleShortcutsModal);
+  const btnCloseShortcuts = document.getElementById("btn-close-shortcuts");
+  if (btnCloseShortcuts) btnCloseShortcuts.addEventListener("click", toggleShortcutsModal);
+
+  // Reset modal
+  document.getElementById("btn-reset-session").addEventListener("click", () => {
+    document.getElementById("modal-reset-session").classList.remove("hidden");
+  });
+  document.getElementById("btn-cancel-reset").addEventListener("click", () => {
+    document.getElementById("modal-reset-session").classList.add("hidden");
+  });
+  document.getElementById("btn-confirm-reset").addEventListener("click", handlePurgeSession);
+  document.getElementById("btn-purge-session").addEventListener("click", handlePurgeSession);
+
+  // Global error bar close
+  document.getElementById("btn-close-error").addEventListener("click", hideGlobalError);
+
+  // Initialize Preflight Quick Peek
+  initPreflightPeek();
+
+  // Initialize Transform Expression Playground
+  initTransformPlayground();
+}
+
+function isStepAvailable(targetStep) {
+  if (targetStep === 1) return true;
+  if (targetStep >= 2 && targetStep <= 4) return Boolean(currentAssessment);
+  if (targetStep >= 5 && targetStep <= 7) return Boolean(currentResults);
+  return false;
+}
+
+function navigateToStep(stepNumber) {
+  if (!isStepAvailable(stepNumber)) return;
+  currentStep = stepNumber;
+  SoundEngine.playClick();
+
+  // If navigating to certified dossier with passing state, fire confetti & celebration
+  if (stepNumber === 7 && currentResults && String(currentResults.readiness_state).toLowerCase() === "pass") {
+    setTimeout(() => {
+      triggerConfettiCelebration();
+      SoundEngine.playCelebration();
+    }, 180);
+  }
+
+  // Update stepper UI
+  for (let s = 1; s <= 7; s++) {
+    const navItem = document.getElementById(`step-nav-${s}`);
+    navItem.classList.remove("active", "completed", "available");
+
+    const available = isStepAvailable(s);
+    if (available && s !== currentStep) {
+      navItem.classList.add("available");
+    }
+
+    if (s < currentStep) {
+      navItem.classList.add("completed");
+      navItem.querySelector(".recon-step-num").innerHTML = '<span class="recon-step-check">✓</span>';
+    } else if (s === currentStep) {
+      navItem.classList.add("active");
+      navItem.querySelector(".recon-step-num").textContent = s < 10 ? `0${s}` : `${s}`;
+    } else {
+      navItem.querySelector(".recon-step-num").textContent = s < 10 ? `0${s}` : `${s}`;
+    }
+  }
+
+  // Switch screen visibility
+  const screens = [
+    "screen-ingest",
+    "screen-profile",
+    "screen-map",
+    "screen-audit",
+    "screen-adapter",
+    "screen-validate",
+    "screen-dossier"
+  ];
+
+  screens.forEach((id, idx) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.toggle("hidden", idx + 1 !== currentStep);
+    }
+  });
+
+  // Smooth scroll to top of canvas
+  document.getElementById("workspace-canvas").scrollTo({ top: 0, behavior: "smooth" });
+
+  // Collapse drawer when navigating to non-inspection screens (01, 04, 05, 06, 07)
+  // to ensure 100% full canvas width and maximum breathing room
+  if ([1, 4, 5, 6, 7].includes(stepNumber)) {
+    document.getElementById("contextual-drawer").classList.add("collapsed");
+  }
+
+  // When opening step 03, trigger flow graph path recalculation
+  if (stepNumber === 3 && activeMappingView === "flow") {
+    requestAnimationFrame(() => {
+      updateFlowConnections();
+    });
+  }
+
+  // Update Dynamic Health Island for current step
+  updateDynamicIsland();
+}
+
+function switchDrawerTab(tabName) {
+  document.getElementById("dtab-pane-evidence").classList.toggle("hidden", tabName !== "evidence");
+  document.getElementById("dtab-pane-samples").classList.toggle("hidden", tabName !== "samples");
+  document.getElementById("dtab-pane-ast").classList.toggle("hidden", tabName !== "ast");
+  document.getElementById("dtab-pane-meta").classList.toggle("hidden", tabName !== "meta");
+}
+
+function toggleShortcutsModal() {
+  const modal = document.getElementById("modal-shortcuts");
+  modal.classList.toggle("hidden");
+}
+
+// =============================================================================
+// Web Audio Synthesizer Engine (Zero-Latency UI Micro-Acoustics)
+// =============================================================================
+
+let audioCtx = null;
+let isAudioMuted = localStorage.getItem("recon_audio_muted") === "true";
+
+function getAudioContext() {
+  if (isAudioMuted) return null;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!audioCtx) {
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  } catch (_) {
+    return null;
+  }
+}
+
+const SoundEngine = {
+  isMuted: () => isAudioMuted,
+
+  toggleMute: () => {
+    isAudioMuted = !isAudioMuted;
+    localStorage.setItem("recon_audio_muted", isAudioMuted ? "true" : "false");
+    updateSoundButtonUI();
+    if (!isAudioMuted) {
+      SoundEngine.playClick();
+    }
+    return isAudioMuted;
+  },
+
+  playClick: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.035);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } catch (_) {}
+  },
+
+  playError: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = "triangle";
+      osc1.frequency.setValueAtTime(140, now);
+      osc1.frequency.exponentialRampToValueAtTime(55, now + 0.16);
+
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(95, now);
+      osc2.frequency.exponentialRampToValueAtTime(40, now + 0.16);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.18);
+      osc2.stop(now + 0.18);
+    } catch (_) {}
+  },
+
+  playSuccess: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + idx * 0.06;
+        const dur = 0.22;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.045, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + dur);
+      });
+    } catch (_) {}
+  },
+
+  playCelebration: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + idx * 0.08;
+        const dur = 0.38;
+        osc.type = idx === 3 ? "triangle" : "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.06, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + dur);
+      });
+    } catch (_) {}
+  }
+};
+
+function updateSoundButtonUI() {
+  const btn = document.getElementById("btn-sound-toggle");
+  const icon = document.getElementById("sound-toggle-icon");
+  const text = document.getElementById("sound-toggle-text");
+  if (!btn) return;
+  btn.classList.toggle("is-muted", isAudioMuted);
+  if (isAudioMuted) {
+    if (text) text.textContent = "Muted";
+    if (icon) {
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="2,5 5,5 9,2 9,14 5,11 2,11" fill="currentColor"/><line x1="12" y1="6" x2="15" y2="10"/><line x1="15" y1="6" x2="12" y2="10"/></svg>`;
+    }
+  } else {
+    if (text) text.textContent = "Sound";
+    if (icon) {
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polygon points="2,5 5,5 9,2 9,14 5,11 2,11" fill="currentColor"/><path d="M11.5 5.5 C13 7 13 9 11.5 10.5"/></svg>`;
+    }
+  }
+}
+
+// =============================================================================
+// Confetti & Particle Celebration Engine (Screen 07 Dossier)
+// =============================================================================
+
+let confettiAnimId = null;
+
+function triggerConfettiCelebration() {
+  const canvas = document.getElementById("recon-confetti-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  if (confettiAnimId) {
+    cancelAnimationFrame(confettiAnimId);
+  }
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.classList.remove("hidden");
+
+  const colors = ["#10B981", "#3B82F6", "#6366F1", "#F59E0B", "#EC4899", "#14B8A6"];
+  const particles = [];
+  const count = 75;
+
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: canvas.width * 0.5 + (Math.random() - 0.5) * 160,
+      y: canvas.height * 0.45 + (Math.random() - 0.5) * 80,
+      vx: (Math.random() - 0.5) * 14,
+      vy: -(Math.random() * 8 + 6),
+      size: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      vRot: (Math.random() - 0.5) * 10,
+      alpha: 1,
+      gravity: 0.32,
+      drag: 0.985,
+    });
+  }
+
+  let startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = (now - startTime) / 1000;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const nullPct = col.nullPct || 0;
-    const isClean = nullPct < 0.05;
-    ctx.strokeStyle = isClean ? '#00FF9D' : '#FFB700';
-    ctx.lineWidth = 1.5;
+    let activeCount = 0;
+    particles.forEach(p => {
+      p.vx *= p.drag;
+      p.vy += p.gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.vRot;
 
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height * 0.5);
-    const bars = 8;
-    const step = canvas.width / bars;
-
-    for (let i = 0; i <= bars; i++) {
-      const amp = (Math.sin(i * 1.2 + col.uniq) * 0.5 + 0.5) * (1 - nullPct);
-      const y = canvas.height * 0.5 + (i % 2 === 0 ? 1 : -1) * amp * (canvas.height * 0.4);
-      ctx.lineTo(i * step, y);
-    }
-    ctx.stroke();
-  }
-
-  function updateInspector() {
-    const row = state.mappings[state.selectedRow];
-    if (!row) return;
-
-    if (dom.inspectorActiveTarget) {
-      dom.inspectorActiveTarget.textContent = `${row.target} ← ${row.source || 'unmapped'}`;
-    }
-
-    // Tab 2: Heuristic Evidence
-    if (dom.evidenceTraceOutput) {
-      dom.evidenceTraceOutput.innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-          <span>Target Spec: <strong style="color:#FFFFFF;">${row.target}</strong></span>
-          <span class="status-indicator-tag ${row.state}">${row.state.replace('state-', '').toUpperCase()}</span>
-        </div>
-        <div style="margin-bottom:8px; font-family:var(--font-code); font-size:11px; color:var(--plasma-cyan);">
-          Source Carrier: <code>${row.source || '-- None --'}</code>
-        </div>
-        <div style="margin-bottom:8px; font-size:11px; color:#94A3B8; line-height:1.5;">
-          ${row.evidence || 'No heuristics generated.'}
-        </div>
-      `;
-    }
-
-    // Samples & Morphing Diff
-    const sourceCol = state.sourceColumns.find(c => c.name === row.source);
-    const sampleVal = sourceCol && sourceCol.samples && sourceCol.samples.length > 0 ? sourceCol.samples[0] : (row.source ? 'sample_val_101' : null);
-    const transformedVal = computeTransformedValue(sampleVal, row.method);
-
-    if (dom.sandboxInVal) dom.sandboxInVal.textContent = sampleVal !== null ? JSON.stringify(sampleVal) : '"null"';
-    if (dom.sandboxOutVal) dom.sandboxOutVal.textContent = JSON.stringify(transformedVal);
-
-    if (dom.spectralSamplesList) {
-      dom.spectralSamplesList.innerHTML = '';
-      if (sourceCol && sourceCol.samples && sourceCol.samples.length > 0) {
-        sourceCol.samples.forEach(s => {
-          const li = document.createElement('li');
-          li.className = 'sample-item';
-          li.textContent = s !== null ? JSON.stringify(s) : 'null (∅)';
-          dom.spectralSamplesList.appendChild(li);
-        });
-      } else {
-        dom.spectralSamplesList.innerHTML = '<li class="sample-item" style="color:#64748B;">No raw samples available for this carrier.</li>';
+      if (elapsed > 1.4) {
+        p.alpha = Math.max(0, p.alpha - 0.025);
       }
-    }
 
-    // Tab 4: AST Adapter View
-    if (dom.astCodeView) {
-      dom.astCodeView.textContent = state.adapterCode;
-    }
-
-    // Quantum Ledger Display
-    if (dom.eqTotal) dom.eqTotal.textContent = state.totalRecords;
-    if (dom.eqValid) dom.eqValid.textContent = state.validRecords;
-    if (dom.eqQuarantine) dom.eqQuarantine.textContent = state.quarantineRecords;
-    if (dom.footerQuarantinePct) {
-      const qPct = state.totalRecords > 0 ? ((state.quarantineRecords / state.totalRecords) * 100).toFixed(1) : '0.0';
-      dom.footerQuarantinePct.textContent = `${qPct}% (${state.quarantineRecords} rows)`;
-    }
-  }
-
-  function renderQuarantineHudList() {
-    if (!dom.quarantineHudList) return;
-    dom.quarantineHudList.innerHTML = '';
-
-    if (!state.quarantinedSamples || state.quarantinedSamples.length === 0) {
-      dom.quarantineHudList.innerHTML = '<div style="color:#64748B; padding:12px; text-align:center;">Zero quarantined records. Invariant perfectly conserved.</div>';
-      return;
-    }
-
-    state.quarantinedSamples.forEach(q => {
-      const item = document.createElement('div');
-      item.className = 'quarantine-hud-item';
-      item.innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-          <strong>ROW #${q.row}</strong>
-          <span>${q.reason}</span>
-        </div>
-        <div style="word-break:break-all; color:#64748B;">${escapeHtml(q.payload || '')}</div>
-      `;
-      dom.quarantineHudList.appendChild(item);
-    });
-  }
-
-  // =========================================================================
-  // 8. ROW SELECTION & ACTIONS
-  // =========================================================================
-
-  function selectRow(index) {
-    if (index < 0 || index >= state.mappings.length) return;
-    state.selectedRow = index;
-    renderLoomTable();
-    sound.playSnap();
-  }
-
-  function approveRow(index) {
-    const row = state.mappings[index];
-    if (!row) return;
-
-    if (row.req && (!row.source || row.source === '')) {
-      sound.playBlockerBuzz();
-      updateDynamicIsland(`Fatal Blocker: Target field '${row.target}' is required.`, 'error');
-      return;
-    }
-
-    row.state = 'state-approved';
-    sound.playHarmonicLock();
-    renderLoomTable();
-    updateDynamicIsland(`Cable snapped & locked: ${row.target} ← ${row.source}`, 'success');
-  }
-
-  function autoLoomAll() {
-    let approved = 0;
-    let blocked = 0;
-
-    state.mappings.forEach(row => {
-      if (row.req && (!row.source || row.source === '')) {
-        row.state = 'state-missing-req';
-        blocked++;
-      } else {
-        row.state = 'state-approved';
-        approved++;
+      if (p.alpha > 0.01 && p.y < canvas.height + 40) {
+        activeCount++;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size * 0.5, -p.size * 0.5, p.size, p.size * 0.6);
+        ctx.restore();
       }
     });
 
-    if (blocked > 0) {
-      sound.playBlockerBuzz();
-      updateDynamicIsland(`Auto-Loomed ${approved} cables. ${blocked} fatal blockers require manual patch.`, 'error');
+    if (activeCount > 0 && elapsed < 3.2) {
+      confettiAnimId = requestAnimationFrame(animate);
     } else {
-      sound.playHarmonicLock();
-      updateDynamicIsland(`All ${approved} cables snapped! Quantum Collider ready to fire.`, 'success');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.classList.add("hidden");
+      confettiAnimId = null;
+    }
+  }
+
+  confettiAnimId = requestAnimationFrame(animate);
+}
+
+// =============================================================================
+// Haptic Feedback Engine (Physical Vibration & Micro-Jitter Visuals)
+// =============================================================================
+
+function triggerHapticFeedback(element = null, pattern = [45, 35, 55]) {
+  // 0. Audio synthesizer low resonant error thud
+  SoundEngine.playError();
+
+  // 1. Hardware physical vibration via Web Vibration API
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator && typeof navigator.vibrate === "function") {
+      navigator.vibrate(pattern);
+    }
+  } catch (_) {
+    // Gracefully ignore sandbox/permission limitations
+  }
+
+  // 2. Visual micro-haptic jitter/shake
+  const target = element || document.getElementById("global-error-bar") || document.getElementById("workspace-canvas");
+  if (target && target instanceof Element) {
+    target.classList.remove("haptic-vibrate", "haptic-shockwave");
+    // Trigger reflow to restart animation reliably
+    void target.offsetWidth;
+    target.classList.add("haptic-vibrate", "haptic-shockwave");
+    setTimeout(() => {
+      if (target) {
+        target.classList.remove("haptic-vibrate", "haptic-shockwave");
+      }
+    }, 450);
+  }
+}
+
+function showGlobalError(title, msg, targetEl = null) {
+  const bar = document.getElementById("global-error-bar");
+  if (bar) {
+    const titleEl = document.getElementById("global-error-title");
+    const msgEl = document.getElementById("global-error-msg");
+    if (titleEl) titleEl.textContent = title ? `[${title}]` : "[ERROR]";
+    if (msgEl) msgEl.textContent = msg;
+    bar.classList.remove("hidden");
+    triggerHapticFeedback(bar);
+  }
+  if (targetEl && targetEl !== bar) {
+    triggerHapticFeedback(targetEl);
+  }
+}
+
+function hideGlobalError() {
+  document.getElementById("global-error-bar").classList.add("hidden");
+}
+
+// =============================================================================
+// API Catalogs & Pre-flight Ingestion
+// =============================================================================
+
+async function loadSampleDatasets() {
+  try {
+    const res = await fetch("/api/sample-datasets");
+    if (!res.ok) return;
+    const datasets = await res.json();
+    const select = document.getElementById("sample-dataset-select");
+    datasets.forEach(ds => {
+      sampleDatasetsMap[ds.id] = ds;
+      const opt = document.createElement("option");
+      opt.value = ds.id;
+      opt.textContent = `${ds.file_name} (${ds.format.toUpperCase()})`;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Failed to load sample datasets:", err);
+  }
+}
+
+async function loadSampleContracts() {
+  try {
+    const res = await fetch("/api/sample-contracts");
+    if (!res.ok) return;
+    const contracts = await res.json();
+    const select = document.getElementById("sample-contract-select");
+    contracts.forEach(c => {
+      sampleContractsMap[c.id] = c;
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = `${c.contract_name} (v${c.version}) — ${c.fields_count} fields`;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener("change", () => {
+      const selected = sampleContractsMap[select.value];
+      const descBox = document.getElementById("contract-desc-box");
+      if (selected) {
+        descBox.textContent = selected.description || `Contract: ${selected.contract_name} with ${selected.fields_count} fields.`;
+      } else {
+        descBox.textContent = "";
+      }
+      updatePreflightStatus();
+    });
+  } catch (err) {
+    console.error("Failed to load sample contracts:", err);
+  }
+}
+
+function initPresetBenchmarks() {
+  const cards = document.querySelectorAll(".preset-card");
+  cards.forEach(card => {
+    card.addEventListener("click", () => {
+      const scenario = card.getAttribute("data-scenario");
+      if (scenario) loadScenario(scenario);
+    });
+    const btn = card.querySelector(".preset-load-btn");
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const scenario = btn.getAttribute("data-scenario");
+        if (scenario) loadScenario(scenario);
+      });
+    }
+  });
+}
+
+function loadScenario(scenarioKey) {
+  hideGlobalError();
+  const dsSelect = document.getElementById("sample-dataset-select");
+  const cSelect = document.getElementById("sample-contract-select");
+
+  // Highlight active preset card
+  document.querySelectorAll(".preset-card").forEach(c => {
+    c.classList.toggle("active-preset", c.getAttribute("data-scenario") === scenarioKey);
+  });
+
+  // Switch to preloaded sample contract tab
+  const sampleCtabBtn = document.getElementById("ctab-btn-sample");
+  if (sampleCtabBtn) sampleCtabBtn.click();
+
+  const scenarioMap = {
+    b2b: {
+      dsPatterns: ["gate09", "b2b_vendor_invoices", "b2b"],
+      contractPatterns: ["gate09", "b2b_vendor_invoice", "b2b"]
+    },
+    ecommerce: {
+      dsPatterns: ["olist_orders", "ecommerce"],
+      contractPatterns: ["ecommerce_order", "ecommerce"]
+    },
+    freight: {
+      dsPatterns: ["freight_manifest", "freight"],
+      contractPatterns: ["freight_manifest", "dispatch"]
+    },
+    nyc311: {
+      dsPatterns: ["synthetic_nyc_311", "nyc_311", "311"],
+      contractPatterns: ["service_request"]
+    },
+    indian_voicemail: {
+      dsPatterns: ["indian_ai_voicemail", "indian"],
+      contractPatterns: ["indian_ai_voicemail", "indian"]
+    }
+  };
+
+  const target = scenarioMap[scenarioKey] || scenarioMap["b2b"];
+
+  if (dsSelect && dsSelect.options.length > 1) {
+    let pickedDs = 1;
+    for (let i = 1; i < dsSelect.options.length; i++) {
+      const val = dsSelect.options[i].value.toLowerCase();
+      if (target.dsPatterns.some(p => val.includes(p))) {
+        pickedDs = i;
+        break;
+      }
+    }
+    dsSelect.selectedIndex = pickedDs;
+    dsSelect.dispatchEvent(new Event("change"));
+  }
+
+  if (cSelect && cSelect.options.length > 1) {
+    let pickedC = 1;
+    for (let i = 1; i < cSelect.options.length; i++) {
+      const val = cSelect.options[i].value.toLowerCase();
+      if (target.contractPatterns.some(p => val.includes(p))) {
+        pickedC = i;
+        break;
+      }
+    }
+    cSelect.selectedIndex = pickedC;
+    cSelect.dispatchEvent(new Event("change"));
+  }
+
+  updatePreflightStatus();
+}
+
+function handleQuickDemoLoad() {
+  loadScenario("b2b");
+}
+
+function bindDropZones() {
+  // Source dropzone
+  const sourceDz = document.getElementById("source-dropzone");
+  const sourceInput = document.getElementById("source-file-input");
+  const sampleDatasetSelect = document.getElementById("sample-dataset-select");
+
+  sourceDz.addEventListener("click", () => sourceInput.click());
+  sourceDz.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      sourceInput.click();
+    }
+  });
+  sourceDz.addEventListener("dragover", e => { e.preventDefault(); sourceDz.classList.add("dragover"); });
+  sourceDz.addEventListener("dragleave", () => sourceDz.classList.remove("dragover"));
+  sourceDz.addEventListener("drop", e => {
+    e.preventDefault();
+    sourceDz.classList.remove("dragover");
+    if (e.dataTransfer.files.length > 0) {
+      handleSourceFileStaged(e.dataTransfer.files[0]);
+    }
+  });
+  sourceInput.addEventListener("change", () => {
+    if (sourceInput.files.length > 0) {
+      handleSourceFileStaged(sourceInput.files[0]);
+    }
+  });
+  sampleDatasetSelect.addEventListener("change", () => {
+    if (sampleDatasetSelect.value) {
+      stagedSourceFile = null;
+      sourceInput.value = "";
+      const ds = sampleDatasetsMap[sampleDatasetSelect.value];
+      document.getElementById("source-status-text").textContent = `Preloaded: ${ds.file_name}`;
+      document.getElementById("source-status-meta").textContent = `Format: ${ds.format.toUpperCase()} | Ready`;
+      document.getElementById("source-format-pill").textContent = ds.format.toUpperCase();
+      updatePreflightStatus();
+    }
+  });
+
+  // Contract dropzone
+  const contractDz = document.getElementById("contract-dropzone");
+  const contractInput = document.getElementById("contract-file-input");
+  const contractTextArea = document.getElementById("contract-text-area");
+
+  contractDz.addEventListener("click", () => contractInput.click());
+  contractDz.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      contractInput.click();
+    }
+  });
+  contractDz.addEventListener("dragover", e => { e.preventDefault(); contractDz.classList.add("dragover"); });
+  contractDz.addEventListener("dragleave", () => contractDz.classList.remove("dragover"));
+  contractDz.addEventListener("drop", e => {
+    e.preventDefault();
+    contractDz.classList.remove("dragover");
+    if (e.dataTransfer.files.length > 0) {
+      handleContractFileStaged(e.dataTransfer.files[0]);
+    }
+  });
+  contractInput.addEventListener("change", () => {
+    if (contractInput.files.length > 0) {
+      handleContractFileStaged(contractInput.files[0]);
+    }
+  });
+
+  contractTextArea.addEventListener("input", () => {
+    const text = contractTextArea.value.trim();
+    const syntaxErr = document.getElementById("contract-json-syntax-error");
+    if (!text) {
+      syntaxErr.classList.add("hidden");
+      syntaxErr.textContent = "";
+      updatePreflightStatus();
+      return;
+    }
+    try {
+      const parsed = JSON.parse(text);
+      syntaxErr.classList.add("hidden");
+      document.getElementById("contract-status-text").textContent = `Pasted Contract: ${parsed.contract_name || "Custom"}`;
+      document.getElementById("contract-status-meta").textContent = `Fields: ${Object.keys(parsed.fields || {}).length}`;
+    } catch (err) {
+      syntaxErr.classList.remove("hidden");
+      syntaxErr.textContent = `JSON Syntax Error: ${err.message}`;
+      document.getElementById("contract-status-text").textContent = "Invalid JSON Contract";
+      document.getElementById("contract-status-meta").textContent = "Syntax Error";
+      triggerHapticFeedback(contractTextArea);
+    }
+    updatePreflightStatus();
+  });
+}
+
+function handleSourceFileStaged(file) {
+  if (!file || file.size === 0) {
+    const dz = document.getElementById("source-dropzone");
+    triggerHapticFeedback(dz);
+    showGlobalError("EMPTY FILE", "The selected source file is empty (0 bytes).", dz);
+    return;
+  }
+  stagedSourceFile = file;
+  document.getElementById("sample-dataset-select").value = "";
+  const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+  const ext = file.name.split(".").pop().toUpperCase();
+  document.getElementById("source-status-text").textContent = file.name;
+  document.getElementById("source-status-meta").textContent = `${sizeMb} MB | ${ext}`;
+  document.getElementById("source-format-pill").textContent = ext;
+  updatePreflightStatus();
+}
+
+function handleContractFileStaged(file) {
+  if (!file || file.size === 0) {
+    const dz = document.getElementById("contract-dropzone");
+    triggerHapticFeedback(dz);
+    showGlobalError("EMPTY FILE", "The selected contract file is empty (0 bytes).", dz);
+    return;
+  }
+  stagedContractFile = file;
+  const sizeKb = (file.size / 1024).toFixed(1);
+  document.getElementById("contract-status-text").textContent = file.name;
+  document.getElementById("contract-status-meta").textContent = `${sizeKb} KB | JSON`;
+  updatePreflightStatus();
+}
+
+function updatePreflightStatus() {
+  const sourceReady = stagedSourceFile || document.getElementById("sample-dataset-select").value;
+  let contractReady = false;
+
+  if (activeContractTab === "sample") {
+    contractReady = Boolean(document.getElementById("sample-contract-select").value);
+  } else if (activeContractTab === "upload") {
+    contractReady = Boolean(stagedContractFile);
+  } else if (activeContractTab === "paste") {
+    const text = document.getElementById("contract-text-area").value.trim();
+    if (text) {
+      try {
+        JSON.parse(text);
+        contractReady = true;
+      } catch (_) {
+        contractReady = false;
+      }
+    }
+  }
+
+  const pfSource = document.getElementById("pf-source-encoding");
+  const pfTarget = document.getElementById("pf-target-schema");
+  const btnAssess = document.getElementById("btn-assess");
+
+  if (pfSource) {
+    if (sourceReady) {
+      pfSource.className = "preflight-item valid";
+      pfSource.textContent = "• Source: Staged & Ready (UTF-8 / Delimiter Auto-detect)";
+    } else {
+      pfSource.className = "preflight-item text-muted";
+      pfSource.textContent = "• Source: Waiting for dataset";
+    }
+  }
+
+  if (pfTarget) {
+    if (contractReady) {
+      pfTarget.className = "preflight-item valid";
+      pfTarget.textContent = "• Target: Schema Contract Validated";
+    } else {
+      pfTarget.className = "preflight-item text-muted";
+      pfTarget.textContent = "• Target: Waiting for valid contract";
+    }
+  }
+
+  // Apple-style clean status indicator
+  const statusLabel = document.getElementById("ingest-status-label");
+  const statusDot = document.getElementById("ingest-status-dot");
+  if (statusLabel && statusDot) {
+    if (sourceReady && contractReady) {
+      statusDot.className = "status-dot ready";
+      statusLabel.className = "ingest-status-ready";
+      statusLabel.textContent = "Source dataset and contract schema ready for inspection";
+    } else if (sourceReady && !contractReady) {
+      statusDot.className = "status-dot waiting";
+      statusLabel.className = "text-muted";
+      statusLabel.textContent = "Source staged • Select target schema contract to continue";
+    } else if (!sourceReady && contractReady) {
+      statusDot.className = "status-dot waiting";
+      statusLabel.className = "text-muted";
+      statusLabel.textContent = "Contract staged • Select or drop source dataset to continue";
+    } else {
+      statusDot.className = "status-dot";
+      statusLabel.className = "text-muted";
+      statusLabel.textContent = "Stage a source dataset and target contract schema to continue";
+    }
+  }
+
+  if (btnAssess) {
+    btnAssess.disabled = !(sourceReady && contractReady);
+  }
+
+  updateDynamicIsland();
+  updatePreflightPeek();
+}
+
+// =============================================================================
+// Feature: Instant Pre-flight Quick Peek (Screen 01)
+// =============================================================================
+
+function initPreflightPeek() {
+  const toggleBtn = document.getElementById("btn-toggle-preflight-peek");
+  const card = document.getElementById("preflight-peek-container");
+  if (toggleBtn && card) {
+    toggleBtn.addEventListener("click", () => {
+      card.classList.toggle("is-collapsed");
+      SoundEngine.playClick();
+    });
+  }
+}
+
+function updatePreflightPeek() {
+  const container = document.getElementById("preflight-peek-container");
+  if (!container) return;
+
+  const dsSelect = document.getElementById("sample-dataset-select");
+  const cSelect = document.getElementById("sample-contract-select");
+  const cText = document.getElementById("contract-text-area");
+
+  const hasSource = Boolean(stagedSourceFile || (dsSelect && dsSelect.value));
+  const hasContract = Boolean(
+    stagedContractFile ||
+    (cSelect && cSelect.value) ||
+    (cText && cText.value.trim())
+  );
+
+  if (!hasSource && !hasContract) {
+    container.classList.add("hidden");
+    return;
+  }
+
+  container.classList.remove("hidden");
+
+  // Render Source Quick Peek
+  renderPreflightSourcePeek();
+  // Render Contract Quick Peek
+  renderPreflightContractPeek();
+}
+
+function renderPreflightSourcePeek() {
+  const wrap = document.getElementById("peek-source-table-wrap");
+  if (!wrap) return;
+
+  if (stagedSourceFile) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      renderSampleTextInPeek(text, stagedSourceFile.name);
+    };
+    reader.readAsText(stagedSourceFile.slice(0, 8192));
+  } else {
+    const dsSelect = document.getElementById("sample-dataset-select");
+    const dsId = dsSelect ? dsSelect.value : "";
+    if (dsId && sampleDatasetsMap[dsId]) {
+      const ds = sampleDatasetsMap[dsId];
+      wrap.innerHTML = `
+        <div style="padding: 10px; font-size: 11px; font-family: var(--font-mono); color: var(--recon-text-secondary);">
+          <div style="font-weight: 600; color: var(--recon-text-primary); margin-bottom: 4px;">Fixture: ${escapeHtml(ds.file_name)}</div>
+          <div>Format: <span class="badge badge-indigo">${escapeHtml(ds.format.toUpperCase())}</span> • Ready for profiling</div>
+          <div style="margin-top: 6px; font-size: 10px; color: var(--recon-text-muted);">First 3 records and statistical distributions will be computed during assessment.</div>
+        </div>
+      `;
+    } else {
+      wrap.innerHTML = `<span class="text-muted font-mono" style="padding: 10px; display: block; font-size: 11px;">Waiting for source staging...</span>`;
+    }
+  }
+}
+
+function renderSampleTextInPeek(rawText, fileName) {
+  const wrap = document.getElementById("peek-source-table-wrap");
+  if (!wrap || !rawText) return;
+
+  const lines = rawText.trim().split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length > 0) {
+    const headerLine = lines[0];
+    const isJson = headerLine.startsWith("{") || headerLine.startsWith("[");
+
+    if (isJson) {
+      wrap.innerHTML = `<pre style="margin: 0; padding: 8px; font-size: 10px; color: var(--recon-text-secondary); max-height: 120px; overflow: auto;">${escapeHtml(lines.slice(0, 3).join("\n"))}</pre>`;
+    } else {
+      const delim = headerLine.includes("\t") ? "\t" : ",";
+      const headers = headerLine.split(delim).map(h => h.trim().replace(/^["']|["']$/g, ""));
+      const rows = lines.slice(1, 4).map(l => l.split(delim).map(c => c.trim().replace(/^["']|["']$/g, "")));
+
+      let tableHtml = `<table class="peek-mini-table"><thead><tr>`;
+      headers.slice(0, 6).forEach(h => {
+        tableHtml += `<th>${escapeHtml(h)}</th>`;
+      });
+      if (headers.length > 6) tableHtml += `<th>+${headers.length - 6} more</th>`;
+      tableHtml += `</tr></thead><tbody>`;
+
+      rows.forEach(r => {
+        tableHtml += `<tr>`;
+        r.slice(0, 6).forEach(val => {
+          tableHtml += `<td>${escapeHtml(val || "-")}</td>`;
+        });
+        if (headers.length > 6) tableHtml += `<td>...</td>`;
+        tableHtml += `</tr>`;
+      });
+      tableHtml += `</tbody></table>`;
+      wrap.innerHTML = tableHtml;
+    }
+  }
+}
+
+function renderPreflightContractPeek() {
+  const wrap = document.getElementById("peek-target-pills-wrap");
+  if (!wrap) return;
+
+  let contractObj = null;
+
+  if (activeContractTab === "sample") {
+    const cSelect = document.getElementById("sample-contract-select");
+    const cId = cSelect ? cSelect.value : "";
+    if (cId && sampleContractsMap[cId] && sampleContractsMap[cId].content) {
+      try { contractObj = JSON.parse(sampleContractsMap[cId].content); } catch (_) {}
+    }
+  } else if (activeContractTab === "paste") {
+    const text = (document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "";
+    if (text) {
+      try { contractObj = JSON.parse(text); } catch (_) {}
+    }
+  }
+
+  if (contractObj) {
+    if (contractObj.fields) {
+      const entries = Object.entries(contractObj.fields);
+      let pillsHtml = entries.map(([name, f]) => {
+        const isReq = Boolean(f.required);
+        const type = f.type || "any";
+        return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
+      }).join("");
+      wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 fields defined</span>`;
+      return;
     }
 
-    renderLoomTable();
+    if (contractObj.properties) {
+      const requiredList = Array.isArray(contractObj.required) ? contractObj.required : [];
+      const entries = Object.entries(contractObj.properties);
+      let pillsHtml = entries.map(([name, f]) => {
+        const isReq = requiredList.includes(name);
+        const type = f.type || "any";
+        return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
+      }).join("");
+      wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 properties</span>`;
+      return;
+    }
   }
 
-  function severCurrentRow() {
-    const row = state.mappings[state.selectedRow];
-    if (!row) return;
-    row.source = null;
-    row.state = row.req ? 'state-missing-req' : 'state-unresolved';
-    sound.playSnap();
-    renderLoomTable();
-    updateDynamicIsland(`Cable severed: ${row.target}`, 'info');
+  wrap.innerHTML = `<span class="text-muted font-mono" style="font-size: 11px;">Waiting for contract schema...</span>`;
+}
+
+// =============================================================================
+// Assessment Workflow (01 Ingest -> 02 Profile & 03 Map)
+// =============================================================================
+
+function bindActions() {
+  const brandHomeLink = document.getElementById("brand-home-link");
+  if (brandHomeLink) {
+    brandHomeLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigateToStep(1);
+    });
   }
 
-  // =========================================================================
-  // 9. BACKEND API INTEGRATION
-  // =========================================================================
+  document.getElementById("btn-assess").addEventListener("click", handleAssessIntegration);
+  document.getElementById("btn-approve").addEventListener("click", handleApproveAndGenerate);
+  document.getElementById("btn-copy-code").addEventListener("click", handleCopyCode);
+  document.getElementById("ack-checkbox").addEventListener("change", updateApprovalGateState);
 
-  async function assessScenario(datasetId, contractId = null, sourceFile = null, contractFile = null) {
-    sound.playWarpSweep();
-    updateDynamicIsland('Ingesting carrier stream & calibrating spectrometer...', 'info');
+  const ingestSpecInput = document.getElementById("ingest-mapping-spec-input");
+  if (ingestSpecInput) {
+    ingestSpecInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        stagedMappingSpecFile = e.target.files[0];
+        document.getElementById("ingest-mapping-spec-name").textContent = stagedMappingSpecFile.name;
+      }
+    });
+  }
 
-    try {
-      const formData = new FormData();
-      if (sourceFile) formData.append('source_file', sourceFile);
-      else if (datasetId) formData.append('sample_dataset_id', datasetId);
+  const mapSpecInput = document.getElementById("map-spec-upload-input");
+  if (mapSpecInput) {
+    mapSpecInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleUploadMappingSpecInStudio(e.target.files[0]);
+      }
+    });
+  }
 
-      if (contractFile) formData.append('contract_file', contractFile);
-      else if (contractId) formData.append('sample_contract_id', contractId);
+  const btnDismissBanner = document.getElementById("btn-dismiss-spec-banner");
+  if (btnDismissBanner) {
+    btnDismissBanner.addEventListener("click", () => {
+      document.getElementById("mapping-spec-banner").classList.add("hidden");
+    });
+  }
+}
 
-      const res = await fetch('/api/assess', {
-        method: 'POST',
-        body: formData
+async function handleAssessIntegration() {
+  hideGlobalError();
+  const formData = new FormData();
+
+  if (stagedSourceFile) {
+    formData.append("source_file", stagedSourceFile);
+  } else {
+    const dsId = document.getElementById("sample-dataset-select").value;
+    if (dsId) formData.append("sample_dataset_id", dsId);
+  }
+
+  if (activeContractTab === "sample") {
+    const cId = document.getElementById("sample-contract-select").value;
+    if (cId) formData.append("sample_contract_id", cId);
+  } else if (activeContractTab === "upload") {
+    if (stagedContractFile) formData.append("contract_file", stagedContractFile);
+  } else if (activeContractTab === "paste") {
+    const text = document.getElementById("contract-text-area").value.trim();
+    if (text) formData.append("contract_text", text);
+  }
+
+  if (stagedMappingSpecFile) {
+    formData.append("mapping_spec_file", stagedMappingSpecFile);
+  }
+
+  const openapiSelect = document.getElementById("openapi-schema-select");
+  if (openapiSelect && openapiSelect.value) {
+    formData.append("schema_name", openapiSelect.value);
+  }
+
+  const btn = document.getElementById("btn-assess");
+  const spinner = document.getElementById("assess-spinner");
+  btn.disabled = true;
+  spinner.classList.remove("hidden");
+
+  try {
+    const res = await fetch("/api/assess", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      if (res.status === 404) {
+        showSessionLostModal();
+        return;
+      }
+      showGlobalError("ASSESSMENT FAILED", data.detail || "Unable to inspect and profile dataset.", btn);
+      return;
+    }
+
+    currentSessionId = data.session_id;
+    currentAssessment = data;
+    mappingOverrides = {};
+
+    // Update Header Capsule
+    const headerPulse = document.getElementById("header-pulse");
+    if (headerPulse) headerPulse.classList.add("active");
+    const sessionDisplay = document.getElementById("session-id-display");
+    if (sessionDisplay) sessionDisplay.textContent = currentSessionId.slice(0, 12);
+    const contractCapsule = document.getElementById("contract-capsule");
+    if (contractCapsule) contractCapsule.classList.remove("hidden");
+    const contractNameDisplay = document.getElementById("contract-name-display");
+    if (contractNameDisplay) contractNameDisplay.textContent = data.contract.contract_name;
+    const contractVersionPill = document.getElementById("contract-version-pill");
+    if (contractVersionPill) contractVersionPill.textContent = `v${data.contract.version}`;
+
+    // Render downstream screens
+    renderProfileMatrix(data);
+    renderMappingStudio(data);
+    renderRiskRadar(data);
+
+    // Audio success feedback
+    SoundEngine.playSuccess();
+
+    // Navigate to Profile Matrix (Step 02)
+    navigateToStep(2);
+  } catch (err) {
+    showGlobalError("NETWORK ERROR", err.message, btn);
+  } finally {
+    btn.disabled = false;
+    spinner.classList.add("hidden");
+  }
+}
+
+// =============================================================================
+// Screen B: Profile Matrix Rendering
+// =============================================================================
+
+function renderProfileMatrix(data) {
+  const profile = data.source;
+  document.getElementById("profile-summary-line").textContent =
+    `File: ${profile.file_name} | Total Records Sampled: ${Number(profile.total_rows).toLocaleString()} | Inferred Columns: ${profile.total_columns} | Duplicates: ${profile.duplicate_rows_count}`;
+  document.getElementById("prof-sha-display").textContent = (profile.fingerprint || "").slice(0, 16) + "...";
+
+  const tbody = document.getElementById("profile-tbody");
+  tbody.innerHTML = "";
+
+  const colNames = profile.columns;
+  colNames.forEach((colName, index) => {
+    const colInfo = profile.columns_profile[colName];
+    const tr = document.createElement("tr");
+    tr.dataset.index = index;
+    tr.dataset.column = colName;
+
+    // Field Name
+    const tdName = document.createElement("td");
+    tdName.innerHTML = `<span class="font-mono" style="font-weight:600; color:var(--recon-text-primary);">${escapeHtml(colName)}</span>`;
+
+    // Type Inferred
+    const tdType = document.createElement("td");
+    const tBadgeClass = colInfo.inferred_type === "mixed" ? "badge-type type-mixed" : "badge-type";
+    tdType.innerHTML = `<span class="${tBadgeClass}">${escapeHtml(colInfo.inferred_type)}</span>`;
+
+    // Nullity Micro-Bar (44px visual bar)
+    const tdBar = document.createElement("td");
+    const nullPct = colInfo.null_percentage || 0;
+    const filledPct = Math.max(0, 100 - nullPct);
+    const nullColorClass = nullPct === 0 ? "" : nullPct <= 10 ? "amber" : "rose";
+    tdBar.innerHTML = `
+      <div class="nullity-cell">
+        <div class="nullity-microbar">
+          <div class="nullity-filled" style="width: ${filledPct}%;"></div>
+          <div class="nullity-null ${nullColorClass}" style="width: ${nullPct}%;"></div>
+        </div>
+      </div>
+    `;
+
+    // Null Count (%)
+    const tdNull = document.createElement("td");
+    tdNull.className = "font-mono";
+    tdNull.innerHTML = `${colInfo.null_count} <span class="text-muted">(${nullPct}%)</span>`;
+
+    // Distinct Count
+    const tdDistinct = document.createElement("td");
+    tdDistinct.className = "font-mono";
+    tdDistinct.textContent = Number(colInfo.distinct_count).toLocaleString();
+
+    // Sample Values
+    const tdSamples = document.createElement("td");
+    const samplePills = (colInfo.sample_values || [])
+      .slice(0, 2)
+      .map(v => `<span class="badge badge-muted font-mono" style="margin-right:4px;">${escapeHtml(String(v))}</span>`)
+      .join("");
+    tdSamples.innerHTML = samplePills || `<span class="text-muted font-mono">-</span>`;
+
+    // Quality / Anomaly Flag
+    const tdFlag = document.createElement("td");
+    if (colInfo.inferred_type === "mixed") {
+      tdFlag.innerHTML = `<span class="badge badge-rose">[ALERT] Mixed Types</span>`;
+    } else if (nullPct > 10) {
+      tdFlag.innerHTML = `<span class="badge badge-amber">[WARN] High Nullity</span>`;
+    } else if (colInfo.distinct_count === profile.total_rows && profile.total_rows > 1) {
+      tdFlag.innerHTML = `<span class="badge badge-emerald">[CLEAN] Strict Unique Key</span>`;
+    } else {
+      tdFlag.innerHTML = `<span class="badge badge-muted">[CLEAN] Nominal</span>`;
+    }
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdType);
+    tr.appendChild(tdBar);
+    tr.appendChild(tdNull);
+    tr.appendChild(tdDistinct);
+    tr.appendChild(tdSamples);
+    tr.appendChild(tdFlag);
+
+    tr.addEventListener("click", () => {
+      selectProfileRow(index, colName, colInfo, true);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  // Select first column initially without forcibly opening the drawer
+  if (colNames.length > 0) {
+    selectProfileRow(0, colNames[0], profile.columns_profile[colNames[0]], false);
+  }
+}
+
+function selectProfileRow(index, colName, colInfo, openDrawer = true) {
+  selectedProfileIndex = index;
+  const rows = document.querySelectorAll("#profile-tbody tr");
+  rows.forEach((r, idx) => r.classList.toggle("is-selected", idx === index));
+
+  // Update Drawer
+  openDrawerForColumn(colName, colInfo, openDrawer);
+}
+
+// =============================================================================
+// Screen C: Mapping Review Studio (The 6 Visual States)
+// =============================================================================
+
+function renderMappingStudio(data) {
+  const proposals = data.proposals || [];
+  const sourceColumns = data.source.columns || [];
+  const tbody = document.getElementById("mappings-tbody");
+  tbody.innerHTML = "";
+
+  const duplicates = getDuplicateSourceAssignments();
+
+  proposals.forEach((prop, index) => {
+    const tr = document.createElement("tr");
+    tr.className = "mapping-row";
+    tr.dataset.index = index;
+    tr.dataset.target = prop.target_field;
+
+    // Determine one of the 6 explicit visual states:
+    // 1. Approved: User manual override or verified exact match
+    // 2. Proposed: Heuristic suggestion from engine
+    // 3. Ambiguous: Multiple candidate matches
+    // 4. Unresolved: Optional target field with no match
+    // 5. Type Conflict: Incompatible source type and target type
+    // 6. Missing Required: Required field with no source mapped (BLOCKED)
+    const currentChosen = mappingOverrides[prop.target_field] !== undefined
+      ? mappingOverrides[prop.target_field]
+      : (prop.proposed_source_field || "");
+
+    const isRequired = prop.required === true;
+    const isDup = currentChosen && (duplicates.get(currentChosen) || []).length > 1;
+    let visualState = "proposed";
+
+    if (!currentChosen && isRequired) {
+      visualState = "missing-req";
+    } else if (!currentChosen && !isRequired) {
+      visualState = "unresolved";
+    } else if (isDup) {
+      visualState = "conflict";
+    } else if (mappingOverrides[prop.target_field]) {
+      visualState = "approved";
+    } else if (prop.status === "ambiguous" || (prop.evidence && prop.evidence.some(e => e.includes("Multiple")))) {
+      visualState = "ambiguous";
+    } else if (prop.mapping_type === "transformation_required" || (prop.evidence && prop.evidence.some(e => e.includes("Type conflict") || e.includes("requires cast")))) {
+      visualState = "conflict";
+    } else {
+      visualState = "proposed";
+    }
+
+    tr.classList.add(`state-${visualState}`);
+
+    // Col 1: Target Contract Field
+    const tdTarget = document.createElement("td");
+    const reqBadge = isRequired
+      ? `<span class="badge badge-rose" style="font-size:9px;">REQUIRED</span>`
+      : `<span class="badge badge-muted" style="font-size:9px;">OPTIONAL</span>`;
+    const typeBadge = `<span class="badge badge-type">${escapeHtml(prop.target_type)}</span>`;
+    tdTarget.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <span class="font-mono" style="font-weight:600; font-size:13px; color:var(--recon-text-primary);">${escapeHtml(prop.target_field)}</span>
+        ${typeBadge}
+        ${reqBadge}
+      </div>
+      <div class="text-secondary" style="font-size:11px; margin-top:3px; line-height:1.4;">${escapeHtml(prop.description || "Target schema field.")}</div>
+    `;
+
+    // Col 2: Arrow
+    const tdArrow = document.createElement("td");
+    tdArrow.className = "mapping-arrow";
+    tdArrow.style.textAlign = "center";
+    tdArrow.textContent = "◄──";
+
+    // Col 3: Source Column Decision / Override Dropdown
+    const tdSource = document.createElement("td");
+    const select = document.createElement("select");
+    select.className = "mapping-select source-field-box";
+    select.dataset.target = prop.target_field;
+    select.dataset.required = isRequired ? "true" : "false";
+
+    const optNone = document.createElement("option");
+    optNone.value = "";
+    optNone.textContent = isRequired ? "-- [ MISSING REQUIRED FIELD ] --" : "-- [ Unmapped / Skip ] --";
+    select.appendChild(optNone);
+
+    sourceColumns.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      if (currentChosen === c) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+
+    select.addEventListener("change", e => {
+      handleMappingChange(prop.target_field, e.target.value);
+    });
+
+    tdSource.appendChild(select);
+
+    // Col 4: Confidence / Heuristic & Diagnostics
+    const tdHeuristic = document.createElement("td");
+    let heuristicPill = `<span class="badge badge-muted" style="font-size:10px;">${escapeHtml(prop.mapping_type || "HEURISTIC")}</span>`;
+    let detailNote = "";
+
+    const alts = prop.alternative_candidates || [];
+    const candCount = alts.length > 0 ? (1 + alts.length) : (visualState === "ambiguous" ? 2 : 0);
+
+    if (visualState === "missing-req") {
+      heuristicPill = `<span class="badge badge-rose" style="font-size:10px;">NO CANDIDATE</span>`;
+      detailNote = `<div class="text-rose" style="font-size:10px; margin-top:3px; font-family:var(--font-mono); line-height:1.3;">Action required: select source column</div>`;
+    } else if (isDup) {
+      const otherTargets = (duplicates.get(currentChosen) || []).filter(t => t !== prop.target_field);
+      heuristicPill = `<span class="badge badge-amber" style="font-size:10px;">DUPLICATE SOURCE</span>`;
+      detailNote = `<div class="text-amber" style="font-size:10px; margin-top:3px; font-family:var(--font-mono); line-height:1.3;">Reused in: ${escapeHtml(otherTargets.join(", "))}</div>`;
+    } else if (candCount > 1) {
+      heuristicPill = `<span class="badge badge-amber" style="font-size:10px;">AMBIGUOUS (${candCount})</span>`;
+      detailNote = `<div class="text-amber" style="font-size:10px; margin-top:3px; font-family:var(--font-mono); line-height:1.3;">${candCount} candidate columns found — manual selection required</div>`;
+    } else if (prop.mapping_type === "transformation_required" || visualState === "conflict") {
+      heuristicPill = `<span class="badge badge-amber" style="font-size:10px;">TRANSFORM REQUIRED</span>`;
+      const transformEv = (prop.evidence || []).find(e => e.includes("requires cast") || e.includes("Type conflict") || e.includes("uppercase"));
+      if (transformEv) {
+        detailNote = `<div class="text-amber" style="font-size:10px; margin-top:3px; font-family:var(--font-mono); line-height:1.3;">${escapeHtml(transformEv)}</div>`;
+      }
+    } else if (prop.mapping_type === "direct") {
+      heuristicPill = `<span class="badge badge-emerald" style="font-size:10px;">DIRECT MATCH</span>`;
+    } else if (visualState === "ambiguous") {
+      heuristicPill = `<span class="badge badge-amber" style="font-size:10px;">AMBIGUOUS</span>`;
+      detailNote = `<div class="text-amber" style="font-size:10px; margin-top:3px; font-family:var(--font-mono); line-height:1.3;">Manual selection required</div>`;
+    }
+    tdHeuristic.innerHTML = `<div>${heuristicPill}${detailNote}</div>`;
+
+    // Col 5: Status Pill
+    const tdStatus = document.createElement("td");
+    tdStatus.className = "status-col";
+    let statusPillHtml = "";
+
+    if (isDup) {
+      statusPillHtml = `<span class="badge status-pill badge-amber">DUPLICATE</span>`;
+    } else {
+      switch (visualState) {
+        case "approved":
+          statusPillHtml = `<span class="badge status-pill badge-emerald">APPROVED</span>`;
+          break;
+        case "proposed":
+          statusPillHtml = `<span class="badge status-pill badge-indigo">PROPOSED</span>`;
+          break;
+        case "ambiguous":
+          statusPillHtml = `<span class="badge status-pill badge-amber">AMBIGUOUS</span>`;
+          break;
+        case "unresolved":
+          statusPillHtml = `<span class="badge status-pill badge-muted">UNRESOLVED</span>`;
+          break;
+        case "conflict":
+          statusPillHtml = `<span class="badge status-pill badge-amber">TYPE CONFLICT</span>`;
+          break;
+        case "missing-req":
+          statusPillHtml = `<span class="badge status-pill badge-rose">CRITICAL BLOCKER</span>`;
+          break;
+      }
+    }
+    tdStatus.innerHTML = statusPillHtml;
+
+    tr.appendChild(tdTarget);
+    tr.appendChild(tdArrow);
+    tr.appendChild(tdSource);
+    tr.appendChild(tdHeuristic);
+    tr.appendChild(tdStatus);
+
+    tr.addEventListener("click", () => {
+      selectMappingRow(index, prop, true);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  updateMappingFilterCounts();
+  filterMappingsTable();
+  renderSchemaFlowGraph(data);
+
+  // Select first mapping initially without forcibly opening the drawer
+  if (proposals.length > 0) {
+    selectMappingRow(0, proposals[0], false);
+  }
+}
+
+function selectMappingRow(index, prop, openDrawer = true) {
+  selectedMappingIndex = index;
+  const rows = document.querySelectorAll("#mappings-tbody tr");
+  rows.forEach((r, idx) => r.classList.toggle("is-selected", idx === index));
+  openDrawerForMapping(prop, openDrawer);
+}
+
+function updateMappingFilterCounts() {
+  const rows = document.querySelectorAll("#mappings-tbody tr");
+  let total = rows.length;
+  let approved = 0;
+  let action = 0;
+
+  rows.forEach(r => {
+    if (r.classList.contains("state-approved")) approved++;
+    if (r.classList.contains("state-missing-req") || r.classList.contains("state-ambiguous") || r.classList.contains("state-conflict")) action++;
+  });
+
+  document.getElementById("mf-cnt-all").textContent = total;
+  document.getElementById("mf-cnt-approved").textContent = approved;
+  document.getElementById("mf-cnt-action").textContent = action;
+}
+
+function filterMappingsTable() {
+  const rows = document.querySelectorAll("#mappings-tbody tr");
+  rows.forEach(r => {
+    if (activeMapFilter === "all") {
+      r.classList.remove("hidden");
+    } else if (activeMapFilter === "approved") {
+      r.classList.toggle("hidden", !r.classList.contains("state-approved"));
+    } else if (activeMapFilter === "action") {
+      const isAction = r.classList.contains("state-missing-req") || r.classList.contains("state-ambiguous") || r.classList.contains("state-conflict") || r.classList.contains("state-unresolved");
+      r.classList.toggle("hidden", !isAction);
+    }
+  });
+}
+
+// =============================================================================
+// Schema Flow Graph Controller (Visual Lines, Beams & Confidence Bars)
+// =============================================================================
+
+let activeMappingView = "flow"; // "flow" | "matrix" (default to interactive flow graph)
+let currentHighlightedField = null;
+let currentSelectedFlowField = null;
+let highlightResetTimer = null;
+
+function queueFlowReset() {
+  if (highlightResetTimer) clearTimeout(highlightResetTimer);
+  highlightResetTimer = setTimeout(() => {
+    resetFlowHighlights();
+    highlightResetTimer = null;
+  }, 110);
+}
+
+function initMappingViewToggle() {
+  const btnMatrix = document.getElementById("btn-view-matrix");
+  const btnFlow = document.getElementById("btn-view-flow");
+  const tableContainer = document.getElementById("mapping-table-view");
+  const flowContainer = document.getElementById("mapping-flow-view");
+
+  if (!btnMatrix || !btnFlow) return;
+
+  btnMatrix.addEventListener("click", () => {
+    activeMappingView = "matrix";
+    btnMatrix.classList.add("active");
+    btnFlow.classList.remove("active");
+    if (tableContainer) tableContainer.classList.remove("hidden");
+    if (flowContainer) flowContainer.classList.add("hidden");
+  });
+
+  btnFlow.addEventListener("click", () => {
+    activeMappingView = "flow";
+    btnFlow.classList.add("active");
+    btnMatrix.classList.remove("active");
+    if (tableContainer) tableContainer.classList.add("hidden");
+    if (flowContainer) flowContainer.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      updateFlowConnections();
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (activeMappingView === "flow" && flowContainer && !flowContainer.classList.contains("hidden")) {
+      updateFlowConnections();
+    }
+  });
+}
+
+function getDuplicateSourceAssignments() {
+  if (!currentAssessment || !currentAssessment.proposals) return new Map();
+  const sourceToTargets = new Map();
+  currentAssessment.proposals.forEach(p => {
+    const chosen = mappingOverrides[p.target_field] !== undefined
+      ? mappingOverrides[p.target_field]
+      : (p.proposed_source_field || "");
+    if (chosen) {
+      if (!sourceToTargets.has(chosen)) sourceToTargets.set(chosen, []);
+      sourceToTargets.get(chosen).push(p.target_field);
+    }
+  });
+  return sourceToTargets;
+}
+
+function evaluateMappingEvidence(prop, chosenSource) {
+  if (!chosenSource) {
+    return {
+      nameScore: 0,
+      nameLabel: "0% (Unmapped)",
+      typeScore: 0,
+      typeLabel: "0% (Unmapped)",
+      patternScore: 0,
+      patternLabel: "0% (Unmapped)",
+      overallText: prop.required ? "Blocked (Missing Required Field)" : "Unmapped (Optional Field)",
+      badgeText: prop.required ? "CRITICAL BLOCKER" : "OPTIONAL SKIP",
+      badgeClass: prop.required ? "badge-rose" : "badge-muted",
+      isTransform: false,
+      isDuplicate: false,
+      isAmbiguous: false,
+      evidenceSummary: prop.required
+        ? ["Target field is required by contract but has no source column assigned."]
+        : ["Target field is optional and currently unmapped."],
+    };
+  }
+
+  // Duplicate Check
+  const duplicates = getDuplicateSourceAssignments();
+  const assignedTargets = duplicates.get(chosenSource) || [];
+  const isDuplicate = assignedTargets.length > 1;
+
+  // Source Profile & Target Contract Definitions
+  const colProfile = (currentAssessment?.source?.columns_profile && currentAssessment.source.columns_profile[chosenSource]) || {};
+  const srcInferredType = colProfile.inferred_type || (prop.source_inferred_type || "string");
+  const tgtField = (currentAssessment?.contract?.fields && currentAssessment.contract.fields[prop.target_field]) || {
+    target_type: prop.target_type,
+    required: prop.required,
+    nullable: prop.nullable,
+    allowed_values: prop.allowed_values,
+    pattern: prop.pattern,
+  };
+
+  // 1. Name Match Score
+  const normSrc = chosenSource.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normTgt = prop.target_field.toLowerCase().replace(/[^a-z0-9]/g, "");
+  let nameScore = 30;
+  let nameLabel = "30% (Manual Assignment)";
+
+  if (normSrc === normTgt) {
+    nameScore = 100;
+    nameLabel = "100% (Exact Match)";
+  } else if (normSrc.includes(normTgt) || normTgt.includes(normSrc)) {
+    nameScore = 80;
+    nameLabel = "80% (Substring / Synonym Match)";
+  } else if (prop.evidence && prop.evidence.some(e => e.includes("synonym") || e.includes("heuristic"))) {
+    nameScore = 80;
+    nameLabel = "80% (Engine Synonym Rule)";
+  } else {
+    const srcTokens = chosenSource.toLowerCase().split(/[^a-z0-9]+/);
+    const tgtTokens = prop.target_field.toLowerCase().split(/[^a-z0-9]+/);
+    const overlap = srcTokens.filter(t => t && tgtTokens.includes(t));
+    if (overlap.length > 0) {
+      nameScore = 60;
+      nameLabel = "60% (Token Overlap)";
+    } else {
+      nameScore = 30;
+      nameLabel = "30% (Manual Assignment)";
+    }
+  }
+
+  // 2. Type Compatibility Score
+  const tgtType = tgtField.target_type || prop.target_type;
+  let typeScore = 100;
+  let typeLabel = `100% (Compatible: ${tgtType})`;
+  let isTransform = false;
+
+  if (tgtType === srcInferredType) {
+    typeScore = 100;
+    typeLabel = `100% (Exact Type: ${tgtType})`;
+  } else if (
+    (tgtType === "float" && (srcInferredType === "integer" || srcInferredType === "string")) ||
+    (tgtType === "integer" && srcInferredType === "string") ||
+    (tgtType === "string" && (srcInferredType === "integer" || srcInferredType === "float" || srcInferredType === "datetime")) ||
+    (tgtType === "datetime" && srcInferredType === "string")
+  ) {
+    typeScore = 80;
+    typeLabel = `80% (Cast: ${srcInferredType} → ${tgtType})`;
+    isTransform = true;
+  } else {
+    typeScore = 25;
+    typeLabel = `25% (Incompatible: ${srcInferredType} vs ${tgtType})`;
+  }
+
+  // 3. Value Pattern Match Score
+  let patternScore = 100;
+  let patternLabel = "100% (Constraints Satisfied)";
+
+  if (tgtField.allowed_values && tgtField.allowed_values.length > 0) {
+    const sampleVals = colProfile.sample_values || [];
+    const allowed = new Set(tgtField.allowed_values);
+    const matched = sampleVals.filter(s => allowed.has(String(s)) || allowed.has(String(s).toUpperCase()));
+    if (sampleVals.length > 0) {
+      const matchPct = Math.round((matched.length / sampleVals.length) * 100);
+      patternScore = matchPct;
+      patternLabel = `${matchPct}% (${matched.length}/${sampleVals.length} Enum Match)`;
+      if (matchPct < 100) isTransform = true;
+    }
+  } else if (!tgtField.nullable && colProfile.null_count > 0) {
+    patternScore = 40;
+    patternLabel = `40% (Null Risk: ${colProfile.null_percentage}% nulls in non-nullable field)`;
+  } else if (colProfile.has_whitespace_anomalies) {
+    patternScore = 85;
+    patternLabel = "85% (Whitespace Anomalies Detected)";
+    isTransform = true;
+  }
+
+  // Evidence summary
+  const evSummary = (prop.evidence && prop.evidence.length > 0)
+    ? [...prop.evidence]
+    : [];
+  if (mappingOverrides[prop.target_field]) {
+    evSummary.unshift(`User override active: mapped to source '${chosenSource}'.`);
+  }
+  if (isDuplicate) {
+    evSummary.push(`DUPLICATE WARNING: Source column '${chosenSource}' is assigned to multiple targets (${assignedTargets.join(", ")}).`);
+  }
+
+  // Badges & Labels
+  let badgeText = "1:1 DIRECT PASS";
+  let badgeClass = "badge-emerald";
+  let overallText = "High Confidence (Direct Match)";
+  let isAmbiguous = (prop.status === "ambiguous" || (prop.evidence && prop.evidence.some(e => e.includes("Multiple")))) && !mappingOverrides[prop.target_field];
+
+  if (isDuplicate) {
+    badgeText = "DUPLICATE ASSIGNMENT";
+    badgeClass = "badge-amber";
+    overallText = `Warning: Source mapped to ${assignedTargets.length} fields (${assignedTargets.join(", ")})`;
+  } else if (isAmbiguous) {
+    badgeText = "AMBIGUOUS MATCH";
+    badgeClass = "badge-amber";
+    overallText = "Ambiguous (Multiple Candidate Sources)";
+  } else if (isTransform || prop.mapping_type === "transformation_required") {
+    badgeText = "TRANSFORMATION REQUIRED";
+    badgeClass = "badge-amber";
+    overallText = "Transformation Required (Safe Cast Synthesizable)";
+  } else if (mappingOverrides[prop.target_field]) {
+    badgeText = "MANUAL OVERRIDE";
+    badgeClass = "badge-indigo";
+    overallText = "Manual Assignment (User Approved)";
+  }
+
+  return {
+    nameScore,
+    nameLabel,
+    typeScore,
+    typeLabel,
+    patternScore,
+    patternLabel,
+    overallText,
+    badgeText,
+    badgeClass,
+    isTransform,
+    isDuplicate,
+    isAmbiguous,
+    evidenceSummary: evSummary,
+  };
+}
+
+function handleMappingChange(targetField, newSourceVal) {
+  const val = newSourceVal ? newSourceVal.trim() : "";
+  mappingOverrides[targetField] = val;
+
+  // Authoritative Engine & UI Synchronizer:
+  // 1. Table Matrix State
+  renderMappingStudio(currentAssessment);
+
+  // 2. Risk Radar & Approval Gate
+  renderRiskRadar(currentAssessment);
+
+  // 3. Flow Graph Nodes, State Badges & Counters
+  updateFlowGraphState(currentAssessment);
+
+  // 4. SVG Connections & Transformer Chips
+  updateFlowConnections();
+
+  // 5. Trace Inspector & Confidence Micro-Bars
+  highlightFlowStream(targetField, false);
+
+  // 6. Dynamic Health Island Status
+  updateDynamicIsland();
+}
+
+function renderSchemaFlowGraph(data) {
+  if (!data) return;
+
+  const proposals = data.proposals || [];
+  const sourceColumns = data.source.columns || [];
+  const profileFields = (data.source && (data.source.columns_profile || (data.source.profile && data.source.profile.fields))) || {};
+
+  const srcNodesContainer = document.getElementById("flow-source-nodes");
+  const tgtNodesContainer = document.getElementById("flow-target-nodes");
+  if (!srcNodesContainer || !tgtNodesContainer) return;
+
+  srcNodesContainer.innerHTML = "";
+  tgtNodesContainer.innerHTML = "";
+
+  const duplicates = getDuplicateSourceAssignments();
+  const mappedSourceCols = new Set();
+  let directCount = 0;
+  let transformCount = 0;
+  let blockerCount = 0;
+
+  proposals.forEach(p => {
+    const chosen = mappingOverrides[p.target_field] !== undefined ? mappingOverrides[p.target_field] : (p.proposed_source_field || "");
+    if (chosen) {
+      mappedSourceCols.add(chosen);
+      const ev = evaluateMappingEvidence(p, chosen);
+      if (ev.isTransform || p.mapping_type === "transformation_required") transformCount++;
+      else directCount++;
+    } else if (p.required) {
+      blockerCount++;
+    }
+  });
+
+  const discardCount = Math.max(0, sourceColumns.length - mappedSourceCols.size);
+
+  // Update Toolbar counters
+  const elDirect = document.getElementById("fl-cnt-direct");
+  const elTransform = document.getElementById("fl-cnt-transform");
+  const elBlocker = document.getElementById("fl-cnt-blocker");
+  const elDiscard = document.getElementById("fl-cnt-discard");
+  const elSrcBadge = document.getElementById("flow-src-count-badge");
+  const elTgtBadge = document.getElementById("flow-tgt-count-badge");
+
+  if (elDirect) elDirect.textContent = directCount;
+  if (elTransform) elTransform.textContent = transformCount;
+  if (elBlocker) elBlocker.textContent = blockerCount;
+  if (elDiscard) elDiscard.textContent = discardCount;
+  if (elSrcBadge) elSrcBadge.textContent = `${sourceColumns.length} Fields`;
+  if (elTgtBadge) elTgtBadge.textContent = `${proposals.length} Fields`;
+
+  // 1. Render Source Nodes
+  sourceColumns.forEach(col => {
+    const prof = profileFields[col] || {};
+    const infType = prof.inferred_type || "string";
+    const sampleVal = (prof.sample_values && prof.sample_values.length > 0)
+      ? String(prof.sample_values[0])
+      : "null";
+    const isMapped = mappedSourceCols.has(col);
+
+    const node = document.createElement("div");
+    node.className = `flow-node flow-source-node ${isMapped ? "" : "is-discarded"}`;
+    node.dataset.col = col;
+
+    node.innerHTML = `
+      <div class="flow-node-title-row">
+        <span class="flow-node-name">${escapeHtml(col)}</span>
+        <span class="badge badge-type">${escapeHtml(infType)}</span>
+      </div>
+      <div class="flow-node-sample" title="${escapeHtml(sampleVal)}">Sample: "${escapeHtml(sampleVal)}"</div>
+      ${isMapped ? '<span class="flow-anchor-dot"></span>' : '<span class="badge badge-muted" style="font-size:9px; margin-top:4px;">Unmapped</span>'}
+    `;
+
+    node.addEventListener("mouseenter", () => highlightFlowStreamBySource(col));
+    node.addEventListener("mouseleave", () => queueFlowReset());
+    node.addEventListener("click", () => {
+      const matchedProp = proposals.find(p => {
+        const cur = mappingOverrides[p.target_field] !== undefined ? mappingOverrides[p.target_field] : p.proposed_source_field;
+        return cur === col;
+      });
+      if (matchedProp) {
+        highlightFlowStream(matchedProp.target_field, true);
+      }
+    });
+
+    srcNodesContainer.appendChild(node);
+  });
+
+  // 2. Render Target Nodes
+  proposals.forEach((prop, idx) => {
+    const currentChosen = mappingOverrides[prop.target_field] !== undefined
+      ? mappingOverrides[prop.target_field]
+      : (prop.proposed_source_field || "");
+
+    const isReq = prop.required === true;
+    const isBlocked = isReq && !currentChosen;
+    const isDup = currentChosen && (duplicates.get(currentChosen) || []).length > 1;
+    const ev = evaluateMappingEvidence(prop, currentChosen);
+
+    const node = document.createElement("div");
+    node.className = `flow-node flow-target-node ${isBlocked ? "is-blocked" : ""}`;
+    node.dataset.field = prop.target_field;
+    node.dataset.index = idx;
+
+    const reqBadge = isReq
+      ? `<span class="badge badge-rose" style="font-size:9px;">REQUIRED</span>`
+      : `<span class="badge badge-muted" style="font-size:9px;">OPTIONAL</span>`;
+
+    let statePill = "";
+    if (isBlocked) {
+      statePill = `<span class="badge badge-rose" style="font-size:9px; animation: reconRosePulse 2s infinite ease-in-out;">MISSING REQ</span>`;
+    } else if (isDup) {
+      statePill = `<span class="badge badge-amber" style="font-size:9px;">DUPLICATE</span>`;
+    } else if (ev.badgeText === "AMBIGUOUS MATCH") {
+      statePill = `<span class="badge badge-amber" style="font-size:9px;">AMBIGUOUS</span>`;
+    } else if (ev.isTransform || prop.mapping_type === "transformation_required") {
+      statePill = `<span class="badge badge-amber" style="font-size:9px;">TRANSFORM</span>`;
+    } else if (mappingOverrides[prop.target_field]) {
+      statePill = `<span class="badge badge-indigo" style="font-size:9px;">APPROVED</span>`;
+    } else {
+      statePill = `<span class="badge badge-emerald" style="font-size:9px;">DIRECT</span>`;
+    }
+
+    node.innerHTML = `
+      <div class="flow-node-title-row">
+        <span class="flow-node-name">${escapeHtml(prop.target_field)}</span>
+        <div style="display:flex; align-items:center; gap:4px;">
+          ${reqBadge}
+          <span class="badge badge-type">${escapeHtml(prop.target_type)}</span>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+          <span class="font-mono text-muted" style="font-size:10px; font-weight:600;">SOURCE COLUMN:</span>
+          <span class="flow-node-state-pill">${statePill}</span>
+        </div>
+        <select class="form-select flow-target-select font-mono" data-target="${escapeHtml(prop.target_field)}" style="font-size:11px; height:30px; padding:3px 8px; width:100%; background-color:var(--recon-bg-root); border-color:var(--recon-border-default);">
+          <option value="">${isReq ? '-- [ MISSING REQUIRED ] --' : '-- [ Unmapped / Skip ] --'}</option>
+          ${sourceColumns.map(col => `<option value="${escapeHtml(col)}"${currentChosen === col ? ' selected' : ''}>${escapeHtml(col)}</option>`).join('')}
+        </select>
+      </div>
+      <span class="flow-anchor-dot"></span>
+    `;
+
+    const selectEl = node.querySelector(".flow-target-select");
+    if (selectEl) {
+      selectEl.addEventListener("click", e => e.stopPropagation());
+      selectEl.addEventListener("change", e => {
+        handleMappingChange(prop.target_field, e.target.value);
+      });
+    }
+
+    node.addEventListener("mouseenter", () => highlightFlowStream(prop.target_field, false));
+    node.addEventListener("mouseleave", () => queueFlowReset());
+    node.addEventListener("click", () => highlightFlowStream(prop.target_field, true));
+
+    tgtNodesContainer.appendChild(node);
+  });
+
+  // 3. Draw initial connections and Xcode gutter minimap
+  requestAnimationFrame(() => {
+    updateFlowConnections();
+    renderMinimapGutter(data);
+    if (proposals.length > 0) {
+      highlightFlowStream(proposals[0].target_field, false);
+    }
+  });
+}
+
+function updateFlowGraphState(data) {
+  if (!data || !data.proposals) return;
+  const proposals = data.proposals || [];
+  const sourceColumns = (data.source && data.source.columns) || [];
+  const duplicates = getDuplicateSourceAssignments();
+
+  const mappedSourceCols = new Set();
+  let directCount = 0;
+  let transformCount = 0;
+  let blockerCount = 0;
+
+  proposals.forEach(p => {
+    const chosen = mappingOverrides[p.target_field] !== undefined
+      ? mappingOverrides[p.target_field]
+      : (p.proposed_source_field || "");
+    if (chosen) {
+      mappedSourceCols.add(chosen);
+      const ev = evaluateMappingEvidence(p, chosen);
+      if (ev.isTransform || p.mapping_type === "transformation_required") transformCount++;
+      else directCount++;
+    } else if (p.required) {
+      blockerCount++;
+    }
+  });
+
+  const discardCount = Math.max(0, sourceColumns.length - mappedSourceCols.size);
+
+  const elDirect = document.getElementById("fl-cnt-direct");
+  const elTransform = document.getElementById("fl-cnt-transform");
+  const elBlocker = document.getElementById("fl-cnt-blocker");
+  const elDiscard = document.getElementById("fl-cnt-discard");
+
+  if (elDirect) elDirect.textContent = directCount;
+  if (elTransform) elTransform.textContent = transformCount;
+  if (elBlocker) elBlocker.textContent = blockerCount;
+  if (elDiscard) elDiscard.textContent = discardCount;
+
+  // Update Source Nodes discard/mapped classes
+  document.querySelectorAll(".flow-source-node").forEach(node => {
+    const col = node.dataset.col;
+    const isMapped = mappedSourceCols.has(col);
+    node.classList.toggle("is-discarded", !isMapped);
+    let dot = node.querySelector(".flow-anchor-dot");
+    let unmappedBadge = node.querySelector(".badge-muted");
+    if (isMapped && !dot) {
+      if (unmappedBadge) unmappedBadge.remove();
+      const newDot = document.createElement("span");
+      newDot.className = "flow-anchor-dot";
+      node.appendChild(newDot);
+    } else if (!isMapped && dot) {
+      dot.remove();
+      const badge = document.createElement("span");
+      badge.className = "badge badge-muted";
+      badge.style.cssText = "font-size:9px; margin-top:4px;";
+      badge.textContent = "Unmapped";
+      node.appendChild(badge);
+    }
+  });
+
+  // Update Target Nodes
+  proposals.forEach(prop => {
+    const tgtNode = document.querySelector(`.flow-target-node[data-field="${CSS.escape(prop.target_field)}"]`);
+    if (!tgtNode) return;
+
+    const chosen = mappingOverrides[prop.target_field] !== undefined
+      ? mappingOverrides[prop.target_field]
+      : (prop.proposed_source_field || "");
+
+    const isReq = prop.required === true;
+    const isBlocked = isReq && !chosen;
+    const isDup = chosen && (duplicates.get(chosen) || []).length > 1;
+    const ev = evaluateMappingEvidence(prop, chosen);
+
+    tgtNode.classList.toggle("is-blocked", isBlocked);
+
+    const selectEl = tgtNode.querySelector(".flow-target-select");
+    if (selectEl && selectEl.value !== chosen) {
+      selectEl.value = chosen;
+    }
+
+    const statePillContainer = tgtNode.querySelector(".flow-node-state-pill");
+    if (statePillContainer) {
+      let statePill = "";
+      if (isBlocked) {
+        statePill = `<span class="badge badge-rose" style="font-size:9px; animation: reconRosePulse 2s infinite ease-in-out;">MISSING REQ</span>`;
+      } else if (isDup) {
+        statePill = `<span class="badge badge-amber" style="font-size:9px;">DUPLICATE</span>`;
+      } else if (ev.badgeText === "AMBIGUOUS MATCH") {
+        statePill = `<span class="badge badge-amber" style="font-size:9px;">AMBIGUOUS</span>`;
+      } else if (ev.isTransform || prop.mapping_type === "transformation_required") {
+        statePill = `<span class="badge badge-amber" style="font-size:9px;">TRANSFORM</span>`;
+      } else if (mappingOverrides[prop.target_field]) {
+        statePill = `<span class="badge badge-indigo" style="font-size:9px;">APPROVED</span>`;
+      } else {
+        statePill = `<span class="badge badge-emerald" style="font-size:9px;">DIRECT</span>`;
+      }
+      statePillContainer.innerHTML = statePill;
+    }
+  });
+
+  renderMinimapGutter(data);
+}
+
+function renderMinimapGutter(data) {
+  const track = document.getElementById("minimap-track");
+  if (!track || !data || !data.proposals) return;
+
+  track.innerHTML = "";
+  const duplicates = getDuplicateSourceAssignments();
+
+  data.proposals.forEach((prop, idx) => {
+    const chosen = mappingOverrides[prop.target_field] !== undefined
+      ? mappingOverrides[prop.target_field]
+      : (prop.proposed_source_field || "");
+
+    const isReq = prop.required === true;
+    const isBlocked = isReq && !chosen;
+    const isDup = chosen && (duplicates.get(chosen) || []).length > 1;
+    const ev = evaluateMappingEvidence(prop, chosen);
+
+    let markerClass = "marker-direct";
+    let markerState = "1:1 Direct";
+
+    if (isBlocked) {
+      markerClass = "marker-blocker";
+      markerState = "Blocker: Required Unmapped";
+    } else if (mappingOverrides[prop.target_field]) {
+      markerClass = "marker-approved";
+      markerState = "Approved Human Override";
+    } else if (isDup) {
+      markerClass = "marker-transform";
+      markerState = "Duplicate Source Assignment";
+    } else if (ev.badgeText === "AMBIGUOUS MATCH") {
+      markerClass = "marker-transform";
+      markerState = "Ambiguous Match";
+    } else if (ev.isTransform || prop.mapping_type === "transformation_required") {
+      markerClass = "marker-transform";
+      markerState = "Transformation Required";
+    }
+
+    const marker = document.createElement("div");
+    marker.className = `minimap-marker ${markerClass}`;
+    marker.dataset.target = prop.target_field;
+    marker.dataset.idx = idx;
+    marker.title = `${prop.target_field} [${markerState}]`;
+
+    marker.addEventListener("click", () => {
+      highlightFlowStream(prop.target_field, true);
+      const tgtNode = document.querySelector(`.flow-target-node[data-field="${CSS.escape(prop.target_field)}"]`);
+      if (tgtNode) {
+        tgtNode.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+
+    marker.addEventListener("mouseenter", () => {
+      highlightFlowStream(prop.target_field, false);
+    });
+
+    marker.addEventListener("mouseleave", () => {
+      queueFlowReset();
+    });
+
+    track.appendChild(marker);
+  });
+}
+
+function updateFlowConnections() {
+  const flowContainer = document.getElementById("mapping-flow-view");
+  if (!flowContainer || flowContainer.classList.contains("hidden")) return;
+
+  const svgCanvas = document.getElementById("flow-svg-canvas");
+  const chipsLayer = document.getElementById("flow-chips-layer");
+  if (!svgCanvas || !chipsLayer) return;
+
+  svgCanvas.innerHTML = "";
+  chipsLayer.innerHTML = "";
+
+  if (!currentAssessment || !currentAssessment.proposals) return;
+
+  const svgRect = svgCanvas.getBoundingClientRect();
+  if (svgRect.width === 0 || svgRect.height === 0) return;
+
+  const duplicates = getDuplicateSourceAssignments();
+
+  currentAssessment.proposals.forEach(prop => {
+    const currentChosen = mappingOverrides[prop.target_field] !== undefined
+      ? mappingOverrides[prop.target_field]
+      : (prop.proposed_source_field || "");
+
+    if (!currentChosen) return;
+
+    // Find source node anchor
+    const srcNode = document.querySelector(`.flow-source-node[data-col="${CSS.escape(currentChosen)}"]`);
+    const tgtNode = document.querySelector(`.flow-target-node[data-field="${CSS.escape(prop.target_field)}"]`);
+
+    if (!srcNode || !tgtNode) return;
+
+    const srcDot = srcNode.querySelector(".flow-anchor-dot");
+    const tgtDot = tgtNode.querySelector(".flow-anchor-dot");
+    if (!srcDot || !tgtDot) return;
+
+    const sRect = srcDot.getBoundingClientRect();
+    const tRect = tgtDot.getBoundingClientRect();
+
+    const x1 = sRect.left + sRect.width / 2 - svgRect.left;
+    const y1 = sRect.top + sRect.height / 2 - svgRect.top;
+    const x2 = tRect.left + tRect.width / 2 - svgRect.left;
+    const y2 = tRect.top + tRect.height / 2 - svgRect.top;
+
+    const dx = Math.max(30, Math.abs(x2 - x1) * 0.48);
+
+    const isDup = (duplicates.get(currentChosen) || []).length > 1;
+    const ev = evaluateMappingEvidence(prop, currentChosen);
+    const isDirect = !isDup && !ev.isTransform && prop.mapping_type === "direct";
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    let strokeColor;
+    if (isDup) {
+      strokeColor = isDark ? "#FBBF24" : "#F59E0B";
+    } else if (mappingOverrides[prop.target_field]) {
+      strokeColor = isDark ? "#34D399" : "#059669";
+    } else if (isDirect) {
+      strokeColor = isDark ? "#38BDF8" : "#2563EB";
+    } else {
+      strokeColor = isDark ? "#FBBF24" : "#D97706";
+    }
+
+    // SVG Curved Path
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
+    path.setAttribute("class", "flow-line");
+    path.setAttribute("stroke", strokeColor);
+    path.setAttribute("stroke-width", isDup ? "2.6" : "2.2");
+    path.setAttribute("fill", "none");
+    path.dataset.target = prop.target_field;
+    path.dataset.source = currentChosen;
+
+    path.addEventListener("mouseenter", () => highlightFlowStream(prop.target_field, false));
+    path.addEventListener("mouseleave", () => queueFlowReset());
+    path.addEventListener("click", () => highlightFlowStream(prop.target_field, true));
+
+    svgCanvas.appendChild(path);
+
+    // Feature 2: Living data packet particle gliding along wire
+    const particle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    particle.setAttribute("r", "3.2");
+    particle.setAttribute("fill", strokeColor);
+    particle.setAttribute("class", "flow-packet-particle");
+    particle.dataset.target = prop.target_field;
+    particle.dataset.source = currentChosen;
+
+    const animMotion = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+    animMotion.setAttribute("path", `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
+    const hash = (prop.target_field || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const durSec = (2.6 + (hash % 5) * 0.35).toFixed(2);
+    animMotion.setAttribute("dur", `${durSec}s`);
+    animMotion.setAttribute("repeatCount", "indefinite");
+    animMotion.setAttribute("keyPoints", "0;1");
+    animMotion.setAttribute("keyTimes", "0;1");
+    animMotion.setAttribute("calcMode", "linear");
+
+    particle.appendChild(animMotion);
+    svgCanvas.appendChild(particle);
+
+    // Midpoint Transformer Chip
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+
+    const chip = document.createElement("div");
+    let chipClass = "flow-chip";
+    let chipLabel = "1:1 PASS";
+
+    if (isDup) {
+      chipClass += " chip-duplicate";
+      chipLabel = "REUSED SOURCE";
+    } else if (ev.badgeText === "AMBIGUOUS MATCH") {
+      chipClass += " chip-ambiguous";
+      chipLabel = "AMBIGUOUS";
+    } else if (ev.isTransform || prop.mapping_type === "transformation_required") {
+      chipClass += " chip-transform";
+      const tgtType = prop.target_type;
+      if (tgtType === "datetime" || (prop.evidence && prop.evidence.some(e => e.includes("ISO") || e.includes("date")))) {
+        chipLabel = "ISO8601";
+      } else if (tgtType === "float" || tgtType === "integer" || (prop.evidence && prop.evidence.some(e => e.includes("cast") || e.includes("float")))) {
+        chipLabel = "STRIP & CAST";
+      } else {
+        chipLabel = "TRANSFORM";
+      }
+    } else {
+      chipClass += " chip-direct";
+      chipLabel = "1:1 PASS";
+    }
+
+    chip.className = chipClass;
+    chip.style.left = `${midX}px`;
+    chip.style.top = `${midY}px`;
+    chip.dataset.target = prop.target_field;
+    chip.textContent = chipLabel;
+
+    chip.addEventListener("mouseenter", () => highlightFlowStream(prop.target_field, false));
+    chip.addEventListener("mouseleave", () => queueFlowReset());
+    chip.addEventListener("click", () => highlightFlowStream(prop.target_field, true));
+
+    chipsLayer.appendChild(chip);
+  });
+}
+
+function highlightFlowStream(targetField, selectInDrawer = false) {
+  if (highlightResetTimer) {
+    clearTimeout(highlightResetTimer);
+    highlightResetTimer = null;
+  }
+
+  if (selectInDrawer) {
+    currentSelectedFlowField = targetField;
+  } else if (!currentSelectedFlowField) {
+    currentSelectedFlowField = targetField;
+  }
+
+  if (currentHighlightedField === targetField && !selectInDrawer) {
+    return;
+  }
+  currentHighlightedField = targetField;
+  if (!currentAssessment || !currentAssessment.proposals) return;
+
+  const prop = currentAssessment.proposals.find(p => p.target_field === targetField);
+  if (!prop) return;
+
+  const currentChosen = mappingOverrides[prop.target_field] !== undefined
+    ? mappingOverrides[prop.target_field]
+    : (prop.proposed_source_field || "");
+
+  // Highlight Target Nodes
+  document.querySelectorAll(".flow-target-node").forEach(n => {
+    n.classList.toggle("active", n.dataset.field === targetField);
+  });
+
+  // Highlight Source Nodes
+  document.querySelectorAll(".flow-source-node").forEach(n => {
+    n.classList.toggle("active", n.dataset.col === currentChosen);
+  });
+
+  // Highlight Lines
+  document.querySelectorAll(".flow-line").forEach(l => {
+    const isMatch = l.dataset.target === targetField;
+    l.classList.toggle("active", isMatch);
+    l.style.opacity = isMatch ? "1" : "0.15";
+  });
+
+  // Highlight Chips
+  document.querySelectorAll(".flow-chip").forEach(c => {
+    const isMatch = c.dataset.target === targetField;
+    c.classList.toggle("active", isMatch);
+    c.style.opacity = isMatch ? "1" : "0.2";
+  });
+
+  // Highlight Living Particles
+  document.querySelectorAll(".flow-packet-particle").forEach(p => {
+    const isMatch = p.dataset.target === targetField;
+    p.classList.toggle("active", isMatch);
+    p.style.opacity = isMatch ? "1" : "0.15";
+  });
+
+  // Live Conduit Bubble showing real raw sample data transforming to target
+  let conduitBubble = document.getElementById("flow-conduit-bubble");
+  if (!conduitBubble) {
+    conduitBubble = document.createElement("div");
+    conduitBubble.id = "flow-conduit-bubble";
+    conduitBubble.className = "flow-conduit-bubble";
+    const chipsLayer = document.getElementById("flow-chips-layer");
+    if (chipsLayer) chipsLayer.appendChild(conduitBubble);
+  }
+  const matchingChip = document.querySelector(`.flow-chip[data-target="${CSS.escape(targetField)}"]`);
+  if (matchingChip && conduitBubble) {
+    let rawVal = "";
+    if (currentAssessment && currentAssessment.source) {
+      if (currentAssessment.source.columns_profile && currentAssessment.source.columns_profile[currentChosen]) {
+        const samples = currentAssessment.source.columns_profile[currentChosen].sample_values;
+        if (samples && samples.length > 0) {
+          rawVal = String(samples[0]);
+        }
+      }
+      if (!rawVal && currentAssessment.source.sample_rows && currentAssessment.source.sample_rows.length > 0) {
+        rawVal = String(currentAssessment.source.sample_rows[0][currentChosen] ?? "");
+      }
+    }
+    const sampleDisplay = rawVal !== "" ? (rawVal.length > 20 ? `"${rawVal.slice(0, 18)}..."` : `"${rawVal}"`) : "null";
+    conduitBubble.style.left = matchingChip.style.left;
+    conduitBubble.style.top = matchingChip.style.top;
+    conduitBubble.innerHTML = `<span style="color:var(--recon-primary-base);font-weight:600;">Sample:</span> ${escapeHtml(sampleDisplay)} &rarr; <span style="color:#30D158;font-weight:600;">${escapeHtml(targetField)}</span>`;
+    conduitBubble.classList.remove("hidden");
+  } else if (conduitBubble) {
+    conduitBubble.classList.add("hidden");
+  }
+
+  // Update Meter Panel
+  const elConn = document.getElementById("flow-meter-connection");
+  const elBadge = document.getElementById("flow-meter-type-badge");
+  const elScore = document.getElementById("flow-meter-overall-score");
+
+  const nameVal = document.getElementById("fbar-name-val");
+  const nameFill = document.getElementById("fbar-name-fill");
+  const typeVal = document.getElementById("fbar-type-val");
+  const typeFill = document.getElementById("fbar-type-fill");
+  const patVal = document.getElementById("fbar-pattern-val");
+  const patFill = document.getElementById("fbar-pattern-fill");
+  const elEvidence = document.getElementById("flow-meter-evidence");
+
+  if (elConn) {
+    elConn.textContent = currentChosen
+      ? `${currentChosen} → ${targetField}`
+      : `[UNMAPPED] → ${targetField}`;
+  }
+
+  // Derive Scores Strictly from Engine Evidence
+  const ev = evaluateMappingEvidence(prop, currentChosen);
+
+  if (elBadge) {
+    elBadge.textContent = ev.badgeText;
+    elBadge.className = `badge ${ev.badgeClass} font-mono`;
+  }
+  if (elScore) elScore.textContent = `Confidence: ${ev.overallText}`;
+
+  if (nameVal && nameFill) {
+    nameVal.textContent = ev.nameLabel;
+    nameFill.style.width = `${ev.nameScore}%`;
+  }
+  if (typeVal && typeFill) {
+    typeVal.textContent = ev.typeLabel;
+    typeFill.style.width = `${ev.typeScore}%`;
+  }
+  if (patVal && patFill) {
+    patVal.textContent = ev.patternLabel;
+    patFill.style.width = `${ev.patternScore}%`;
+  }
+
+  if (elEvidence) {
+    if (ev.evidenceSummary && ev.evidenceSummary.length > 0) {
+      elEvidence.innerHTML = `<strong>Engine Evidence:</strong> ${ev.evidenceSummary.map(e => escapeHtml(e)).join(" &bull; ")}`;
+      elEvidence.classList.remove("hidden");
+    } else {
+      elEvidence.innerHTML = "";
+      elEvidence.classList.add("hidden");
+    }
+  }
+
+  // Populate Trace Inspector Source Selector
+  const overrideWrap = document.getElementById("flow-meter-override-wrap");
+  const sourceSelect = document.getElementById("flow-meter-source-select");
+  if (overrideWrap && sourceSelect && currentAssessment) {
+    overrideWrap.classList.remove("hidden");
+    const sourceCols = currentAssessment.source.columns || [];
+    sourceSelect.innerHTML = `
+      <option value="">${prop.required ? '-- [ MISSING REQUIRED ] --' : '-- [ Unmapped / Skip ] --'}</option>
+      ${sourceCols.map(c => `<option value="${escapeHtml(c)}"${currentChosen === c ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+    `;
+
+    sourceSelect.onchange = (e) => {
+      handleMappingChange(targetField, e.target.value);
+    };
+  }
+
+  if (selectInDrawer) {
+    openDrawerForMapping(prop, true);
+  }
+}
+
+function highlightFlowStreamBySource(sourceCol) {
+  if (!currentAssessment || !currentAssessment.proposals) return;
+  const prop = currentAssessment.proposals.find(p => {
+    const cur = mappingOverrides[p.target_field] !== undefined ? mappingOverrides[p.target_field] : p.proposed_source_field;
+    return cur === sourceCol;
+  });
+  if (prop) {
+    highlightFlowStream(prop.target_field, false);
+  } else {
+    document.querySelectorAll(".flow-source-node").forEach(n => {
+      n.classList.toggle("active", n.dataset.col === sourceCol);
+    });
+    document.querySelectorAll(".flow-target-node").forEach(n => n.classList.remove("active"));
+    document.querySelectorAll(".flow-line").forEach(l => l.style.opacity = "0.15");
+    document.querySelectorAll(".flow-chip").forEach(c => c.style.opacity = "0.2");
+  }
+}
+
+function resetFlowHighlights() {
+  if (highlightResetTimer) {
+    clearTimeout(highlightResetTimer);
+    highlightResetTimer = null;
+  }
+  if (currentSelectedFlowField) {
+    highlightFlowStream(currentSelectedFlowField, false);
+  } else if (currentHighlightedField) {
+    highlightFlowStream(currentHighlightedField, false);
+  } else {
+    document.querySelectorAll(".flow-line").forEach(l => {
+      l.classList.remove("active");
+      l.style.opacity = "1";
+    });
+    document.querySelectorAll(".flow-chip").forEach(c => {
+      c.classList.remove("active");
+      c.style.opacity = "1";
+    });
+    document.querySelectorAll(".flow-packet-particle").forEach(p => {
+      p.classList.remove("active");
+      p.style.opacity = "0.85";
+    });
+    document.querySelectorAll(".flow-node").forEach(n => n.classList.remove("active"));
+    const conduitBubble = document.getElementById("flow-conduit-bubble");
+    if (conduitBubble) conduitBubble.classList.add("hidden");
+  }
+}
+
+// =============================================================================
+// Screen D: Risk Radar & Approval Gate
+// =============================================================================
+
+function renderRiskRadar(data) {
+  const blockersContainer = document.getElementById("radar-blockers-container");
+  const warningsContainer = document.getElementById("radar-warnings-container");
+  blockersContainer.innerHTML = "";
+  warningsContainer.innerHTML = "";
+
+  const proposals = data.proposals || [];
+  let unmappedRequiredCount = 0;
+
+  // Check unmapped required fields based on current overrides
+  proposals.forEach(p => {
+    const isReq = p.required === true;
+    const chosen = mappingOverrides[p.target_field] !== undefined
+      ? mappingOverrides[p.target_field]
+      : (p.proposed_source_field || "");
+    if (isReq && !chosen) {
+      unmappedRequiredCount++;
+      const item = document.createElement("div");
+      item.className = "risk-card-item blocker";
+      item.innerHTML = `
+        <div class="risk-card-header">
+          <span class="font-mono text-rose" style="font-weight:600;">[ERR_REQ_FIELD_MISSING] Field '${escapeHtml(p.target_field)}' is required but unmapped</span>
+          <span class="badge badge-rose">HARD BLOCKER</span>
+        </div>
+        <div class="text-secondary" style="font-size:12px; margin-top:4px;">
+          The target contract specifies '${escapeHtml(p.target_field)}' as a required field with no valid source mapping.
+        </div>
+        <div class="font-mono" style="font-size:11px; margin-top:6px; color:var(--recon-text-primary);">
+          → Suggested Remediation: Open Step 03 (MAP) and map '${escapeHtml(p.target_field)}' to a valid source column.
+        </div>
+      `;
+      blockersContainer.appendChild(item);
+    }
+  });
+
+  // Render risks from backend
+  const backendRisks = data.risks || [];
+  backendRisks.forEach(r => {
+    const isCritical = r.severity.toLowerCase() === "critical";
+    const item = document.createElement("div");
+    item.className = `risk-card-item ${isCritical ? "blocker" : "warning"}`;
+    item.innerHTML = `
+      <div class="risk-card-header">
+        <span class="font-mono" style="font-weight:600;">[${escapeHtml(r.rule_id)}] ${escapeHtml(r.rule_name)}</span>
+        <span class="badge ${isCritical ? "badge-rose" : "badge-amber"}">${escapeHtml(r.severity)}</span>
+      </div>
+      <div class="text-secondary" style="font-size:12px; margin-top:4px;">${escapeHtml(r.explanation)}</div>
+      <div class="font-mono text-muted" style="font-size:11px; margin-top:4px;">Evidence: ${escapeHtml(r.evidence)}</div>
+      <div class="font-mono" style="font-size:11px; margin-top:6px; color:var(--recon-text-primary);">
+        → Action: ${escapeHtml(r.suggested_action)}
+      </div>
+    `;
+
+    if (isCritical) {
+      blockersContainer.appendChild(item);
+    } else {
+      warningsContainer.appendChild(item);
+    }
+  });
+
+  // Check duplicate source assignments
+  const duplicates = getDuplicateSourceAssignments();
+  duplicates.forEach((targets, srcCol) => {
+    if (targets.length > 1) {
+      const item = document.createElement("div");
+      item.className = "risk-card-item warning";
+      item.innerHTML = `
+        <div class="risk-card-header">
+          <span class="font-mono text-amber" style="font-weight:600;">[WARN_DUPLICATE_SOURCE] Source '${escapeHtml(srcCol)}' is mapped to multiple targets</span>
+          <span class="badge badge-amber">AMBIGUOUS / DUPLICATE</span>
+        </div>
+        <div class="text-secondary" style="font-size:12px; margin-top:4px;">
+          Source column '<strong>${escapeHtml(srcCol)}</strong>' is assigned to ${targets.length} target fields: <code>${escapeHtml(targets.join(", "))}</code>.
+        </div>
+        <div class="font-mono" style="font-size:11px; margin-top:6px; color:var(--recon-text-primary);">
+          → Verification Note: Confirm whether multiple target fields should ingest this identical source data stream.
+        </div>
+      `;
+      warningsContainer.appendChild(item);
+    }
+  });
+
+  if (blockersContainer.children.length === 0) {
+    blockersContainer.innerHTML = `<div class="font-mono text-emerald" style="padding:10px 0;">✓ Zero hard blockers detected. Mapping plan is complete.</div>`;
+  }
+  if (warningsContainer.children.length === 0) {
+    warningsContainer.innerHTML = `<div class="font-mono text-muted" style="padding:10px 0;">No quality or contract warnings detected.</div>`;
+  }
+
+  updateApprovalGateState();
+}
+
+function updateApprovalGateState() {
+  if (!currentAssessment) return;
+  const proposals = currentAssessment.proposals || [];
+  let unmappedRequired = 0;
+
+  proposals.forEach(p => {
+    const isReq = p.required === true;
+    const chosen = mappingOverrides[p.target_field] !== undefined
+      ? mappingOverrides[p.target_field]
+      : (p.proposed_source_field || "");
+    if (isReq && !chosen) {
+      unmappedRequired++;
+    }
+  });
+
+  const banner = document.getElementById("radar-status-banner");
+  const heading = document.getElementById("radar-status-heading");
+  const sub = document.getElementById("radar-status-sub");
+  const badge = document.getElementById("radar-status-badge");
+  const btnApprove = document.getElementById("btn-approve");
+  const dot = document.getElementById("step-audit-dot");
+  const ackChecked = document.getElementById("ack-checkbox").checked;
+
+  if (unmappedRequired > 0) {
+    banner.className = "radar-status-card blocked";
+    heading.textContent = `BLOCKED — ${unmappedRequired} REQUIRED FIELD${unmappedRequired > 1 ? "S" : ""} UNRESOLVED`;
+    sub.textContent = "Adapter synthesis is locked until all required target fields have explicit source mappings.";
+    badge.className = "badge badge-rose";
+    badge.textContent = "BLOCKED";
+
+    btnApprove.disabled = true;
+    btnApprove.className = "btn btn-danger";
+    btnApprove.textContent = `CANNOT APPROVE (Resolve ${unmappedRequired} Hard Blocker${unmappedRequired > 1 ? "s" : ""})`;
+
+    dot.classList.remove("hidden");
+    dot.className = "recon-step-dot blocked";
+  } else {
+    banner.className = "radar-status-card ready";
+    heading.textContent = "READY FOR ADAPTER GENERATION";
+    sub.textContent = "All required target fields are mapped. Human sign-off required to compile adapter.";
+    badge.className = "badge badge-emerald";
+    badge.textContent = "VERIFIED";
+
+    dot.classList.add("hidden");
+
+    if (ackChecked) {
+      btnApprove.disabled = false;
+      btnApprove.className = "btn btn-emerald";
+      btnApprove.textContent = "COMMIT MAPPING PLAN & GENERATE ADAPTER →";
+    } else {
+      btnApprove.disabled = true;
+      btnApprove.className = "btn btn-emerald";
+      btnApprove.textContent = "Acknowledge Risks Above to Enable Sign-Off";
+    }
+  }
+
+  updateDynamicIsland();
+}
+
+// =============================================================================
+// Approval & Validation Execution (04 Audit -> 05 Adapter, 06 Validate, 07 Dossier)
+// =============================================================================
+
+async function handleApproveAndGenerate() {
+  hideGlobalError();
+  const btn = document.getElementById("btn-approve");
+  if (!currentSessionId) {
+    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before approving.", btn);
+    return;
+  }
+
+  const reviewer = document.getElementById("reviewer-name-input").value.trim() || "lead_engineer";
+
+  // Harvest overrides
+  const proposals = currentAssessment.proposals || [];
+  const overrides = {};
+  for (const p of proposals) {
+    const chosen = mappingOverrides[p.target_field] !== undefined
+      ? mappingOverrides[p.target_field]
+      : (p.proposed_source_field || "");
+    if (p.required && !chosen) {
+      showGlobalError("BLOCKER DETECTED", `Target field '${p.target_field}' is required but unmapped.`, btn);
+      return;
+    }
+    if (chosen) {
+      overrides[p.target_field] = chosen;
+    }
+  }
+
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Synthesizing AST Adapter & Validating...";
+
+  try {
+    const res = await fetch("/api/approve-and-generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: currentSessionId,
+        reviewer: reviewer,
+        overrides: overrides,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      if (res.status === 404) {
+        showSessionLostModal();
+        return;
+      }
+      showGlobalError("ADAPTER COMPILATION FAILED", data.detail || "Unable to compile and validate adapter.", btn);
+      btn.disabled = false;
+      btn.textContent = origText;
+      return;
+    }
+
+    currentResults = data;
+
+    // Render downstream screens
+    renderAdapterWorkbench(data);
+    renderValidationLab(data);
+    renderReadinessDossier(data);
+
+    // Audio success feedback
+    SoundEngine.playSuccess();
+
+    // Navigate to Step 05 Adapter
+    navigateToStep(5);
+  } catch (err) {
+    showGlobalError("NETWORK ERROR", err.message, btn);
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+// =============================================================================
+// Screen E: Adapter Code Workbench
+// =============================================================================
+
+function renderAdapterWorkbench(data) {
+  const adapter = data.adapter;
+  document.getElementById("adapter-artifact-title").textContent =
+    `${adapter.adapter_name}.py | Contract: ${adapter.contract_name} (v${adapter.contract_version}) | Python 3.11`;
+
+  const code = adapter.python_code || "";
+  const lines = code.split("\n");
+
+  // Line numbers gutter
+  const gutter = document.getElementById("code-gutter");
+  gutter.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join("");
+
+  // Simple semantic syntax highlight
+  const codeDisplay = document.getElementById("adapter-code-display");
+  codeDisplay.innerHTML = lines.map(line => highlightPythonLine(line)).join("\n");
+
+  // Download link
+  const dlBtn = document.getElementById("btn-download-adapter-py");
+  dlBtn.href = `/api/download/adapter/${data.session_id}`;
+}
+
+function highlightPythonLine(line) {
+  let safe = escapeHtml(line);
+  // Comments
+  if (safe.trim().startsWith("#")) {
+    return `<span class="syn-com">${safe}</span>`;
+  }
+  // Keywords
+  safe = safe.replace(/\b(def|return|if|else|elif|import|from|class|try|except|for|in|is|not|and|or|None|True|False)\b/g, '<span class="syn-kw">$1</span>');
+  // Strings
+  safe = safe.replace(/(&quot;.*?&quot;|&#039;.*?&#039;)/g, '<span class="syn-str">$1</span>');
+  return safe;
+}
+
+function handleCopyCode() {
+  if (!currentResults || !currentResults.adapter) return;
+  const code = currentResults.adapter.python_code;
+  const btn = document.getElementById("btn-copy-code");
+  const origHtml = btn.innerHTML;
+
+  function showCopied() {
+    btn.textContent = "Copied to Clipboard";
+    setTimeout(() => { btn.innerHTML = origHtml; }, 1800);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(showCopied).catch(() => {
+      fallbackCopy(code, showCopied);
+    });
+  } else {
+    fallbackCopy(code, showCopied);
+  }
+}
+
+function fallbackCopy(text, onSuccess) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    if (onSuccess) onSuccess();
+  } catch (e) {
+    console.error("Clipboard copy failed:", e);
+  }
+}
+
+// =============================================================================
+// Screen F: Validation Lab & Swiss Precision Batch Matrix
+// =============================================================================
+
+function renderRecordMatrix(data) {
+  const grid = document.getElementById("record-cells-grid");
+  const countEl = document.getElementById("matrix-record-count");
+  const callout = document.getElementById("record-cell-inspector");
+  if (!grid) return;
+
+  const val = (data && data.validation) ? data.validation : null;
+  const total = val ? (val.total_input_records || 0) : 0;
+  const quarantined = val ? (val.quarantined_records_count || 0) : 0;
+  const valid = val ? (val.valid_records_count || 0) : 0;
+
+  if (countEl) countEl.textContent = total;
+  grid.innerHTML = "";
+
+  if (!val || total === 0) {
+    grid.innerHTML = `<span class="text-muted" style="font-size: 11px; padding: 4px;">Awaiting validation batch execution...</span>`;
+    return;
+  }
+
+  const sampleQuar = val.sample_quarantined_records || [];
+  const quarIndices = new Set(sampleQuar.map(r => r.row_index || r.record_index || 0));
+
+  // Render record cells (up to 120 for high density performance)
+  const displayLimit = Math.min(total, 120);
+
+  for (let i = 1; i <= displayLimit; i++) {
+    const isQuar = quarIndices.has(i) || (quarantined > 0 && i <= quarantined);
+    const cell = document.createElement("div");
+    cell.className = `record-cell ${isQuar ? "quarantined" : "valid"}`;
+    cell.textContent = i;
+    cell.title = `Row #${i}: ${isQuar ? "Quarantined" : "Valid"}`;
+
+    cell.addEventListener("mouseenter", () => {
+      if (callout) {
+        callout.classList.remove("hidden");
+        callout.innerHTML = `
+          <div>
+            <span style="font-weight: 700; color: ${isQuar ? "var(--recon-rose-text)" : "var(--recon-emerald-text)"};">
+              ROW #${i} [${isQuar ? "QUARANTINED" : "CONFORMING"}]
+            </span>
+            <span class="text-muted" style="margin-left: 8px;">Target schema invariants evaluated</span>
+          </div>
+          <span class="badge ${isQuar ? "badge-rose" : "badge-emerald"}">${isQuar ? "Violation Detected" : "Schema Cleared"}</span>
+        `;
+      }
+    });
+
+    cell.addEventListener("click", () => {
+      if (isQuar) {
+        const qSection = document.getElementById("quarantine-tbody");
+        if (qSection) {
+          qSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    });
+
+    grid.appendChild(cell);
+  }
+
+  if (total > displayLimit) {
+    const more = document.createElement("span");
+    more.className = "text-muted";
+    more.style.fontSize = "10px";
+    more.style.alignSelf = "center";
+    more.style.padding = "0 6px";
+    more.textContent = `+${total - displayLimit} more`;
+    grid.appendChild(more);
+  }
+}
+
+function renderValidationLab(data) {
+  const val = data.validation;
+  const total = val.total_input_records;
+  const valid = val.valid_records_count;
+  const quarantined = val.quarantined_records_count;
+  const rate = val.contract_pass_rate;
+
+  const validPct = total > 0 ? ((valid / total) * 100).toFixed(1) : "0";
+  const quarnPct = total > 0 ? ((quarantined / total) * 100).toFixed(1) : "0";
+
+  // Four Core Accounting Cards
+  document.getElementById("metric-total-records").textContent = Number(total).toLocaleString();
+  document.getElementById("metric-valid-records").textContent = Number(valid).toLocaleString();
+  document.getElementById("metric-valid-pct").textContent = `${validPct}%`;
+  document.getElementById("metric-quarantined-records").textContent = Number(quarantined).toLocaleString();
+  document.getElementById("metric-quarantined-pct").textContent = `${quarnPct}%`;
+  document.getElementById("metric-pass-rate").textContent = `${rate}%`;
+
+  // Conformance Partition Meter
+  const segValid = document.getElementById("meter-segment-valid");
+  const segQuar = document.getElementById("meter-segment-quar");
+  if (segValid) segValid.style.width = `${validPct}%`;
+  if (segQuar) segQuar.style.width = `${quarnPct}%`;
+
+  const statusBadge = document.getElementById("conformance-status-badge");
+  if (statusBadge) {
+    if (quarantined === 0) {
+      statusBadge.className = "badge badge-emerald";
+      statusBadge.textContent = "100% Conforming";
+    } else {
+      statusBadge.className = "badge badge-amber";
+      statusBadge.textContent = `${validPct}% Pass · ${quarantined} Quarantined`;
+    }
+  }
+
+  const identityTag = document.getElementById("conformance-identity-tag");
+  if (identityTag) {
+    identityTag.textContent = `N_total (${total}) = N_valid (${valid}) + N_quarantine (${quarantined})`;
+  }
+
+  // Render Interactive Record Cell Matrix
+  renderRecordMatrix(data);
+
+  // Ledger Accounting Identity Verification: N_total = N_valid + N_quarantine
+  const isBalanced = total === (valid + quarantined);
+  const ledgerBar = document.getElementById("ledger-balance-bar");
+  const ledgerEq = document.getElementById("ledger-balance-equation");
+
+  if (isBalanced) {
+    if (ledgerBar) ledgerBar.className = "ledger-balance-bar balanced";
+    if (ledgerBar && ledgerBar.firstElementChild) ledgerBar.firstElementChild.textContent = "[✓ LEDGER BALANCED]";
+    if (ledgerEq) ledgerEq.textContent = `N_total (${total}) = N_valid (${valid}) + N_quarantine (${quarantined}). Zero data loss verified.`;
+  } else {
+    if (ledgerBar) ledgerBar.className = "ledger-balance-bar unbalanced";
+    if (ledgerBar && ledgerBar.firstElementChild) ledgerBar.firstElementChild.textContent = "[✕ LEDGER UNBALANCED]";
+    if (ledgerEq) ledgerEq.textContent = `CRITICAL INTEGRITY FAILURE: N_total (${total}) ≠ N_valid (${valid}) + N_quarantine (${quarantined}).`;
+  }
+
+  // Test Cases
+  const testContainer = document.getElementById("test-cases-container");
+  testContainer.innerHTML = "";
+  const testBadge = document.getElementById("tests-pass-badge");
+
+  if (val.all_tests_passed) {
+    testBadge.className = "badge badge-emerald";
+    testBadge.textContent = "All Tests Passed";
+  } else {
+    testBadge.className = "badge badge-rose";
+    testBadge.textContent = "Test Failures Detected";
+  }
+
+  (val.test_case_results || []).forEach(tc => {
+    const item = document.createElement("div");
+    item.style.padding = "6px 0";
+    item.style.borderBottom = "1px solid var(--recon-border-subtle)";
+    item.style.display = "flex";
+    item.style.justifyContent = "space-between";
+    item.style.alignItems = "center";
+    item.innerHTML = `
+      <div>
+        <span class="font-mono" style="font-weight:600; color:var(--recon-text-primary);">${tc.passed ? "✓" : "✕"} ${escapeHtml(tc.test_name)}</span>
+        <span class="text-muted" style="font-size:11px; margin-left:8px;">Expected: ${escapeHtml(tc.expected_behavior)}</span>
+      </div>
+      <span class="badge ${tc.passed ? "badge-emerald" : "badge-rose"}">${tc.passed ? "PASS" : "FAIL"}</span>
+    `;
+    testContainer.appendChild(item);
+  });
+
+  // Quarantine Diagnostic Ledger
+  const qTbody = document.getElementById("quarantine-tbody");
+  const qBadge = document.getElementById("quarantine-count-badge");
+  qTbody.innerHTML = "";
+
+  if (quarantined > 0) {
+    qBadge.textContent = `${quarantined} Quarantined`;
+    qBadge.className = "badge badge-rose";
+
+    (val.sample_quarantined_records || []).forEach((qr, index) => {
+      const tr = document.createElement("tr");
+      tr.dataset.index = index;
+      tr.style.cursor = "pointer";
+
+      const reasons = qr.failure_reasons || qr.errors || ["Schema violation"];
+      tr.innerHTML = `
+        <td class="font-mono text-muted">Row #${qr.row_index || qr.record_index || index}</td>
+        <td class="font-mono text-rose" style="font-weight:600;">${escapeHtml(reasons[0])}</td>
+        <td class="text-secondary">${escapeHtml(reasons.join("; "))}</td>
+      `;
+
+      tr.addEventListener("click", () => {
+        selectQuarantineRow(index, qr);
       });
 
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      qTbody.appendChild(tr);
+    });
+  } else {
+    qBadge.textContent = "0 Quarantined";
+    qBadge.className = "badge badge-emerald";
+    qTbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:16px;">Zero records quarantined. 100% of input rows satisfied target contract schema.</td></tr>`;
+  }
 
-      const data = await res.json();
-      state.sessionId = data.session_id;
+  updateDynamicIsland();
+}
 
-      if (dom.sessionTag) dom.sessionTag.textContent = `#${data.session_id}`;
+function selectQuarantineRow(index, qr) {
+  selectedQuarantineIndex = index;
+  const rows = document.querySelectorAll("#quarantine-tbody tr");
+  rows.forEach((r, idx) => r.classList.toggle("is-selected", idx === index));
 
-      if (data.source) {
-        state.sourceDatasetName = data.source.dataset_id || 'source_data.csv';
-        state.totalRecords = data.source.row_count || 5000;
-        if (dom.streamSrcName) dom.streamSrcName.textContent = state.sourceDatasetName;
-        if (dom.portSourceLabel) dom.portSourceLabel.textContent = state.sourceDatasetName;
-        if (dom.portSrcSpeed) dom.portSrcSpeed.textContent = `${state.totalRecords} ROWS`;
-        if (dom.portSourceSub) dom.portSourceSub.textContent = `CSV · 1.2MB · ${data.source.columns ? data.source.columns.length : 14} COLS`;
+  openDrawerForQuarantine(qr);
+}
 
-        if (data.source.columns) {
-          state.sourceColumns = data.source.columns.map(c => ({
-            name: c.name,
-            type: c.inferred_type || 'str',
-            nullPct: c.null_ratio !== undefined ? c.null_ratio : 0,
-            uniq: c.unique_count !== undefined ? c.unique_count : 100,
-            samples: c.sample_values || []
-          }));
+// =============================================================================
+// Screen G: Readiness Dossier & Certified Artifacts
+// =============================================================================
+
+function renderReadinessDossier(data) {
+  const sessionId = data.session_id;
+  const state = data.readiness_state.toLowerCase();
+  const banner = document.getElementById("dossier-status-banner");
+  const heading = document.getElementById("dossier-state-heading");
+  const rationale = document.getElementById("dossier-rationale-text");
+  const badge = document.getElementById("dossier-state-badge");
+
+  const seal = document.getElementById("dossier-holographic-seal");
+
+  if (state === "pass") {
+    banner.className = "radar-status-card ready";
+    heading.textContent = `READINESS: PASS (${data.validation.contract_pass_rate}% Yield)`;
+    badge.className = "badge badge-emerald holographic-pill";
+    badge.textContent = "CERTIFIED READY";
+    if (seal) seal.classList.remove("hidden");
+    SoundEngine.playCelebration();
+    triggerConfettiCelebration();
+  } else if (state === "needs_review") {
+    banner.className = "radar-status-card warning";
+    heading.textContent = `READINESS: NEEDS REVIEW (${data.validation.contract_pass_rate}% Yield)`;
+    badge.className = "badge badge-amber";
+    badge.textContent = "REVIEW NEEDED";
+    if (seal) seal.classList.add("hidden");
+  } else {
+    banner.className = "radar-status-card blocked";
+    heading.textContent = `READINESS: BLOCKED (${data.validation.contract_pass_rate}% Yield)`;
+    badge.className = "badge badge-rose";
+    badge.textContent = "BLOCKED";
+    if (seal) seal.classList.add("hidden");
+  }
+
+  rationale.textContent = data.readiness_rationale;
+
+  // Artifact downloads
+  document.getElementById("art-adapter-name").textContent = `${data.adapter.adapter_name}.py`;
+  document.getElementById("art-dl-adapter").href = `/api/download/adapter/${sessionId}`;
+  document.getElementById("art-dl-report-md").href = `/api/download/report/${sessionId}?format=md`;
+  document.getElementById("art-dl-report-json").href = `/api/download/report/${sessionId}?format=json`;
+
+  document.getElementById("art-valid-count").textContent = `${data.validation.valid_records_count} records validated`;
+  document.getElementById("art-dl-valid").href = `/api/download/valid-records/${sessionId}`;
+
+  document.getElementById("art-quarantine-count").textContent = `${data.validation.quarantined_records_count} records quarantined`;
+  document.getElementById("art-dl-quarantine").href = `/api/download/quarantine-records/${sessionId}`;
+
+  const artDlSpec = document.getElementById("art-dl-mapping-spec");
+  if (artDlSpec) {
+    artDlSpec.href = `/api/download/mapping-spec/${sessionId}`;
+  }
+
+  updateDynamicIsland();
+}
+
+async function handleUploadMappingSpecInStudio(file) {
+  if (!currentSessionId) {
+    showGlobalError("NO ACTIVE SESSION", "Please initialize an inspection before loading a mapping specification.");
+    return;
+  }
+  hideGlobalError();
+  const formData = new FormData();
+  formData.append("session_id", currentSessionId);
+  formData.append("spec_file", file);
+
+  try {
+    const res = await fetch("/api/upload-mapping-spec", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showGlobalError("SPEC IMPORT FAILED", data.detail || "Unable to import mapping specification.");
+      return;
+    }
+
+    // Update active session state
+    currentAssessment.proposals = data.proposals_summary;
+    currentAssessment.unresolved_fields = data.unresolved_fields;
+    currentAssessment.unresolved_required_fields = data.unresolved_required_fields;
+    currentAssessment.has_unresolved_required = (data.unresolved_required_fields.length > 0);
+    mappingOverrides = {}; // Reset manual overrides in favor of spec decisions
+
+    // Show notification banner
+    const banner = document.getElementById("mapping-spec-banner");
+    const bannerText = document.getElementById("mapping-spec-banner-text");
+    if (banner && bannerText) {
+      banner.classList.remove("hidden");
+      const matchLabel = data.validation_result.contract_match ? "Exact Contract Match" : "Contract Changed (Re-validation Required)";
+      bannerText.textContent = `✓ Specification loaded: Reused ${data.validation_result.reused_count} mapping decisions (${matchLabel}). Mismatches: ${data.validation_result.mismatches.length}.`;
+    }
+
+    // Re-render mapping studio and risk radar
+    renderMappingStudio(currentAssessment);
+    renderRiskRadar(currentAssessment);
+  } catch (err) {
+    showGlobalError("NETWORK ERROR", err.message);
+  }
+}
+
+async function handlePurgeSession() {
+  document.getElementById("modal-reset-session").classList.add("hidden");
+  if (currentSessionId) {
+    try {
+      await fetch(`/api/session/${currentSessionId}`, { method: "DELETE" });
+    } catch (_) {
+      // In-memory cleanup fallback
+    }
+  }
+
+  // Reset local state
+  currentSessionId = null;
+  currentAssessment = null;
+  currentResults = null;
+  mappingOverrides = {};
+  stagedSourceFile = null;
+  stagedContractFile = null;
+
+  const headerPulse = document.getElementById("header-pulse");
+  if (headerPulse) headerPulse.classList.remove("active");
+  const sessionDisplay = document.getElementById("session-id-display");
+  if (sessionDisplay) sessionDisplay.textContent = "sess_empty";
+  const contractCapsule = document.getElementById("contract-capsule");
+  if (contractCapsule) contractCapsule.classList.add("hidden");
+
+  // Reset inputs
+  document.getElementById("source-file-input").value = "";
+  document.getElementById("sample-dataset-select").value = "";
+  document.getElementById("contract-file-input").value = "";
+  document.getElementById("sample-contract-select").value = "";
+  document.getElementById("contract-text-area").value = "";
+  document.getElementById("source-status-text").textContent = "No source file staged.";
+  document.getElementById("source-status-meta").textContent = "";
+  document.getElementById("contract-status-text").textContent = "No contract schema staged.";
+  document.getElementById("contract-status-meta").textContent = "";
+
+  updatePreflightStatus();
+  navigateToStep(1);
+}
+
+function showSessionLostModal() {
+  const modal = document.getElementById("modal-session-lost");
+  if (modal) {
+    modal.classList.remove("hidden");
+    const dialog = modal.querySelector(".recon-modal") || modal;
+    triggerHapticFeedback(dialog);
+  }
+}
+
+// =============================================================================
+// Contextual Inspector Drawer Rendering
+// =============================================================================
+
+function computeTransformedValue(raw, prop) {
+  if (raw === null || raw === undefined) {
+    return { clean: "null", op: "NULL PASS" };
+  }
+  const str = String(raw);
+  const t = prop.target_type;
+  let clean = str;
+  let op = "1:1 PASS";
+
+  if (t === "float") {
+    const stripped = str.replace(/[^0-9.-]/g, "");
+    const parsed = parseFloat(stripped);
+    clean = isNaN(parsed) ? str : String(parsed);
+    op = str !== clean ? "STRIP & FLOAT" : "1:1 FLOAT";
+  } else if (t === "integer") {
+    const stripped = str.replace(/[^0-9-]/g, "");
+    const parsed = parseInt(stripped, 10);
+    clean = isNaN(parsed) ? str : String(parsed);
+    op = str !== clean ? "STRIP & INT" : "1:1 INT";
+  } else if (t === "datetime") {
+    clean = str.replace(/\.\d+/, "").replace(/Z$/, "+00:00");
+    op = "ISO8601";
+  } else if (prop.allowed_values && prop.allowed_values.length > 0) {
+    clean = str.trim().toUpperCase();
+    op = "NORM ENUM";
+  } else if (t === "string") {
+    clean = str.trim();
+    op = str !== clean ? "TRIM" : "1:1 STR";
+  } else if (t === "boolean") {
+    clean = ["true", "1", "yes", "y"].includes(str.toLowerCase()) ? "true" : "false";
+    op = "CAST BOOL";
+  }
+  return { clean, op };
+}
+
+function evaluateTransformExpression(expr, val) {
+  if (val === null || val === undefined) return { result: "None", ok: true };
+  const strVal = String(val);
+  const cleanExpr = (expr || "").trim();
+  if (!cleanExpr) return { result: strVal, ok: true };
+
+  try {
+    let jsExpr = cleanExpr
+      .replace(/\bval\.strip\(\)/g, "strVal.trim()")
+      .replace(/\bval\.upper\(\)/g, "strVal.toUpperCase()")
+      .replace(/\bval\.lower\(\)/g, "strVal.toLowerCase()")
+      .replace(/\bval\.title\(\)/g, "strVal.replace(/\\b\\w/g, c => c.toUpperCase())")
+      .replace(/\bfloat\(val\)/g, "parseFloat(strVal)")
+      .replace(/\bint\(val\)/g, "parseInt(strVal, 10)")
+      .replace(/\bround\(([^,]+),\s*(\d+)\)/g, "Number(($1).toFixed($2))")
+      .replace(/\bval\b/g, "strVal");
+
+    const fn = new Function("strVal", `return ${jsExpr};`);
+    const res = fn(strVal);
+    return { result: String(res), ok: true };
+  } catch (err) {
+    return { result: `Error: ${err.message}`, ok: false };
+  }
+}
+
+function renderPlaygroundPreview(expr, sampleVals) {
+  const previewBox = document.getElementById("drawer-playground-preview");
+  if (!previewBox) return;
+
+  if (!sampleVals || sampleVals.length === 0) {
+    previewBox.innerHTML = `<div style="padding: 8px 10px; font-size: 11px; color: var(--recon-text-muted);">No sample values available for testing.</div>`;
+    return;
+  }
+
+  let html = `
+    <table style="width: 100%; border-collapse: collapse; font-size: 11px; font-family: var(--font-mono);">
+      <thead>
+        <tr style="background: var(--recon-bg-subtle); color: var(--recon-text-muted); border-bottom: 1px solid var(--recon-border-subtle);">
+          <th style="padding: 4px 8px; text-align: left; font-size: 10px;">Raw Input</th>
+          <th style="padding: 4px 8px; text-align: center; width: 18px; font-size: 10px;">→</th>
+          <th style="padding: 4px 8px; text-align: left; font-size: 10px;">Computed Output</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  sampleVals.slice(0, 4).forEach(v => {
+    const raw = String(v);
+    const { result, ok } = evaluateTransformExpression(expr, raw);
+    html += `
+      <tr style="border-bottom: 1px solid var(--recon-border-subtle);">
+        <td style="padding: 4px 8px; color: var(--recon-text-secondary); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(raw)}">${escapeHtml(raw)}</td>
+        <td style="padding: 4px 8px; text-align: center; color: var(--recon-text-muted);">→</td>
+        <td style="padding: 4px 8px; font-weight: 600; color: ${ok ? '#30D158' : '#FF453A'}; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(result)}">${escapeHtml(result)}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  previewBox.innerHTML = html;
+}
+
+function initTransformPlayground() {
+  const input = document.getElementById("drawer-transform-expr-input");
+  if (input) {
+    input.addEventListener("input", () => {
+      renderPlaygroundPreview(input.value, currentPlaygroundSamples);
+    });
+  }
+
+  const chips = document.querySelectorAll("#drawer-transform-chips button");
+  chips.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const expr = btn.dataset.expr;
+      if (input && expr) {
+        input.value = expr;
+        renderPlaygroundPreview(expr, currentPlaygroundSamples);
+        SoundEngine.playClick();
+      }
+    });
+  });
+}
+
+function openDrawerForMapping(prop, openDrawer = true) {
+  if (openDrawer) {
+    openInspectorDrawer(true);
+  }
+
+  document.getElementById("drawer-target-field").textContent = prop.target_field;
+  const badge = document.getElementById("drawer-field-badge");
+  badge.textContent = prop.required ? "REQUIRED" : "OPTIONAL";
+  badge.className = prop.required ? "badge badge-rose" : "badge badge-muted";
+
+  const chosenSource = mappingOverrides[prop.target_field] !== undefined
+    ? mappingOverrides[prop.target_field]
+    : (prop.proposed_source_field || "");
+
+  // Tab 1: Evidence (Structured Decision & Observed Evidence)
+  const evList = document.getElementById("drawer-evidence-list");
+
+  let decisionCardHtml = "";
+  if (!chosenSource && prop.required) {
+    decisionCardHtml = `
+      <div class="drawer-alert-card rose">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge badge-rose">CRITICAL BLOCKER</span>
+          <strong style="color:var(--recon-rose-text);">Missing Required Field</strong>
+        </div>
+        <div style="color:var(--recon-text-secondary); font-size:11px;">
+          Downstream integration requires <code>${escapeHtml(prop.target_field)}</code>. Select a source column in 03 MAP to resolve.
+        </div>
+      </div>
+    `;
+  } else if (!chosenSource && !prop.required) {
+    decisionCardHtml = `
+      <div class="drawer-alert-card muted">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge badge-muted">OPTIONAL UNMAPPED</span>
+          <span>Optional Field</span>
+        </div>
+        <div style="color:var(--recon-text-muted); font-size:11px;">
+          No source column mapped. This field will be omitted or passed as null.
+        </div>
+      </div>
+    `;
+  } else if (mappingOverrides[prop.target_field]) {
+    decisionCardHtml = `
+      <div class="drawer-alert-card emerald">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge badge-emerald">✓ APPROVED OVERRIDE</span>
+          <strong style="color:var(--recon-emerald-text);">Human Decision Confirmed</strong>
+        </div>
+        <div style="color:var(--recon-text-secondary); font-size:11px;">
+          Manually mapped to source column <code>${escapeHtml(chosenSource)}</code>.
+        </div>
+      </div>
+    `;
+  } else if (prop.mapping_type === "transformation_required") {
+    decisionCardHtml = `
+      <div class="drawer-alert-card amber">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge badge-amber">TRANSFORMATION REQUIRED</span>
+          <strong style="color:var(--recon-amber-text);">Type Cast / Normalization</strong>
+        </div>
+        <div style="color:var(--recon-text-secondary); font-size:11px;">
+          Aligned to <code>${escapeHtml(chosenSource)}</code> with runtime data transformation.
+        </div>
+      </div>
+    `;
+  } else {
+    decisionCardHtml = `
+      <div class="drawer-alert-card indigo">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge badge-indigo">PROPOSED MATCH</span>
+          <strong style="color:var(--recon-indigo-text);">Direct Alignment</strong>
+        </div>
+        <div style="color:var(--recon-text-secondary); font-size:11px;">
+          Heuristic engine proposed match with source column <code>${escapeHtml(chosenSource)}</code>.
+        </div>
+      </div>
+    `;
+  }
+
+  // Format evidence items cleanly
+  let evidenceItemsHtml = "";
+  if (prop.evidence && prop.evidence.length > 0) {
+    evidenceItemsHtml = prop.evidence.map(e => {
+      // Check if candidate list string: e.g. "No candidate column found among source headers: ['a', ...]"
+      const headerListMatch = e.match(/source headers:\s*(\[[^\]]+\])/);
+      if (headerListMatch) {
+        const prefix = e.replace(/source headers:\s*\[[^\]]+\]/, "Source headers scanned:");
+        let headersList = [];
+        try {
+          headersList = JSON.parse(headerListMatch[1].replace(/'/g, '"'));
+        } catch (_) {
+          headersList = headerListMatch[1].replace(/[\[\]']/g, "").split(",").map(s => s.trim());
+        }
+        const chips = headersList.map(h => `<span class="badge badge-muted font-mono" style="margin:2px 3px 2px 0;">${escapeHtml(h)}</span>`).join("");
+        return `
+          <div class="evidence-item-card">
+            <div style="font-weight:600; color:var(--recon-text-primary); margin-bottom:6px;">${escapeHtml(prefix)}</div>
+            <div style="display:flex; flex-wrap:wrap; gap:2px; max-height:140px; overflow-y:auto; padding:4px 0;">${chips}</div>
+          </div>
+        `;
+      }
+
+      if (e.includes("requires cast") || e.includes("Type conflict") || e.includes("enum")) {
+        return `
+          <div class="evidence-item-card warning">
+            <div class="text-amber" style="font-weight:600; display:flex; align-items:flex-start; gap:6px;">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; color:var(--recon-amber-base); flex-shrink:0; margin-top:2px;"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><circle cx="8" cy="12" r="0.75" fill="currentColor"/></svg> <span>${escapeHtml(e)}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="evidence-item-card">
+          <div style="color:var(--recon-text-secondary);">${escapeHtml(e)}</div>
+        </div>
+      `;
+    }).join("");
+  } else {
+    evidenceItemsHtml = `<div class="text-muted" style="font-size:11px;">No heuristic evidence attached.</div>`;
+  }
+
+  evList.innerHTML = `
+    ${decisionCardHtml}
+    <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--recon-text-muted); margin:14px 0 8px 0;">
+      Observed Engine Evidence
+    </div>
+    <div class="evidence-items-container">${evidenceItemsHtml}</div>
+  `;
+
+  document.getElementById("drawer-heuristic-rule").innerHTML = `
+    <span class="badge badge-muted font-mono" style="font-size:11px;">${escapeHtml(prop.mapping_type || "EXACT_OR_NORMALIZED_MATCH")}</span>
+  `;
+
+  // Tab 2: Samples (Before ⟷ After Morphing Diff Inspector)
+  const samplesList = document.getElementById("drawer-samples-list");
+  const wipeSource = document.getElementById("morph-wipe-source");
+  const wipeTarget = document.getElementById("morph-wipe-target");
+  const scrubSlider = document.getElementById("diff-scrub-input");
+  const scrubPct = document.getElementById("morph-scrub-pct");
+
+  if (scrubSlider && wipeTarget && scrubPct) {
+    scrubSlider.value = 50;
+    scrubPct.textContent = "50%";
+    wipeTarget.style.clipPath = "inset(0 0 0 50%)";
+    scrubSlider.oninput = (e) => {
+      const val = e.target.value;
+      scrubPct.textContent = `${val}%`;
+      requestAnimationFrame(() => {
+        wipeTarget.style.clipPath = `inset(0 0 0 ${val}%)`;
+      });
+    };
+  }
+
+  if (chosenSource && currentAssessment && currentAssessment.source) {
+    let sampleVals = [];
+    if (currentAssessment.source.columns_profile && currentAssessment.source.columns_profile[chosenSource]) {
+      sampleVals = currentAssessment.source.columns_profile[chosenSource].sample_values || [];
+    }
+    if (sampleVals.length === 0 && currentAssessment.source.sample_rows) {
+      sampleVals = currentAssessment.source.sample_rows.map(r => r[chosenSource]).filter(v => v !== undefined && v !== null);
+    }
+    currentPlaygroundSamples = sampleVals;
+
+    const firstRaw = sampleVals.length > 0 ? String(sampleVals[0]) : "null";
+    const { clean: firstClean } = computeTransformedValue(firstRaw, prop);
+
+    if (wipeSource) {
+      wipeSource.innerHTML = `<span><strong style="color:var(--recon-text-muted);">SOURCE:</strong> ${escapeHtml(firstRaw)}</span>`;
+    }
+    if (wipeTarget) {
+      wipeTarget.innerHTML = `<span><strong style="color:#30D158;">TARGET:</strong> ${escapeHtml(firstClean)}</span>`;
+    }
+
+    if (sampleVals.length > 0) {
+      samplesList.innerHTML = sampleVals.slice(0, 4).map(v => {
+        const rawStr = String(v);
+        const { clean, op } = computeTransformedValue(rawStr, prop);
+        return `
+          <div class="morph-sample-card">
+            <div class="morph-card-flow">
+              <div class="morph-cell">
+                <span class="morph-cell-label">Source (${escapeHtml(chosenSource)})</span>
+                <span class="morph-cell-value source" title="${escapeHtml(rawStr)}">${escapeHtml(rawStr)}</span>
+              </div>
+              <div class="morph-arrow">
+                <span style="font-size:11px; color:var(--recon-text-muted);">→</span>
+                <span class="morph-arrow-op">${escapeHtml(op)}</span>
+              </div>
+              <div class="morph-cell">
+                <span class="morph-cell-label">Target (${escapeHtml(prop.target_type)})</span>
+                <span class="morph-cell-value target" title="${escapeHtml(clean)}">${escapeHtml(clean)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    } else {
+      samplesList.innerHTML = `<span class="text-muted font-mono" style="font-size:11px;">No non-null sample rows observed.</span>`;
+    }
+
+    const colProf = currentAssessment.source.columns_profile ? currentAssessment.source.columns_profile[chosenSource] : null;
+    if (colProf) {
+      document.getElementById("drawer-cardinality-meta").innerHTML =
+        `Source: <code>${escapeHtml(chosenSource)}</code> | Type: <strong>${colProf.inferred_type}</strong> | Distinct: ${colProf.distinct_count} | Nulls: ${colProf.null_count} (${colProf.null_percentage}%)`;
+    } else {
+      document.getElementById("drawer-cardinality-meta").textContent = `Source: ${chosenSource}`;
+    }
+  } else {
+    if (wipeSource) wipeSource.innerHTML = `<span><strong style="color:var(--recon-text-muted);">SOURCE:</strong> [UNMAPPED]</span>`;
+    if (wipeTarget) wipeTarget.innerHTML = `<span><strong style="color:var(--recon-rose-text);">TARGET:</strong> ${prop.required ? 'MISSING REQUIRED' : 'OPTIONAL'}</span>`;
+    samplesList.innerHTML = `<span class="text-muted font-mono" style="font-size:11px;">No source field mapped to sample.</span>`;
+    document.getElementById("drawer-cardinality-meta").textContent = "";
+  }
+
+  // Tab 3: AST Transform Formula & Live Expression Playground
+  const astCode = document.getElementById("drawer-ast-code");
+  let defaultExpr = "val.strip()";
+  if (chosenSource) {
+    if (prop.target_type === "float") {
+      astCode.textContent = `output['${prop.target_field}'] = float(source['${chosenSource}']) if source.get('${chosenSource}') not in (None, '') else None`;
+      defaultExpr = "float(val)";
+    } else if (prop.target_type === "integer") {
+      astCode.textContent = `output['${prop.target_field}'] = int(source['${chosenSource}']) if source.get('${chosenSource}') not in (None, '') else None`;
+      defaultExpr = "int(val)";
+    } else if (prop.target_type === "datetime") {
+      astCode.textContent = `output['${prop.target_field}'] = parse_iso_datetime(source['${chosenSource}'])`;
+      defaultExpr = "val.strip()";
+    } else if (prop.allowed_values && prop.allowed_values.length > 0) {
+      astCode.textContent = `output['${prop.target_field}'] = str(source['${chosenSource}']).strip().upper()`;
+      defaultExpr = "val.strip().upper()";
+    } else {
+      astCode.textContent = `output['${prop.target_field}'] = str(source['${chosenSource}']).strip() if source.get('${chosenSource}') is not None else None`;
+      defaultExpr = "val.strip()";
+    }
+  } else {
+    astCode.textContent = `# Field '${prop.target_field}' unmapped. No transform emitted.\n# Validation will enforce required=True and non-null constraints.`;
+    defaultExpr = "val";
+    currentPlaygroundSamples = [];
+  }
+
+  const exprInput = document.getElementById("drawer-transform-expr-input");
+  if (exprInput) {
+    exprInput.value = defaultExpr;
+    renderPlaygroundPreview(defaultExpr, currentPlaygroundSamples);
+  }
+
+  // Tab 4: Schema Meta
+  const metaBox = document.getElementById("drawer-schema-meta");
+  metaBox.innerHTML = `
+    <div style="background-color:var(--recon-bg-surface); border:1px solid var(--recon-border-subtle); border-radius:var(--radius-sm); padding:12px; display:flex; flex-direction:column; gap:6px;">
+      <div>Target Field: <strong class="text-primary">${escapeHtml(prop.target_field)}</strong></div>
+      <div>Expected Type: <span class="badge badge-type">${escapeHtml(prop.target_type)}</span></div>
+      <div>Required: <strong class="${prop.required ? 'text-rose' : 'text-muted'}">${prop.required}</strong></div>
+      <div>Nullable: <strong>${prop.nullable !== undefined ? prop.nullable : false}</strong></div>
+      ${prop.allowed_values ? `<div>Allowed Values: <code>${escapeHtml(JSON.stringify(prop.allowed_values))}</code></div>` : ""}
+      ${prop.pattern ? `<div>Pattern Regex: <code>/${escapeHtml(prop.pattern)}/</code></div>` : ""}
+    </div>
+    <div style="margin-top:10px; padding:0 4px; color:var(--recon-text-secondary); line-height:1.5;">${escapeHtml(prop.description || "No contract field description.")}</div>
+  `;
+}
+
+function openDrawerForColumn(colName, colInfo, openDrawer = true) {
+  if (openDrawer) {
+    openInspectorDrawer(true);
+  }
+
+  document.getElementById("drawer-target-field").textContent = colName;
+  const badge = document.getElementById("drawer-field-badge");
+  badge.textContent = `SOURCE: ${colInfo.inferred_type.toUpperCase()}`;
+  badge.className = "badge badge-indigo";
+
+  // Tab 1: Evidence
+  document.getElementById("drawer-evidence-list").innerHTML = `
+    <div>Column Name: <code>${escapeHtml(colName)}</code></div>
+    <div>Inferred Data Type: <strong>${colInfo.inferred_type}</strong></div>
+    <div>Null Percentage: <strong>${colInfo.null_percentage}%</strong></div>
+    <div>Distinct Cardinality: <strong>${colInfo.distinct_count}</strong></div>
+  `;
+  document.getElementById("drawer-heuristic-rule").textContent = "Deterministic Type & Nullity Profiler";
+
+  // Tab 2: Samples
+  const samplesList = document.getElementById("drawer-samples-list");
+  samplesList.innerHTML = (colInfo.sample_values || []).map(v =>
+    `<span class="badge badge-muted font-mono" style="margin:2px 4px 2px 0;">${escapeHtml(String(v))}</span>`
+  ).join("");
+  document.getElementById("drawer-cardinality-meta").innerHTML =
+    `Null count: ${colInfo.null_count} | Distinct values: ${colInfo.distinct_count}`;
+
+  // Tab 3: AST
+  document.getElementById("drawer-ast-code").textContent = `source['${colName}']`;
+
+  // Tab 4: Meta
+  document.getElementById("drawer-schema-meta").innerHTML = `
+    <div>Profile Source Column: <strong>${escapeHtml(colName)}</strong></div>
+    <div>Detected Null Count: ${colInfo.null_count}</div>
+    <div>Distinct Cardinality: ${colInfo.distinct_count}</div>
+  `;
+}
+
+function openDrawerForQuarantine(qr) {
+  const drawer = document.getElementById("contextual-drawer");
+  drawer.classList.remove("collapsed");
+
+  document.getElementById("drawer-target-field").textContent = `Row #${qr.row_index || qr.record_index}`;
+  const badge = document.getElementById("drawer-field-badge");
+  badge.textContent = "QUARANTINED";
+  badge.className = "badge badge-rose";
+
+  // Tab 1: Evidence / Diagnostic
+  const reasons = qr.failure_reasons || qr.errors || [];
+  document.getElementById("drawer-evidence-list").innerHTML = reasons.map(r =>
+    `<div class="text-rose font-mono">• ${escapeHtml(r)}</div>`
+  ).join("");
+  document.getElementById("drawer-heuristic-rule").textContent = "Contract Violation & Isolation Rule";
+
+  // Tab 2: Samples / Raw Record
+  document.getElementById("drawer-samples-list").innerHTML = `
+    <pre class="font-mono" style="font-size:11px; background:var(--recon-bg-root); padding:8px; border-radius:4px; max-height:160px; overflow:auto;">${escapeHtml(JSON.stringify(qr.raw_record || {}, null, 2))}</pre>
+  `;
+  document.getElementById("drawer-cardinality-meta").textContent = "Raw record isolated without data loss.";
+
+  // Tab 3: AST
+  document.getElementById("drawer-ast-code").textContent = `# Record failed target validation. Quarantine routing invoked.`;
+
+  // Tab 4: Meta
+  document.getElementById("drawer-schema-meta").innerHTML = `
+    <div style="color:var(--recon-text-primary);">Upstream Remediation:</div>
+    <div class="text-secondary" style="margin-top:4px;">
+      Examine raw values above against target schema constraints. Provide source fallback or relax nullable constraints.
+    </div>
+  `;
+}
+
+// =============================================================================
+// Keyboard Navigation & Ergonomics
+// =============================================================================
+
+function bindKeyboardNavigation() {
+  document.addEventListener("keydown", e => {
+    try {
+      // Command Palette (⌘K / Ctrl+K) works everywhere including inputs
+      if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        toggleCommandPalette();
+        return;
+      }
+
+      // If typing in input, ignore shortcuts except Esc
+      const activeTag = document.activeElement ? document.activeElement.tagName : "";
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(activeTag) && e.key !== "Escape") {
+        return;
+      }
+
+      if (e.key === "Escape") {
+        const paletteModal = document.getElementById("modal-command-palette");
+        if (paletteModal && !paletteModal.classList.contains("hidden")) {
+          closeCommandPalette();
+          return;
+        }
+        closeInspectorDrawer(true);
+        const modalShortcuts = document.getElementById("modal-shortcuts");
+        if (modalShortcuts) modalShortcuts.classList.add("hidden");
+        const modalReset = document.getElementById("modal-reset-session");
+        if (modalReset) modalReset.classList.add("hidden");
+        closeGuide();
+        closeTour();
+        const island = document.getElementById("recon-dynamic-island");
+        const tray = document.getElementById("island-expanded-tray");
+        if (island && tray && island.classList.contains("expanded")) {
+          island.classList.remove("expanded");
+          tray.classList.add("hidden");
+        }
+        return;
+      }
+
+      // Shortcuts modal (? or /)
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        toggleShortcutsModal();
+        return;
+      }
+
+      // Guide (G / g)
+      if ((e.key === "g" || e.key === "G") && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        toggleGuideModal();
+        return;
+      }
+
+      // Inspector (I / i)
+      if ((e.key === "i" || e.key === "I") && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        toggleInspectorDrawerPin();
+        return;
+      }
+
+      // Guide Modal Arrow Navigation
+      const modalGuide = document.getElementById("modal-guide");
+      if (modalGuide && !modalGuide.classList.contains("hidden")) {
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          navigateGuideStep(-1);
+          return;
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          navigateGuideStep(1);
+          return;
         }
       }
 
-      if (data.contract) {
-        state.targetContractName = data.contract.contract_name || 'target_contract.json';
-        const fields = data.contract.fields || {};
-        const fieldKeys = Object.keys(fields);
-        const reqCount = fieldKeys.filter(k => fields[k].required).length;
-        if (dom.streamTgtName) dom.streamTgtName.textContent = state.targetContractName;
-        if (dom.portTargetLabel) dom.portTargetLabel.textContent = state.targetContractName;
-        if (dom.portTargetSub) dom.portTargetSub.textContent = `SCHEMA · ${fieldKeys.length} PROPS · ${reqCount} REQ`;
-        state.targetProperties = fields;
+      // Floating Spotlight Tour Arrow Navigation
+      const tourCard = document.getElementById("recon-guide-floating-card");
+      if (tourCard && !tourCard.classList.contains("hidden")) {
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          stepFloatingTour(-1);
+          return;
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          stepFloatingTour(1);
+          return;
+        }
       }
 
-      if (data.proposals) {
-        const proposals = data.proposals;
-        const newMappings = [];
-        const targetKeys = Object.keys(state.targetProperties);
-
-        targetKeys.forEach(tKey => {
-          const prop = state.targetProperties[tKey];
-          const isReq = prop.required === true;
-          const propProposal = proposals[tKey];
-
-          if (propProposal && propProposal.source_column) {
-            newMappings.push({
-              target: tKey,
-              req: isReq,
-              source: propProposal.source_column,
-              method: propProposal.transformation_method || 'direct',
-              state: 'state-proposed',
-              evidence: propProposal.rationale || 'Engine heuristic token & type match.'
-            });
-          } else {
-            newMappings.push({
-              target: tKey,
-              req: isReq,
-              source: null,
-              method: 'unmapped',
-              state: isReq ? 'state-missing-req' : 'state-unresolved',
-              evidence: isReq ? 'FATAL: Required contract field has no matched source column.' : 'Optional field left unmapped.'
-            });
-          }
-        });
-
-        state.mappings = newMappings;
+      // Step navigation: 1..7 (with Ctrl, Cmd, Alt, or standalone outside inputs)
+      if (["1", "2", "3", "4", "5", "6", "7"].includes(e.key)) {
+        const targetStep = parseInt(e.key, 10);
+        if (isStepAvailable(targetStep)) {
+          e.preventDefault();
+          navigateToStep(targetStep);
+        }
+        return;
       }
 
-      state.selectedRow = 0;
-      renderSpectralList();
-      renderLoomTable();
-      renderQuarantineHudList();
-      updateDynamicIsland(`Calibrated ${state.totalRecords} records across ${state.sourceColumns.length} carrier fields`, 'success');
-      sound.playHarmonicLock();
-    } catch (err) {
-      console.warn('API assessment fallback:', err);
-      renderSpectralList();
-      renderLoomTable();
-      renderQuarantineHudList();
-    }
-  }
-
-  async function compileASTAndFireCollider() {
-    updateDynamicIsland('Compiling AST Python Adapter and firing Particle Collider...', 'info');
-
-    const overrides = {};
-    let hasMissingReq = false;
-
-    state.mappings.forEach(m => {
-      if (m.req && !m.source) hasMissingReq = true;
-      if (m.source) overrides[m.target] = m.source;
-    });
-
-    if (hasMissingReq) {
-      sound.playBlockerBuzz();
-      updateDynamicIsland('Approval Blocked: Fatal blockers detected in cable loom.', 'error');
+    // Ctrl+Enter or Cmd+Enter: Advance workflow
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (currentStep === 1) {
+        const btnAssess = document.getElementById("btn-assess");
+        if (!btnAssess.disabled) btnAssess.click();
+      } else if (currentStep === 4) {
+        const btnApprove = document.getElementById("btn-approve");
+        if (!btnApprove.disabled) btnApprove.click();
+      } else if (currentStep < 7) {
+        navigateToStep(currentStep + 1);
+      }
       return;
     }
 
-    try {
-      const payload = {
-        session_id: state.sessionId,
-        reviewer: 'Quantum Creative Engineer',
-        overrides: overrides
-      };
-
-      const res = await fetch('/api/approve-and-generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json();
-        throw new Error(errJson.detail || `Server returned ${res.status}`);
+    // Enter without modifiers: Open Contextual Inspector for active selection
+    if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      if (currentStep === 2) {
+        const rows = document.querySelectorAll("#profile-tbody tr");
+        if (rows[selectedProfileIndex]) {
+          e.preventDefault();
+          rows[selectedProfileIndex].click();
+        }
+      } else if (currentStep === 3) {
+        const rows = Array.from(document.querySelectorAll("#mappings-tbody tr:not(.hidden)"));
+        if (rows[selectedMappingIndex]) {
+          e.preventDefault();
+          rows[selectedMappingIndex].click();
+        }
+      } else if (currentStep === 6) {
+        const rows = document.querySelectorAll("#quarantine-tbody tr");
+        if (rows[selectedQuarantineIndex]) {
+          e.preventDefault();
+          rows[selectedQuarantineIndex].click();
+        }
       }
-
-      const data = await res.json();
-
-      if (data.adapter && data.adapter.python_code) {
-        state.adapterCode = data.adapter.python_code;
-      }
-
-      if (data.validation) {
-        state.totalRecords = data.validation.total_input_records || state.totalRecords;
-        state.validRecords = data.validation.valid_records_count !== undefined ? data.validation.valid_records_count : state.totalRecords;
-        state.quarantineRecords = data.validation.quarantined_records_count || 0;
-        state.quarantinedSamples = data.validation.sample_quarantined_records || [];
-      }
-
-      sound.playHarmonicLock();
-      renderQuarantineHudList();
-      updateInspector();
-      updateDynamicIsland('AST Adapter Synthesized & Zero-Loss Invariant Verified (60 FPS)', 'success');
-    } catch (err) {
-      console.warn('Sandbox compilation error:', err);
-      sound.playHarmonicLock();
-      updateInspector();
-      updateDynamicIsland('AST Adapter synthesized in-process.', 'success');
+      return;
     }
+
+    // Space: Toggle contextual inspector drawer
+    if (e.key === " " && !["INPUT", "TEXTAREA", "SELECT"].includes(activeTag)) {
+      e.preventDefault();
+      toggleInspectorDrawerPin();
+      SoundEngine.playClick();
+      return;
+    }
+
+    // Audio Mute Toggle: M / m
+    if ((e.key === "m" || e.key === "M") && !e.ctrlKey && !e.metaKey && !["INPUT", "TEXTAREA", "SELECT"].includes(activeTag)) {
+      e.preventDefault();
+      SoundEngine.toggleMute();
+      return;
+    }
+
+    // Table row navigation: J / K or Down / Up
+    if (currentStep === 2) {
+      // Screen B: Profile Matrix
+      const rows = document.querySelectorAll("#profile-tbody tr");
+      if (rows.length === 0) return;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedProfileIndex = Math.min(rows.length - 1, selectedProfileIndex + 1);
+        rows[selectedProfileIndex].click();
+        rows[selectedProfileIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedProfileIndex = Math.max(0, selectedProfileIndex - 1);
+        rows[selectedProfileIndex].click();
+        rows[selectedProfileIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
+      }
+    } else if (currentStep === 3) {
+      // Screen C: Mapping Studio
+      const rows = Array.from(document.querySelectorAll("#mappings-tbody tr:not(.hidden)"));
+      if (rows.length === 0) return;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedMappingIndex = Math.min(rows.length - 1, selectedMappingIndex + 1);
+        rows[selectedMappingIndex].click();
+        rows[selectedMappingIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedMappingIndex = Math.max(0, selectedMappingIndex - 1);
+        rows[selectedMappingIndex].click();
+        rows[selectedMappingIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
+      }
+    } else if (currentStep === 6) {
+      // Screen F: Quarantine Ledger
+      const rows = document.querySelectorAll("#quarantine-tbody tr");
+      if (rows.length === 0) return;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        selectedQuarantineIndex = Math.min(rows.length - 1, selectedQuarantineIndex + 1);
+        rows[selectedQuarantineIndex].click();
+        rows[selectedQuarantineIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        selectedQuarantineIndex = Math.max(0, selectedQuarantineIndex - 1);
+        rows[selectedQuarantineIndex].click();
+        rows[selectedQuarantineIndex].scrollIntoView({ block: "nearest" });
+        SoundEngine.playClick();
+      }
+    }
+  } catch (err) {
+    console.warn("[Recon] Keyboard navigation event error:", err);
+  }
+});
+}
+
+// =============================================================================
+// Command Palette Engine (⌘K / Ctrl+K) — Apple-Grade Dev Navigation
+// =============================================================================
+
+let paletteSelectedIdx = 0;
+let paletteCurrentItems = [];
+
+function initCommandPalette() {
+  const btnCmd = document.getElementById("btn-command-palette");
+  if (btnCmd) {
+    btnCmd.addEventListener("click", () => openCommandPalette());
   }
 
-  // =========================================================================
-  // 10. DYNAMIC ISLAND & COMMAND PALETTE
-  // =========================================================================
+  const btnClose = document.getElementById("btn-close-palette");
+  if (btnClose) {
+    btnClose.addEventListener("click", () => closeCommandPalette());
+  }
 
-  function initDynamicIsland() {
-    if (!dom.islandPillTrigger || !dom.islandExpandedTray) return;
-
-    dom.islandPillTrigger.addEventListener('click', () => {
-      dom.islandExpandedTray.hidden = !dom.islandExpandedTray.hidden;
+  const modalPalette = document.getElementById("modal-command-palette");
+  if (modalPalette) {
+    modalPalette.addEventListener("click", e => {
+      if (e.target === modalPalette) {
+        closeCommandPalette();
+      }
     });
-
-    if (dom.islandPrimaryAction) {
-      dom.islandPrimaryAction.addEventListener('click', (e) => {
-        e.stopPropagation();
-        executeDynamicIslandAction();
-      });
-    }
   }
 
-  function updateDynamicIsland(message, type = 'info') {
-    if (!dom.islandStatusText) return;
-    dom.islandStatusText.textContent = message;
-    if (dom.islandTrayContent) dom.islandTrayContent.textContent = message;
-    const dot = dom.reconDynamicIsland?.querySelector('.island-dot');
-    if (dot) {
-      if (type === 'error') dot.style.backgroundColor = 'var(--plasma-rose)';
-      else if (type === 'success') dot.style.backgroundColor = 'var(--plasma-emerald)';
-      else dot.style.backgroundColor = 'var(--plasma-cyan)';
-    }
-  }
-
-  function executeDynamicIslandAction() {
-    if (dom.quarantineHudDrawer) {
-      dom.quarantineHudDrawer.hidden = !dom.quarantineHudDrawer.hidden;
-    }
-  }
-
-  function queueFlowReset() {
-    const particles = document.querySelectorAll('.flow-packet-particle, .flow-conduit-bubble');
-    particles.forEach(p => p.remove());
-  }
-
-  function initCommandPalette() {
-    if (!dom.cmdModal || !dom.cmdInput) return;
-
-    dom.btnCmdPalette?.addEventListener('click', () => openCommandPalette());
-
-    dom.cmdInput.addEventListener('input', (e) => {
+  const input = document.getElementById("palette-search-input");
+  if (input) {
+    input.addEventListener("input", e => {
       renderPaletteResults(e.target.value);
     });
-
-    dom.cmdModal.addEventListener('click', (e) => {
-      if (e.target === dom.cmdModal) closeCommandPalette();
-    });
-
-    dom.cmdList?.addEventListener('click', (e) => {
-      const item = e.target.closest('.cmd-action');
-      if (!item) return;
-      handlePaletteAction(item.dataset.act);
-    });
+    input.addEventListener("keydown", handlePaletteKeydown);
   }
+}
 
-  function openCommandPalette() {
-    if (!dom.cmdModal) return;
-    dom.cmdModal.hidden = false;
-    dom.cmdInput.value = '';
-    dom.cmdInput.focus();
-    renderPaletteResults('');
-    sound.playSnap();
+function openCommandPalette() {
+  const modal = document.getElementById("modal-command-palette");
+  const input = document.getElementById("palette-search-input");
+  if (!modal || !input) return;
+
+  modal.classList.remove("hidden");
+  input.value = "";
+  paletteSelectedIdx = 0;
+  renderPaletteResults("");
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeCommandPalette() {
+  const modal = document.getElementById("modal-command-palette");
+  if (modal) {
+    modal.classList.add("hidden");
   }
+}
 
-  function closeCommandPalette() {
-    if (!dom.cmdModal) return;
-    dom.cmdModal.hidden = true;
-  }
-
-  function renderPaletteResults(query) {
-    if (!dom.cmdList) return;
-    const q = (query || '').toLowerCase().trim();
-
-    const commands = [
-      { act: 'auto-loom', label: 'Auto-Loom All Heuristic Cables', kbd: 'A' },
-      { act: 'compile', label: 'Synthesize AST Adapter & Fire Collider', kbd: '⌘↵' },
-      { act: 'copy-ast', label: 'Copy AST Adapter to Clipboard', kbd: 'C' },
-      { act: 'scenario-voicemail', label: 'Warp Preset: Indian AI Voicemail', kbd: '1' },
-      { act: 'scenario-b2b', label: 'Warp Preset: B2B Invoices', kbd: '2' },
-      { act: 'toggle-audio', label: 'Toggle Procedural Web Audio Synth', kbd: 'M' },
-      { act: 'toggle-theme', label: 'Toggle Specular Light Mode', kbd: 'T' }
-    ];
-
-    state.mappings.forEach((m, idx) => {
-      commands.push({
-        act: `jump-${idx}`,
-        label: `Loom Cable: ${m.target} (carrier: ${m.source || 'unmapped'})`,
-        kbd: `Row ${idx + 1}`
-      });
-    });
-
-    const filtered = commands.filter(c => !q || c.label.toLowerCase().includes(q));
-
-    dom.cmdList.innerHTML = filtered.map(c => `
-      <div class="cmd-action" data-act="${c.act}">
-        <span>${escapeHtml(c.label)}</span>
-        <kbd>${c.kbd}</kbd>
-      </div>
-    `).join('');
-  }
-
-  function handlePaletteAction(action) {
-    closeCommandPalette();
-    if (!action) return;
-
-    if (action === 'auto-loom') autoLoomAll();
-    else if (action === 'compile') compileASTAndFireCollider();
-    else if (action === 'copy-ast') copyASTCode();
-    else if (action === 'scenario-voicemail') loadWarpPreset('indian_ai_voicemail_calls');
-    else if (action === 'scenario-b2b') loadWarpPreset('b2b_vendor_invoices');
-    else if (action === 'toggle-audio') toggleAudio();
-    else if (action === 'toggle-theme') toggleTheme();
-    else if (action.startsWith('jump-')) {
-      const idx = parseInt(action.replace('jump-', ''), 10);
-      selectRow(idx);
-    }
-  }
-
-  // =========================================================================
-  // 11. HELPER ACTIONS & EXPORTS
-  // =========================================================================
-
-  function toggleTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    sound.playSnap();
-  }
-
-  function toggleAudio() {
-    sound.enabled = !sound.enabled;
-    if (dom.btnAudioToggle) {
-      dom.btnAudioToggle.classList.toggle('active', sound.enabled);
-    }
-    updateDynamicIsland(`Procedural Audio ${sound.enabled ? 'activated' : 'muted'}`, 'info');
-  }
-
-  function copyASTCode() {
-    if (!navigator.clipboard) return;
-    navigator.clipboard.writeText(state.adapterCode).then(() => {
-      if (dom.btnCopyAst) {
-        dom.btnCopyAst.textContent = '✓ Copied!';
-        setTimeout(() => { dom.btnCopyAst.textContent = 'Copy AST'; }, 1500);
-      }
-      sound.playHarmonicLock();
-      updateDynamicIsland('AST Adapter copied to clipboard', 'success');
-    });
-  }
-
-  function downloadASTFile() {
-    const blob = new Blob([state.adapterCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'adapter.py';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  function loadWarpPreset(presetKey) {
-    if (dom.warpPreset) dom.warpPreset.value = presetKey;
-    assessScenario(presetKey);
-  }
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  // =========================================================================
-  // 12. GLOBAL KEYBOARD NAVIGATION & LISTENERS
-  // =========================================================================
-
-  window.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault();
-      if (dom.cmdModal.hidden) openCommandPalette();
-      else closeCommandPalette();
-      return;
-    }
-
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault();
-      compileASTAndFireCollider();
-      return;
-    }
-
-    if (e.key === 'Escape') {
-      closeCommandPalette();
-      if (dom.shortcutsModal) dom.shortcutsModal.hidden = true;
-      if (dom.quarantineHudDrawer) dom.quarantineHudDrawer.hidden = true;
-      return;
-    }
-
-    if (!dom.cmdModal?.hidden) return;
-    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-
-    if (e.key.toLowerCase() === 'j' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      selectRow(state.selectedRow + 1);
-    } else if (e.key.toLowerCase() === 'k' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      selectRow(state.selectedRow - 1);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      approveRow(state.selectedRow);
-    } else if (e.key.toLowerCase() === 'u') {
-      e.preventDefault();
-      severCurrentRow();
-    } else if (e.key.toLowerCase() === 'a') {
-      e.preventDefault();
-      autoLoomAll();
-    } else if (e.key === '?') {
-      e.preventDefault();
-      if (dom.shortcutsModal) dom.shortcutsModal.hidden = false;
-    }
-  });
-
-  // Mouse Dynamic Light Tracker
-  window.addEventListener('pointermove', (e) => {
-    const x = (e.clientX / window.innerWidth) * 100;
-    const y = (e.clientY / window.innerHeight) * 100;
-    document.documentElement.style.setProperty('--mouse-x', `${x}%`);
-    document.documentElement.style.setProperty('--mouse-y', `${y}%`);
-  });
-
-  // =========================================================================
-  // 13. 60FPS MAIN ANIMATION LOOP
-  // =========================================================================
-
-  function mainLoop() {
-    if (ambientCanvas) ambientCanvas.render();
-    if (collider) collider.render();
-    if (sonarRadar) sonarRadar.render();
-    if (cableLoom) cableLoom.render();
-    requestAnimationFrame(mainLoop);
-  }
-
-  // =========================================================================
-  // 14. INITIALIZATION LIFECYCLE (initShell)
-  // =========================================================================
-
-  function initShell() {
-    ambientCanvas = new AmbientCanvas('ambient-canvas');
-    collider = new ParticleCollider('particle-collider-canvas');
-    sonarRadar = new SonarRadar('sonar-radar-canvas');
-    cableLoom = new CableLoom('cable-loom-canvas');
-
-    // Header buttons
-    dom.btnThemeToggle?.addEventListener('click', () => toggleTheme());
-    dom.btnAudioToggle?.addEventListener('click', () => toggleAudio());
-    dom.btnShortcuts?.addEventListener('click', () => {
-      if (dom.shortcutsModal) dom.shortcutsModal.hidden = false;
-    });
-    dom.btnCloseShortcuts?.addEventListener('click', () => {
-      if (dom.shortcutsModal) dom.shortcutsModal.hidden = true;
-    });
-    dom.btnCloseQuarantine?.addEventListener('click', () => {
-      if (dom.quarantineHudDrawer) dom.quarantineHudDrawer.hidden = true;
-    });
-
-    // Ingest Ports (Click & Drag-Drop)
-    dom.portSourceZone?.addEventListener('click', () => dom.sourceFileInput?.click());
-    dom.portTargetZone?.addEventListener('click', () => dom.targetFileInput?.click());
-
-    dom.sourceFileInput?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) assessScenario(null, null, file, null);
-    });
-
-    dom.targetFileInput?.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) assessScenario(null, null, null, file);
-    });
-
-    // Warp Preset Selector
-    dom.warpPreset?.addEventListener('change', (e) => {
-      state.activeScenario = e.target.value;
-      assessScenario(e.target.value);
-    });
-
-    // Spectral Filter
-    dom.spectralSearchInput?.addEventListener('input', (e) => {
-      renderSpectralList(e.target.value);
-    });
-
-    // Loom Actions
-    dom.btnSnapAll?.addEventListener('click', () => autoLoomAll());
-    dom.btnCompileAst?.addEventListener('click', () => compileASTAndFireCollider());
-    dom.btnCopyAst?.addEventListener('click', () => copyASTCode());
-    dom.btnDownloadAst?.addEventListener('click', () => downloadASTFile());
-
-    // Inspector Tabs
-    const tabButtons = document.querySelectorAll('.inspector-nav .insp-tab');
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabButtons.forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.inspector-viewport .insp-panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        const targetId = btn.dataset.tab;
-        const targetPanel = document.getElementById(targetId);
-        if (targetPanel) targetPanel.classList.add('active');
-        sound.playSnap();
-      });
-    });
-
-    // Morphing Diff Scrub
-    dom.diffScrubInput?.addEventListener('input', (e) => {
-      const val = parseInt(e.target.value, 10);
-      const sourceCard = document.querySelector('.morph-sample-card.source-card');
-      const targetCard = document.querySelector('.morph-sample-card.target-card');
-      if (sourceCard && targetCard) {
-        sourceCard.style.opacity = (1 - val / 100).toFixed(2);
-        targetCard.style.opacity = (val / 100).toFixed(2);
-      }
-    });
-
-    // Subsystems
-    initCommandPalette();
-    initDynamicIsland();
-
-    // Render Initial State
-    renderSpectralList();
-    renderLoomTable();
-    renderQuarantineHudList();
-    updateInspector();
-
-    // Kickoff 60FPS Hardware-Accelerated Loop
-    requestAnimationFrame(mainLoop);
-
-    // Load Default Scenario from Server
-    assessScenario('b2b_vendor_invoices');
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initShell);
+function toggleCommandPalette() {
+  const modal = document.getElementById("modal-command-palette");
+  if (!modal) return;
+  if (modal.classList.contains("hidden")) {
+    openCommandPalette();
   } else {
-    initShell();
+    closeCommandPalette();
   }
+}
 
-  // Backward-compatibility token hooks
-  window._reconTokens = {
-    particle: 'flow-packet-particle',
-    bubble: 'flow-conduit-bubble',
-    motion: 'animateMotion'
+function handlePaletteKeydown(e) {
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (paletteCurrentItems.length > 0) {
+      paletteSelectedIdx = (paletteSelectedIdx + 1) % paletteCurrentItems.length;
+      updatePaletteSelection();
+    }
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (paletteCurrentItems.length > 0) {
+      paletteSelectedIdx = (paletteSelectedIdx - 1 + paletteCurrentItems.length) % paletteCurrentItems.length;
+      updatePaletteSelection();
+    }
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    if (paletteCurrentItems[paletteSelectedIdx]) {
+      executePaletteItem(paletteCurrentItems[paletteSelectedIdx]);
+    }
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    closeCommandPalette();
+  }
+}
+
+function executePaletteItem(item) {
+  if (!item) return;
+  if (item.disabled) {
+    const dialog = document.querySelector("#modal-command-palette .recon-palette-dialog") || document.getElementById("modal-command-palette");
+    triggerHapticFeedback(dialog);
+    return;
+  }
+  closeCommandPalette();
+  if (typeof item.action === "function") {
+    item.action();
+  }
+}
+
+function updatePaletteSelection() {
+  const itemEls = document.querySelectorAll("#palette-results-list .recon-palette-item");
+  itemEls.forEach((el, idx) => {
+    const isSel = idx === paletteSelectedIdx;
+    el.classList.toggle("selected", isSel);
+    if (isSel) {
+      el.scrollIntoView({ block: "nearest" });
+    }
+  });
+}
+
+function renderPaletteResults(query) {
+  const listContainer = document.getElementById("palette-results-list");
+  if (!listContainer) return;
+
+  const allItems = [];
+
+  // Reusable micro-icon SVGs
+  const svgIcons = {
+    demo: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l6-3 6 3-6 3-6-3z"/><path d="M2 4v8l6 3 6-3V4"/><path d="M8 7v8"/></svg>`,
+    action: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="9 1 3 9 8 9 7 15 13 7 8 7"/></svg>`,
+    code: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 4 1 8 5 12"/><polyline points="11 4 15 8 11 12"/><line x1="10" y1="2" x2="6" y2="14"/></svg>`,
+    shield: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1L2 4v4c0 4.5 4.5 7 6 7s6-2.5 6-7V4L8 1z"/></svg>`,
+    doc: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h7l4 4v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4"/></svg>`,
+    spec: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="4" x2="13" y2="4"/><circle cx="6" cy="4" r="1.5" fill="currentColor"/><line x1="3" y1="8" x2="13" y2="8"/><circle cx="10" cy="8" r="1.5" fill="currentColor"/><line x1="3" y1="12" x2="13" y2="12"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>`,
+    inspector: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>`,
+    guide: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><polygon points="8,4.5 9.5,8 8,11.5 6.5,8" fill="currentColor"/></svg>`,
+    theme: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 0 12V2z" fill="currentColor"/></svg>`,
+    trash: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V4"/></svg>`,
+    check: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 8 6 12 14 4"/></svg>`,
+    lock: `<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>`,
+    target: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>`,
+    column: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="1"/><line x1="6" y1="3" x2="6" y2="13"/><line x1="10" y1="3" x2="10" y2="13"/></svg>`
   };
 
-  // Global exports for tests
-  window.initShell = initShell;
-  window.evaluateMappingEvidence = evaluateMappingEvidence;
-  window.getDuplicateSourceAssignments = getDuplicateSourceAssignments;
-  window.handleMappingChange = handleMappingChange;
-  window.initCommandPalette = initCommandPalette;
-  window.openCommandPalette = openCommandPalette;
-  window.renderPaletteResults = renderPaletteResults;
-  window.initDynamicIsland = initDynamicIsland;
-  window.updateDynamicIsland = updateDynamicIsland;
-  window.executeDynamicIslandAction = executeDynamicIslandAction;
-  window.computeTransformedValue = computeTransformedValue;
-  window.renderMinimapGutter = renderMinimapGutter;
-  window.queueFlowReset = queueFlowReset;
+  // 1. Actions
+  allItems.push({
+    id: "load-b2b",
+    category: "Quick Actions",
+    icon: svgIcons.demo,
+    title: "Load Pilot Benchmark (B2B Vendor Invoices)",
+    sub: "Gate 09 Real-World Dataset",
+    shortcut: "Demo",
+    action: () => handleQuickDemoLoad()
+  });
 
-})();
+  allItems.push({
+    id: "load-indian-voicemail",
+    category: "Quick Actions",
+    icon: svgIcons.demo,
+    title: "Load Indian AI Voicemail Scenario",
+    sub: "Conversational Telephony, Indic STT & Voicemail Ingestion",
+    shortcut: "India",
+    action: () => loadScenario("indian_voicemail")
+  });
+
+  allItems.push({
+    id: "run-preflight",
+    category: "Quick Actions",
+    icon: svgIcons.action,
+    title: "Run Preflight Ingestion & Profiler",
+    sub: "Assess staged source & schema",
+    shortcut: "Enter",
+    action: () => {
+      const btn = document.getElementById("btn-assess");
+      if (btn && !btn.disabled) btn.click();
+    }
+  });
+
+  if (currentAssessment) {
+    allItems.push({
+      id: "generate-adapter",
+      category: "Quick Actions",
+      icon: svgIcons.code,
+      title: "Generate Python Adapter (adapter.py)",
+      sub: "Approve mapping spec & build code",
+      shortcut: "Adapter",
+      action: () => {
+        navigateToStep(3);
+        const ack = document.getElementById("ack-checkbox");
+        if (ack) {
+          ack.checked = true;
+          updateApprovalGateState();
+        }
+        handleApproveAndGenerate();
+      }
+    });
+
+    allItems.push({
+      id: "run-quarantine",
+      category: "Quick Actions",
+      icon: svgIcons.shield,
+      title: "Execute Quarantine Validation Engine",
+      sub: "Run in-process sandbox tests",
+      shortcut: "Validate",
+      action: () => {
+        if (isStepAvailable(6)) {
+          navigateToStep(6);
+          const btn = document.getElementById("btn-validate-run");
+          if (btn) btn.click();
+        }
+      }
+    });
+
+    allItems.push({
+      id: "download-report",
+      category: "Quick Actions",
+      icon: svgIcons.doc,
+      title: "Download Readiness Dossier (Markdown)",
+      sub: "Certified preflight audit report",
+      shortcut: "Download",
+      action: () => {
+        const btn = document.getElementById("btn-download-report-md");
+        if (btn) btn.click();
+      }
+    });
+
+    allItems.push({
+      id: "download-spec",
+      category: "Quick Actions",
+      icon: svgIcons.spec,
+      title: "Export Reusable Mapping Spec (JSON)",
+      sub: "recon_mapping_spec.json for CI/CD",
+      shortcut: "Spec",
+      action: () => {
+        const btn = document.getElementById("btn-download-spec-json");
+        if (btn) btn.click();
+      }
+    });
+  }
+
+  allItems.push({
+    id: "toggle-inspector",
+    category: "Interface & Tools",
+    icon: svgIcons.inspector,
+    title: "Toggle Contextual Inspector",
+    sub: "Drawer with AST, samples & radar",
+    shortcut: "I",
+    action: () => toggleInspectorDrawerPin()
+  });
+
+  allItems.push({
+    id: "toggle-guide",
+    category: "Interface & Tools",
+    icon: svgIcons.guide,
+    title: "Toggle Interactive Guide & Tour",
+    sub: "Walkthrough of 7-step pipeline",
+    shortcut: "G",
+    action: () => toggleGuideModal()
+  });
+
+  allItems.push({
+    id: "toggle-theme",
+    category: "Interface & Tools",
+    icon: svgIcons.theme,
+    title: "Toggle Theme (Dark / Light)",
+    sub: "Switch visual appearance",
+    action: () => {
+      const themeBtn = document.getElementById("btn-theme-toggle");
+      if (themeBtn) themeBtn.click();
+    }
+  });
+
+  allItems.push({
+    id: "toggle-sound",
+    category: "Interface & Tools",
+    icon: svgIcons.theme,
+    title: "Toggle Audio Synthesizer Feedback",
+    sub: isAudioMuted ? "Currently Muted — Unmute click & chimes" : "Currently Active — Mute audio feedback",
+    shortcut: "M",
+    action: () => {
+      SoundEngine.toggleMute();
+    }
+  });
+
+  allItems.push({
+    id: "reset-session",
+    category: "Interface & Tools",
+    icon: svgIcons.trash,
+    title: "Reset Session & Purge Sandbox",
+    sub: "Safely wipe in-memory data",
+    action: () => {
+      const resetBtn = document.getElementById("btn-reset-session");
+      if (resetBtn) resetBtn.click();
+    }
+  });
+
+  // 2. Workflow Navigation (01 - 07)
+  const steps = [
+    { num: 1, name: "01 Ingest", desc: "Source files & target contracts" },
+    { num: 2, name: "02 Profile", desc: "Data profile & type inference matrix" },
+    { num: 3, name: "03 Map", desc: "Mapping Studio & interactive Flow Graph" },
+    { num: 4, name: "04 Audit", desc: "Risk Radar & confidence diagnostics" },
+    { num: 5, name: "05 Adapter", desc: "Generated Python code workbench" },
+    { num: 6, name: "06 Validate", desc: "Quarantine Ledger & yield accounting" },
+    { num: 7, name: "07 Dossier", desc: "Readiness certification & downloads" }
+  ];
+
+  steps.forEach(s => {
+    const avail = isStepAvailable(s.num);
+    allItems.push({
+      id: `step-${s.num}`,
+      category: "Workflow Navigation",
+      icon: avail ? svgIcons.check : svgIcons.lock,
+      title: s.name,
+      sub: s.desc + (avail ? "" : " (Locked)"),
+      shortcut: `Ctrl+${s.num}`,
+      disabled: !avail,
+      action: () => {
+        if (isStepAvailable(s.num)) {
+          navigateToStep(s.num);
+        }
+      }
+    });
+  });
+
+  // 3. Live Target Schema Fields
+  if (currentAssessment && currentAssessment.proposals) {
+    currentAssessment.proposals.forEach((prop, idx) => {
+      const isReq = prop.target_required || prop.required;
+      allItems.push({
+        id: `target-field-${prop.target_field}`,
+        category: "Target Schema Fields",
+        icon: svgIcons.target,
+        title: prop.target_field,
+        sub: `Type: ${prop.target_type || "string"} • ${isReq ? "Required" : "Optional"} • Source: ${prop.source_column || "[Unmapped]"}`,
+        shortcut: "Map",
+        action: () => {
+          navigateToStep(3);
+          selectMappingRow(idx, prop, true);
+          setTimeout(() => {
+            const tr = document.querySelector(`#mappings-tbody tr[data-target="${prop.target_field}"]`);
+            if (tr) tr.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 80);
+        }
+      });
+    });
+  }
+
+  // 4. Live Source Dataset Columns
+  if (currentAssessment && currentAssessment.source && currentAssessment.source.columns) {
+    const profile = currentAssessment.source;
+    profile.columns.forEach((colName, idx) => {
+      const colInfo = profile.columns_profile ? profile.columns_profile[colName] : {};
+      allItems.push({
+        id: `source-col-${colName}`,
+        category: "Source Dataset Columns",
+        icon: svgIcons.column,
+        title: colName,
+        sub: `Inferred: ${colInfo.inferred_type || "unknown"} • Nulls: ${colInfo.null_count || 0}`,
+        shortcut: "Profile",
+        action: () => {
+          navigateToStep(2);
+          selectProfileRow(idx, colName, colInfo, true);
+          setTimeout(() => {
+            const tr = document.querySelector(`#profile-tbody tr[data-column="${colName}"]`);
+            if (tr) tr.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 80);
+        }
+      });
+    });
+  }
+
+  // Filter
+  const q = (query || "").trim().toLowerCase();
+  paletteCurrentItems = q === "" ? allItems : allItems.filter(item => {
+    return item.title.toLowerCase().includes(q) ||
+           item.category.toLowerCase().includes(q) ||
+           (item.sub && item.sub.toLowerCase().includes(q));
+  });
+
+  // Clamp selection
+  if (paletteSelectedIdx >= paletteCurrentItems.length) {
+    paletteSelectedIdx = 0;
+  }
+
+  if (paletteCurrentItems.length === 0) {
+    listContainer.innerHTML = `<div class="recon-palette-empty">No matching actions, steps, or fields found for "${escapeHtml(query)}"</div>`;
+    return;
+  }
+
+  // Render grouped by category
+  let html = "";
+  let currentGroup = "";
+  paletteCurrentItems.forEach((item, idx) => {
+    if (item.category !== currentGroup) {
+      currentGroup = item.category;
+      html += `<div class="recon-palette-group-title">${escapeHtml(currentGroup)}</div>`;
+    }
+    const isSelected = idx === paletteSelectedIdx;
+    html += `
+      <div class="recon-palette-item ${isSelected ? "selected" : ""}" data-idx="${idx}" role="option" aria-selected="${isSelected}">
+        <div class="recon-palette-item-left">
+          <span class="recon-palette-item-icon">${item.icon}</span>
+          <span class="recon-palette-item-label">${escapeHtml(item.title)}</span>
+          ${item.sub ? `<span class="recon-palette-item-sub">${escapeHtml(item.sub)}</span>` : ""}
+        </div>
+        <div class="recon-palette-item-right">
+          ${item.shortcut ? `<kbd>${escapeHtml(item.shortcut)}</kbd>` : ""}
+        </div>
+      </div>
+    `;
+  });
+
+  listContainer.innerHTML = html;
+
+  // Click listener
+  const itemEls = listContainer.querySelectorAll(".recon-palette-item");
+  itemEls.forEach(el => {
+    el.addEventListener("click", () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      if (!isNaN(idx) && paletteCurrentItems[idx]) {
+        executePaletteItem(paletteCurrentItems[idx]);
+      }
+    });
+    el.addEventListener("mouseenter", () => {
+      const idx = parseInt(el.dataset.idx, 10);
+      if (!isNaN(idx)) {
+        paletteSelectedIdx = idx;
+        updatePaletteSelection();
+      }
+    });
+  });
+}
+
+// =============================================================================
+// Feature 3: Floating Dynamic Health Island (Apple macOS / VisionOS Controller)
+// =============================================================================
+
+function initDynamicIsland() {
+  const island = document.getElementById("recon-dynamic-island");
+  const pill = document.getElementById("island-pill-trigger");
+  const tray = document.getElementById("island-expanded-tray");
+  const primaryBtn = document.getElementById("island-primary-action");
+  const trayPrimaryBtn = document.getElementById("island-btn-tray-primary");
+  const stepJumpBtn = document.getElementById("island-btn-step-jump");
+
+  if (!island || !pill || !tray) return;
+
+  // Toggle expanded tray on pill click
+  pill.addEventListener("click", (e) => {
+    if (e.target.closest("#island-primary-action")) return;
+    const isExpanded = island.classList.toggle("expanded");
+    tray.classList.toggle("hidden", !isExpanded);
+  });
+
+  // Primary quick action execution
+  if (primaryBtn) {
+    primaryBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      executeDynamicIslandAction();
+    });
+  }
+
+  if (trayPrimaryBtn) {
+    trayPrimaryBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      executeDynamicIslandAction();
+    });
+  }
+
+  // Jump to step button
+  if (stepJumpBtn) {
+    stepJumpBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      island.classList.remove("expanded");
+      tray.classList.add("hidden");
+      if (typeof openCommandPalette === "function") {
+        openCommandPalette();
+        const searchInput = document.getElementById("palette-search-input");
+        if (searchInput) {
+          searchInput.value = "step";
+          searchInput.dispatchEvent(new Event("input"));
+        }
+      } else {
+        let next = currentStep + 1;
+        if (next > 7 || !isStepAvailable(next)) next = 1;
+        navigateToStep(next);
+      }
+    });
+  }
+
+  // Click outside to collapse
+  document.addEventListener("click", (e) => {
+    if (!island.contains(e.target) && island.classList.contains("expanded")) {
+      island.classList.remove("expanded");
+      tray.classList.add("hidden");
+    }
+  });
+
+  // Escape key to close
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && island.classList.contains("expanded")) {
+      island.classList.remove("expanded");
+      tray.classList.add("hidden");
+    }
+  });
+
+  updateDynamicIsland();
+}
+
+function executeDynamicIslandAction() {
+  switch (currentStep) {
+    case 1:
+      handleAssessIntegration();
+      break;
+    case 2:
+      navigateToStep(3);
+      break;
+    case 3:
+      navigateToStep(4);
+      break;
+    case 4: {
+      const ack = document.getElementById("ack-checkbox");
+      if (ack && !ack.checked) {
+        ack.checked = true;
+        updateApprovalGateState();
+      }
+      handleApproveAndGenerate();
+      break;
+    }
+    case 5:
+      navigateToStep(6);
+      break;
+    case 6:
+      navigateToStep(7);
+      break;
+    case 7: {
+      const dlBtn = document.getElementById("art-dl-report-md");
+      if (dlBtn && dlBtn.href) {
+        window.location.href = dlBtn.href;
+      }
+      break;
+    }
+  }
+}
+
+function updateDynamicIsland() {
+  const island = document.getElementById("recon-dynamic-island");
+  if (!island) return;
+
+  const dot = document.getElementById("island-status-dot");
+  const title = document.getElementById("island-status-title");
+  const metric = document.getElementById("island-metric-text");
+  const btn = document.getElementById("island-primary-action");
+  const btnIcon = document.getElementById("island-btn-icon");
+  const btnText = document.getElementById("island-btn-text");
+
+  // Tray elements
+  const trayStepBadge = document.getElementById("island-tray-step-badge");
+  const trayYield = document.getElementById("island-tray-yield");
+  const trayMapped = document.getElementById("island-tray-mapped");
+  const trayRisks = document.getElementById("island-tray-risks");
+  const trayQuarantine = document.getElementById("island-tray-quarantine");
+  const trayPrimaryBtn = document.getElementById("island-btn-tray-primary");
+
+  const stepNames = {
+    1: "Ingest",
+    2: "Profile",
+    3: "Map",
+    4: "Audit",
+    5: "Adapter",
+    6: "Validate",
+    7: "Dossier"
+  };
+
+  if (trayStepBadge) {
+    trayStepBadge.textContent = `Step 0${currentStep} / ${stepNames[currentStep] || "Workflow"}`;
+  }
+
+  // Compute stats from currentAssessment
+  let totalProposals = 0;
+  let mappedCount = 0;
+  let unmappedReq = 0;
+  if (currentAssessment && currentAssessment.proposals) {
+    totalProposals = currentAssessment.proposals.length;
+    currentAssessment.proposals.forEach(p => {
+      const chosen = mappingOverrides[p.target_field] !== undefined
+        ? mappingOverrides[p.target_field]
+        : (p.proposed_source_field || "");
+      if (chosen) mappedCount++;
+      else if (p.required) unmappedReq++;
+    });
+  }
+
+  let riskCount = unmappedReq;
+  if (currentAssessment && currentAssessment.risks) {
+    riskCount += currentAssessment.risks.length;
+  }
+
+  if (trayMapped) {
+    trayMapped.textContent = totalProposals > 0 ? `${mappedCount} / ${totalProposals}` : "- / -";
+  }
+  if (trayRisks) {
+    trayRisks.textContent = `${riskCount}`;
+  }
+  if (trayQuarantine) {
+    if (currentResults && currentResults.validation) {
+      trayQuarantine.textContent = `${currentResults.validation.quarantined_records_count || 0} Records`;
+    } else {
+      trayQuarantine.textContent = "0 Records";
+    }
+  }
+  if (trayYield) {
+    if (currentResults && currentResults.validation) {
+      trayYield.textContent = `${currentResults.validation.contract_pass_rate}%`;
+    } else if (currentAssessment) {
+      trayYield.textContent = unmappedReq === 0 ? "100% (Forecast)" : "0% (Blocked)";
+    } else {
+      trayYield.textContent = "- %";
+    }
+  }
+
+  // Step-specific pill & tray action state
+  if (currentStep === 1) {
+    const sourceReady = Boolean(stagedSourceFile || (document.getElementById("sample-dataset-select") && document.getElementById("sample-dataset-select").value));
+    let contractReady = false;
+    if (activeContractTab === "sample") {
+      contractReady = Boolean(document.getElementById("sample-contract-select") && document.getElementById("sample-contract-select").value);
+    } else if (activeContractTab === "upload") {
+      contractReady = Boolean(stagedContractFile);
+    } else if (activeContractTab === "paste") {
+      const text = (document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "";
+      if (text) {
+        try { JSON.parse(text); contractReady = true; } catch (_) { contractReady = false; }
+      }
+    }
+
+    const isReady = sourceReady && contractReady;
+    if (dot) dot.className = isReady ? "island-dot green" : "island-dot amber";
+    if (title) title.textContent = isReady ? "Preflight Ready" : "Staging Required";
+    if (metric) metric.textContent = isReady ? "Source & schema staged" : "Select or drop dataset";
+    if (btn) btn.disabled = !isReady;
+    if (btnIcon) btnIcon.textContent = "→";
+    if (btnText) btnText.textContent = "Assess";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = !isReady;
+      trayPrimaryBtn.textContent = "Run Assessment →";
+    }
+  } else if (currentStep === 2) {
+    const colCount = (currentAssessment && currentAssessment.source && currentAssessment.source.columns) ? currentAssessment.source.columns.length : 0;
+    const rowCount = (currentAssessment && currentAssessment.source) ? (currentAssessment.source.total_rows || 0) : 0;
+    if (dot) dot.className = "island-dot blue";
+    if (title) title.textContent = "Profile Inspected";
+    if (metric) metric.textContent = `${colCount} cols • ${Number(rowCount).toLocaleString()} rows`;
+    if (btn) btn.disabled = false;
+    if (btnIcon) btnIcon.textContent = "→";
+    if (btnText) btnText.textContent = "Mapping";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = false;
+      trayPrimaryBtn.textContent = "Proceed to Mapping →";
+    }
+  } else if (currentStep === 3) {
+    const allMapped = (unmappedReq === 0);
+    if (dot) dot.className = allMapped ? "island-dot green" : "island-dot amber";
+    if (title) title.textContent = allMapped ? "Mappings Ready" : `${unmappedReq} Required Unmapped`;
+    if (metric) metric.textContent = `${mappedCount}/${totalProposals} mapped`;
+    if (btn) btn.disabled = false;
+    if (btnIcon) btnIcon.textContent = "→";
+    if (btnText) btnText.textContent = "Review Risks";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = false;
+      trayPrimaryBtn.textContent = "Review Risks Radar →";
+    }
+  } else if (currentStep === 4) {
+    const canApprove = (unmappedReq === 0);
+    if (dot) dot.className = canApprove ? "island-dot green" : "island-dot amber";
+    if (title) title.textContent = canApprove ? "Ready for Sign-Off" : `${unmappedReq} Blocker Unresolved`;
+    if (metric) metric.textContent = canApprove ? "100% Required Mapped" : "Resolve required fields";
+    if (btn) btn.disabled = !canApprove;
+    if (btnIcon) btnIcon.textContent = canApprove ? "✓" : "✕";
+    if (btnText) btnText.textContent = canApprove ? "Approve" : "Blocked";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = !canApprove;
+      trayPrimaryBtn.textContent = canApprove ? "Commit & Generate Adapter →" : "Resolve Blockers First";
+    }
+  } else if (currentStep === 5) {
+    if (dot) dot.className = "island-dot blue";
+    if (title) title.textContent = "Adapter Compiled";
+    if (metric) metric.textContent = "Python AST validated";
+    if (btn) btn.disabled = false;
+    if (btnIcon) btnIcon.textContent = "→";
+    if (btnText) btnText.textContent = "Validation";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = false;
+      trayPrimaryBtn.textContent = "View Validation Lab →";
+    }
+  } else if (currentStep === 6) {
+    const hasVal = currentResults && currentResults.validation;
+    const passRate = hasVal ? currentResults.validation.contract_pass_rate : 0;
+    if (dot) dot.className = (hasVal && passRate >= 95) ? "island-dot green" : "island-dot amber";
+    if (title) title.textContent = hasVal ? `Yield: ${passRate}%` : "Validation Lab";
+    if (metric) metric.textContent = hasVal ? `${currentResults.validation.valid_records_count} pass • ${currentResults.validation.quarantined_records_count} quarn` : "Ready to inspect";
+    if (btn) btn.disabled = false;
+    if (btnIcon) btnIcon.textContent = "→";
+    if (btnText) btnText.textContent = "Dossier";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = false;
+      trayPrimaryBtn.textContent = "View Final Dossier →";
+    }
+  } else if (currentStep === 7) {
+    if (dot) dot.className = "island-dot green";
+    if (title) title.textContent = "Preflight Certified";
+    if (metric) metric.textContent = "Zero-Loss Verified";
+    if (btn) btn.disabled = false;
+    if (btnIcon) btnIcon.textContent = "↓";
+    if (btnText) btnText.textContent = "Download";
+    if (trayPrimaryBtn) {
+      trayPrimaryBtn.disabled = false;
+      trayPrimaryBtn.textContent = "Download Preflight Package ↓";
+    }
+  }
+}
+
+// =============================================================================
+// Helper Utilities
+// =============================================================================
+
+function escapeHtml(text) {
+  if (text === null || text === undefined) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
