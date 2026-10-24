@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=6.0">
+  <link rel="stylesheet" href="style.css?v=6.1">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -575,101 +575,116 @@
              ================================================================ -->
         <section id="screen-validate" class="recon-screen hidden">
           <div class="section-header">
-            <h2 class="section-title">06 Validation Lab &amp; Golden Telemetry</h2>
-            <p class="section-desc">Real-time ledger accounting verification, harmonic conformance waveform, and quarantine forensics.</p>
+            <h2 class="section-title">06 Validation &amp; Conformance</h2>
+            <p class="section-desc">Integration validation metrics, zero-loss accounting identity, and forensic diagnostic log.</p>
           </div>
 
-          <!-- Hero Golden Conformance Telemetry HUD -->
-          <div class="golden-telemetry-card" id="golden-telemetry-card">
-            <div class="golden-card-header">
-              <div class="golden-header-left">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Golden Orbit Mark">
-                  <circle cx="12" cy="12" r="9" stroke="var(--golden-amber-bright)" stroke-width="2"/>
-                  <circle cx="12" cy="12" r="5.5" stroke="var(--golden-sparkle)" stroke-width="1.6" stroke-dasharray="2 3"/>
-                  <circle cx="12" cy="12" r="2.2" fill="var(--golden-amber-bright)"/>
-                </svg>
-                <div class="golden-header-title">
-                  Golden Conformance Matrix
-                  <span class="badge badge-gold" id="golden-status-badge">LEDGER VERIFIED</span>
+          <!-- Apple-Inspired Golden Conformance Card -->
+          <div class="apple-conformance-card" id="apple-conformance-card">
+            <div class="apple-card-layout">
+              <!-- Left Visual Stage: Apple Activity Ring / Trend -->
+              <div class="apple-visual-stage" id="apple-visual-stage">
+                <div class="apple-ring-wrapper" id="apple-ring-wrapper">
+                  <svg class="apple-ring-svg" id="apple-ring-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Dynamically rendered by renderAppleConformance() -->
+                  </svg>
+                  <div class="apple-ring-center">
+                    <span class="apple-ring-value" id="apple-ring-pct">0%</span>
+                    <span class="apple-ring-label">Conformance</span>
+                  </div>
                 </div>
-              </div>
-              <div class="golden-header-right">
-                <div class="golden-tab-group" role="tablist" aria-label="Golden Graph View Selector">
-                  <button class="golden-tab-btn active" data-mode="orbit" id="btn-gold-orbit" title="Concentric Golden Ratio Radial Gauge">
-                    <span>⟳</span> Golden Orbit
-                  </button>
-                  <button class="golden-tab-btn" data-mode="wave" id="btn-gold-wave" title="Continuous Batch Conformance Waveform">
-                    <span>∿</span> Conformance Wave
-                  </button>
-                  <button class="golden-tab-btn" data-mode="flow" id="btn-gold-flow" title="Zero-Loss Dual-Stream Flow">
-                    <span>⇄</span> Zero-Loss Flow
-                  </button>
+                <!-- Dynamic Trendline Viewport (Swapped when segmented toggle is set to Trend) -->
+                <div id="apple-trend-wrapper" class="hidden" style="width: 100%; height: 220px; position: relative;">
+                  <svg id="apple-trend-svg" viewBox="0 0 280 180" style="width: 100%; height: 180px; overflow: visible;" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
-                <div class="golden-balance-pill" id="golden-balance-pill">
-                  <span class="golden-pulse-dot"></span>
-                  <span id="golden-balance-text">Zero Data Loss Verified</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Interactive Golden SVG Stage -->
-            <div class="golden-stage-wrapper" id="golden-stage-wrapper">
-              <svg id="golden-svg-canvas" viewBox="0 0 860 260" xmlns="http://www.w3.org/2000/svg">
-                <!-- Dynamically rendered by renderGoldenGraph() in app.js -->
-              </svg>
-              <div id="golden-tooltip" class="golden-tooltip hidden"></div>
-            </div>
-
-            <!-- Integrated Golden Telemetry Metric Ribbon (Preserves all existing metric IDs) -->
-            <div class="golden-telemetry-ribbon">
-              <div class="golden-metric-tile">
-                <span class="golden-metric-tag">Total Ingested</span>
-                <div class="golden-metric-num">
-                  <span id="metric-total-records">0</span>
-                  <span style="font-size: 11px; font-weight: 500; color: var(--recon-text-muted);">records</span>
-                </div>
-                <div class="golden-bar-track">
-                  <div class="golden-bar-fill" style="width: 100%;"></div>
-                </div>
+                <div id="apple-tooltip" class="apple-tooltip hidden"></div>
               </div>
 
-              <div class="golden-metric-tile">
-                <span class="golden-metric-tag">Passed Validation</span>
-                <div class="golden-metric-num">
-                  <span class="text-emerald" id="metric-valid-records">0</span>
-                  <span style="font-size: 11px; font-weight: 600; color: var(--recon-emerald-text);" id="metric-valid-pct">0%</span>
+              <!-- Right Telemetry Panel -->
+              <div class="apple-telemetry-panel">
+                <div class="apple-panel-header">
+                  <span class="apple-eyebrow">Integration Ledger</span>
+                  <div class="apple-segmented-control" role="tablist" aria-label="Conformance View Selector">
+                    <button class="apple-segment-btn active" data-view="ring" id="btn-apple-ring">Activity Ring</button>
+                    <button class="apple-segment-btn" data-view="trend" id="btn-apple-trend">Batch Trend</button>
+                  </div>
                 </div>
-                <div class="golden-bar-track">
-                  <div class="golden-bar-fill emerald" id="golden-bar-valid" style="width: 0%;"></div>
-                </div>
-              </div>
 
-              <div class="golden-metric-tile">
-                <span class="golden-metric-tag">Quarantined Vault</span>
-                <div class="golden-metric-num">
-                  <span class="text-rose" id="metric-quarantined-records">0</span>
-                  <span style="font-size: 11px; font-weight: 600; color: var(--recon-rose-text);" id="metric-quarantined-pct">0%</span>
-                </div>
-                <div class="golden-bar-track">
-                  <div class="golden-bar-fill rose" id="golden-bar-quarantined" style="width: 0%;"></div>
-                </div>
-              </div>
+                <!-- Clean Apple Metric Rows (Preserving original IDs) -->
+                <div class="apple-metrics-list">
+                  <!-- Row 1: Valid Conformance -->
+                  <div class="apple-metric-row">
+                    <div class="apple-metric-header">
+                      <div class="apple-metric-label">
+                        <span class="apple-indicator-dot gold"></span>
+                        <span>Passed Validation</span>
+                      </div>
+                      <div class="apple-metric-figures">
+                        <span class="text-emerald" id="metric-valid-records">0</span>
+                        <span style="color: var(--apple-text-caption); font-weight: 500;">·</span>
+                        <span id="metric-valid-pct">0%</span>
+                      </div>
+                    </div>
+                    <div class="apple-track">
+                      <div class="apple-fill gold" id="apple-fill-valid" style="width: 0%;"></div>
+                    </div>
+                  </div>
 
-              <div class="golden-metric-tile">
-                <span class="golden-metric-tag">Contract Pass Rate</span>
-                <div class="golden-metric-num">
-                  <span style="color: var(--golden-amber-bright);" id="metric-pass-rate">0%</span>
-                  <span style="font-size: 11px; font-weight: 600; color: var(--golden-text-secondary);">Yield</span>
+                  <!-- Row 2: Quarantined Records -->
+                  <div class="apple-metric-row">
+                    <div class="apple-metric-header">
+                      <div class="apple-metric-label">
+                        <span class="apple-indicator-dot rose"></span>
+                        <span>Quarantined Records</span>
+                      </div>
+                      <div class="apple-metric-figures">
+                        <span class="text-rose" id="metric-quarantined-records">0</span>
+                        <span style="color: var(--apple-text-caption); font-weight: 500;">·</span>
+                        <span id="metric-quarantined-pct">0%</span>
+                      </div>
+                    </div>
+                    <div class="apple-track">
+                      <div class="apple-fill rose" id="apple-fill-quarantine" style="width: 0%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Row 3: Total Ingested -->
+                  <div class="apple-metric-row">
+                    <div class="apple-metric-header">
+                      <div class="apple-metric-label">
+                        <span class="apple-indicator-dot slate"></span>
+                        <span>Total Ingested Payload</span>
+                      </div>
+                      <div class="apple-metric-figures">
+                        <span id="metric-total-records">0</span>
+                        <span style="color: var(--apple-text-caption); font-weight: 500;">records</span>
+                        <span style="color: var(--apple-text-caption); font-weight: 500;">·</span>
+                        <span id="metric-pass-rate" style="color: var(--apple-gold-mid);">0%</span>
+                        <span style="color: var(--apple-text-caption); font-weight: 500;">yield</span>
+                      </div>
+                    </div>
+                    <div class="apple-track">
+                      <div class="apple-fill slate" style="width: 100%;"></div>
+                    </div>
+                  </div>
                 </div>
-                <div class="golden-bar-track">
-                  <div class="golden-bar-fill" id="golden-bar-yield" style="width: 0%;"></div>
+
+                <!-- Footer Status -->
+                <div class="apple-footer-status">
+                  <div class="apple-pill-status">
+                    <span class="apple-pulse-green" id="apple-status-dot"></span>
+                    <span id="apple-status-text">Ledger Balanced · Zero Data Loss Guaranteed</span>
+                  </div>
+                  <div style="font-size: 11px; font-family: var(--font-mono); color: var(--apple-text-caption);" id="apple-eq-compact">
+                    N_total = N_valid + N_quarantine
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Zero-Loss Accounting Balance Bar -->
-          <div class="ledger-balance-bar balanced" id="ledger-balance-bar" style="margin-bottom: 20px;">
+          <!-- Preserved Ledger Balance Bar (Hidden from visual noise, but active in DOM for API/test compatibility) -->
+          <div class="ledger-balance-bar balanced hidden" id="ledger-balance-bar">
             <span>[✓ LEDGER BALANCED]</span>
             <span id="ledger-balance-equation">N_total (0) = N_valid (0) + N_quarantine (0). Zero data loss verified.</span>
           </div>
@@ -1250,6 +1265,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=6.0"></script>
+  <script src="app.js?v=6.1"></script>
 </body>
 </html>

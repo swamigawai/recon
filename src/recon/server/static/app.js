@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initDynamicIsland();
   initPresetBenchmarks();
   initMappingViewToggle();
-  initGoldenGraphEvents();
+  initAppleConformanceEvents();
   loadSampleDatasets();
   loadSampleContracts();
   bindDropZones();
@@ -136,8 +136,12 @@ function applyTheme(theme) {
       text.textContent = "Dark";
     }
   }
-  if (lastValidationData) {
-    renderGoldenGraph(lastValidationData, activeGoldenMode);
+  if (lastAppleValidationData) {
+    if (activeAppleView === "ring") {
+      renderAppleConformance(lastAppleValidationData);
+    } else {
+      renderAppleTrend(lastAppleValidationData);
+    }
   }
 }
 
@@ -3267,314 +3271,176 @@ function fallbackCopy(text, onSuccess) {
 }
 
 // =============================================================================
-// Screen F: Validation Lab & Golden Conformance Telemetry
+// Screen F: Validation Lab & Apple Conformance Experience
 // =============================================================================
 
-let activeGoldenMode = "orbit"; // "orbit" | "wave" | "flow"
-let lastValidationData = null;
+let activeAppleView = "ring"; // "ring" | "trend"
+let lastAppleValidationData = null;
 
-function initGoldenGraphEvents() {
-  const modes = [
-    { id: "btn-gold-orbit", mode: "orbit" },
-    { id: "btn-gold-wave", mode: "wave" },
-    { id: "btn-gold-flow", mode: "flow" }
-  ];
+function initAppleConformanceEvents() {
+  const btnRing = document.getElementById("btn-apple-ring");
+  const btnTrend = document.getElementById("btn-apple-trend");
+  const ringWrapper = document.getElementById("apple-ring-wrapper");
+  const trendWrapper = document.getElementById("apple-trend-wrapper");
 
-  modes.forEach(({ id, mode }) => {
-    const btn = document.getElementById(id);
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      activeGoldenMode = mode;
-      modes.forEach(m => {
-        const b = document.getElementById(m.id);
-        if (b) b.classList.toggle("active", m.mode === mode);
-      });
-      if (lastValidationData) {
-        renderGoldenGraph(lastValidationData, activeGoldenMode);
-      }
+  if (btnRing && btnTrend) {
+    btnRing.addEventListener("click", () => {
+      activeAppleView = "ring";
+      btnRing.classList.add("active");
+      btnTrend.classList.remove("active");
+      if (ringWrapper) ringWrapper.classList.remove("hidden");
+      if (trendWrapper) trendWrapper.classList.add("hidden");
+      if (lastAppleValidationData) renderAppleConformance(lastAppleValidationData);
     });
-  });
+
+    btnTrend.addEventListener("click", () => {
+      activeAppleView = "trend";
+      btnTrend.classList.add("active");
+      btnRing.classList.remove("active");
+      if (ringWrapper) ringWrapper.classList.add("hidden");
+      if (trendWrapper) trendWrapper.classList.remove("hidden");
+      if (lastAppleValidationData) renderAppleTrend(lastAppleValidationData);
+    });
+  }
 }
 
-function renderGoldenGraph(data, mode = "orbit") {
-  const svg = document.getElementById("golden-svg-canvas");
+function renderAppleConformance(data) {
+  const svg = document.getElementById("apple-ring-svg");
   if (!svg) return;
-  const tooltip = document.getElementById("golden-tooltip");
+
+  const val = (data && data.validation) ? data.validation : null;
+  const rate = val && val.contract_pass_rate != null ? Number(val.contract_pass_rate) : 0;
+  const total = val ? (val.total_input_records || 0) : 0;
+
+  // Center display
+  const pctEl = document.getElementById("apple-ring-pct");
+  if (pctEl) {
+    pctEl.textContent = total > 0 ? `${Math.round(rate)}%` : "0%";
+  }
+
+  // Radius = 84, Circumference = 2 * PI * 84 ≈ 527.787
+  const r = 84;
+  const circ = 2 * Math.PI * r;
+  const clampedRate = Math.max(0, Math.min(100, rate));
+  const offset = total > 0 ? circ * (1 - clampedRate / 100) : circ;
+
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const stop0 = isDark ? "#FCE9A6" : "#F7E7C4";
+  const stop50 = isDark ? "#E5C158" : "#D4AF37";
+  const stop100 = isDark ? "#A67C26" : "#997328";
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="appleGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${stop0}" />
+        <stop offset="50%" stop-color="${stop50}" />
+        <stop offset="100%" stop-color="${stop100}" />
+      </linearGradient>
+      <filter id="appleRingShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="${stop50}" flood-opacity="0.35"/>
+      </filter>
+    </defs>
+    <!-- Background Track -->
+    <circle cx="110" cy="110" r="${r}" fill="none" stroke="var(--apple-ring-track)" stroke-width="16" />
+    <!-- Active Conformance Ring Arc -->
+    <circle cx="110" cy="110" r="${r}" fill="none" stroke="url(#appleGoldGrad)" stroke-width="16"
+            stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"
+            filter="url(#appleRingShadow)" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1);" />
+  `;
+}
+
+function renderAppleTrend(data) {
+  const svg = document.getElementById("apple-trend-svg");
+  if (!svg) return;
+  const tooltip = document.getElementById("apple-tooltip");
 
   const val = (data && data.validation) ? data.validation : null;
   const total = val ? (val.total_input_records || 0) : 0;
-  const valid = val ? (val.valid_records_count || 0) : 0;
   const quarantined = val ? (val.quarantined_records_count || 0) : 0;
-  const rate = val && val.contract_pass_rate != null ? Number(val.contract_pass_rate) : 0;
-  const isBalanced = total === (valid + quarantined);
-  const validPct = total > 0 ? ((valid / total) * 100).toFixed(1) : "0";
-  const quarnPct = total > 0 ? ((quarantined / total) * 100).toFixed(1) : "0";
-
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-
-  // Palette definitions
-  const goldPrimary = isDark ? "#FBBF24" : "#D97706";
-  const goldSecondary = isDark ? "#F59E0B" : "#B45309";
-  const goldSparkle = isDark ? "#FDE68A" : "#F59E0B";
-  const trackColor = isDark ? "rgba(245, 158, 11, 0.12)" : "rgba(217, 119, 6, 0.10)";
-  const gridColor = isDark ? "rgba(245, 158, 11, 0.14)" : "rgba(217, 119, 6, 0.12)";
-  const textColor = isDark ? "#F8FAFC" : "#0F172A";
-  const textMuted = isDark ? "#94A3B8" : "#64748B";
-  const cardBg = isDark ? "#131C2E" : "#FFFFFF";
-  const cardBorder = isDark ? "rgba(245, 158, 11, 0.28)" : "rgba(217, 119, 6, 0.24)";
-
-  const defs = `
-    <defs>
-      <linearGradient id="goldRadialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${goldSparkle}" />
-        <stop offset="50%" stop-color="${goldPrimary}" />
-        <stop offset="100%" stop-color="${goldSecondary}" />
-      </linearGradient>
-      <linearGradient id="goldWaveFill" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="${goldPrimary}" stop-opacity="${isDark ? '0.35' : '0.22'}" />
-        <stop offset="100%" stop-color="${goldPrimary}" stop-opacity="0.0" />
-      </linearGradient>
-      <linearGradient id="goldPipeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${goldSecondary}" />
-        <stop offset="50%" stop-color="${goldSparkle}" />
-        <stop offset="100%" stop-color="${goldPrimary}" />
-      </linearGradient>
-      <linearGradient id="validPipeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${goldPrimary}" />
-        <stop offset="100%" stop-color="#10B981" />
-      </linearGradient>
-      <linearGradient id="quarPipeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${goldPrimary}" />
-        <stop offset="100%" stop-color="#F43F5E" />
-      </linearGradient>
-      <filter id="goldDropGlow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="${goldPrimary}" flood-opacity="${isDark ? '0.45' : '0.25'}"/>
-      </filter>
-    </defs>
-  `;
 
   if (!val || total === 0) {
-    svg.innerHTML = `
-      ${defs}
-      <g transform="translate(430, 130)">
-        <circle cx="0" cy="0" r="70" fill="none" stroke="${trackColor}" stroke-width="6" stroke-dasharray="4 6"/>
-        <circle cx="0" cy="0" r="50" fill="none" stroke="${goldPrimary}" stroke-width="2" stroke-opacity="0.4"/>
-        <text y="5" font-family="var(--font-mono)" font-size="12" fill="${textMuted}" text-anchor="middle">Awaiting Validation Execution...</text>
-      </g>
-    `;
+    svg.innerHTML = `<text x="140" y="90" font-family="-apple-system, sans-serif" font-size="12" fill="var(--apple-text-caption)" text-anchor="middle">Awaiting data...</text>`;
     return;
   }
 
-  if (mode === "orbit") {
-    const r = 78;
-    const circ = 2 * Math.PI * r;
-    const clampedRate = Math.max(0, Math.min(100, rate));
-    const offset = circ * (1 - clampedRate / 100);
+  const w = 280;
+  const h = 180;
+  const padX = 20;
+  const padY = 24;
+  const graphW = w - padX * 2;
+  const graphH = h - padY * 2;
 
-    svg.innerHTML = `
-      ${defs}
-      <!-- Background Ambient Glow & Rails -->
-      <circle cx="430" cy="125" r="95" fill="none" stroke="${trackColor}" stroke-width="1" stroke-dasharray="2 6"/>
-      <circle cx="430" cy="125" r="${r}" fill="none" stroke="${trackColor}" stroke-width="12"/>
+  const pointsCount = Math.max(10, Math.min(24, total));
+  const points = [];
 
-      <!-- Connecting Bézier Conduits -->
-      <path d="M 210 125 C 290 125, 305 125, 345 125" fill="none" stroke="${trackColor}" stroke-width="4"/>
-      <path d="M 210 125 C 290 125, 305 125, 345 125" fill="none" stroke="url(#goldPipeGrad)" stroke-width="3" stroke-dasharray="6 6" class="gold-flow-pipe"/>
-
-      <path d="M 515 110 C 560 110, 595 78, 645 78" fill="none" stroke="${trackColor}" stroke-width="4"/>
-      <path d="M 515 110 C 560 110, 595 78, 645 78" fill="none" stroke="url(#validPipeGrad)" stroke-width="3" stroke-dasharray="6 6" class="gold-flow-pipe"/>
-
-      <path d="M 515 140 C 560 140, 595 172, 645 172" fill="none" stroke="${trackColor}" stroke-width="4"/>
-      <path d="M 515 140 C 560 140, 595 172, 645 172" fill="none" stroke="url(#quarPipeGrad)" stroke-width="3" stroke-dasharray="6 6" class="gold-flow-pipe"/>
-
-      <!-- Active Golden Conformance Arc -->
-      <circle cx="430" cy="125" r="${r}" fill="none" stroke="url(#goldRadialGrad)" stroke-width="12"
-              stroke-linecap="round" stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"
-              transform="rotate(-90 430 125)" filter="url(#goldDropGlow)"/>
-
-      <!-- Center Orbit Node -->
-      <g id="orbit-center-node">
-        <circle cx="430" cy="125" r="66" fill="${cardBg}" stroke="${cardBorder}" stroke-width="1.5"/>
-        <text x="430" y="118" class="gold-orbit-pct">${clampedRate.toFixed(1)}%</text>
-        <text x="430" y="136" class="gold-orbit-lbl">CONFORMANCE YIELD</text>
-        <rect x="370" y="145" width="120" height="18" rx="9" fill="${trackColor}" stroke="${cardBorder}"/>
-        <text x="430" y="157" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="${goldPrimary}" text-anchor="middle">
-          ${isBalanced ? "✓ ZERO-LOSS VERIFIED" : "✕ UNBALANCED"}
-        </text>
-      </g>
-
-      <!-- Left Node: Ingestion Pool -->
-      <g class="gold-node-box" transform="translate(60, 90)">
-        <rect width="150" height="70" rx="8" fill="${cardBg}" stroke="${cardBorder}" stroke-width="1.2"/>
-        <rect x="0" y="0" width="4" height="70" rx="2" fill="${goldPrimary}"/>
-        <text x="14" y="22" font-size="9" font-family="var(--font-sans)" font-weight="700" fill="${textMuted}" letter-spacing="0.08em">STAGE 01 // INGEST</text>
-        <text x="14" y="44" font-size="18" font-family="var(--font-mono)" font-weight="800" fill="${textColor}">${Number(total).toLocaleString()}</text>
-        <text x="14" y="59" font-size="10" font-family="var(--font-sans)" font-weight="600" fill="${goldSecondary}">Total Source Rows</text>
-      </g>
-
-      <!-- Right Upper Node: Cleared Conforming -->
-      <g class="gold-node-box" transform="translate(645, 45)">
-        <rect width="160" height="66" rx="8" fill="${cardBg}" stroke="${isDark ? 'rgba(16, 185, 129, 0.4)' : 'rgba(16, 185, 129, 0.3)'}" stroke-width="1.2"/>
-        <rect x="0" y="0" width="4" height="66" rx="2" fill="#10B981"/>
-        <text x="14" y="20" font-size="9" font-family="var(--font-sans)" font-weight="700" fill="#10B981" letter-spacing="0.08em">STAGE 02 // CLEARED</text>
-        <text x="14" y="42" font-size="18" font-family="var(--font-mono)" font-weight="800" fill="#10B981">${Number(valid).toLocaleString()}</text>
-        <text x="14" y="56" font-size="10" font-family="var(--font-sans)" font-weight="600" fill="${textMuted}">${validPct}% Valid Conforming</text>
-      </g>
-
-      <!-- Right Lower Node: Quarantine Vault -->
-      <g class="gold-node-box" transform="translate(645, 140)">
-        <rect width="160" height="66" rx="8" fill="${cardBg}" stroke="${quarantined > 0 ? (isDark ? 'rgba(244, 63, 94, 0.45)' : 'rgba(244, 63, 94, 0.35)') : cardBorder}" stroke-width="1.2"/>
-        <rect x="0" y="0" width="4" height="66" rx="2" fill="${quarantined > 0 ? '#F43F5E' : goldPrimary}"/>
-        <text x="14" y="20" font-size="9" font-family="var(--font-sans)" font-weight="700" fill="${quarantined > 0 ? '#F43F5E' : textMuted}" letter-spacing="0.08em">STAGE 02 // QUARANTINE</text>
-        <text x="14" y="42" font-size="18" font-family="var(--font-mono)" font-weight="800" fill="${quarantined > 0 ? '#F43F5E' : textColor}">${Number(quarantined).toLocaleString()}</text>
-        <text x="14" y="56" font-size="10" font-family="var(--font-sans)" font-weight="600" fill="${textMuted}">${quarnPct}% Isolated Forensics</text>
-      </g>
-    `;
-  } else if (mode === "wave") {
-    const yTop = 40;
-    const yBottom = 210;
-    const yH = yBottom - yTop;
-    const xLeft = 70;
-    const xRight = 810;
-    const xW = xRight - xLeft;
-
-    const sampleQuar = val.sample_quarantined_records || [];
-    const quarIndices = new Set(sampleQuar.map(r => r.row_index || r.record_index || 0));
-
-    const pointsCount = Math.max(12, Math.min(30, total || 15));
-    const points = [];
-
-    for (let i = 0; i < pointsCount; i++) {
-      const px = xLeft + (i / (pointsCount - 1)) * xW;
-      const isQuar = quarIndices.has(i + 1) || (quarantined > 0 && i % Math.max(1, Math.floor(pointsCount / quarantined)) === 0 && points.filter(p => p.isQuar).length < quarantined);
-      const variance = (Math.sin(i * 1.3) * 3);
-      const py = isQuar ? (yBottom - 35 + variance) : (yTop + 6 + variance);
-      points.push({ x: px, y: py, isQuar, index: i + 1 });
-    }
-
-    let pathD = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i];
-      const p1 = points[i + 1];
-      const cx = (p0.x + p1.x) / 2;
-      pathD += ` C ${cx} ${p0.y}, ${cx} ${p1.y}, ${p1.x} ${p1.y}`;
-    }
-
-    const areaD = `${pathD} L ${points[points.length - 1].x} ${yBottom} L ${points[0].x} ${yBottom} Z`;
-
-    let gridLinesSvg = "";
-    [100, 75, 50, 25, 0].forEach(pct => {
-      const gy = yTop + (1 - pct / 100) * yH;
-      gridLinesSvg += `
-        <line x1="${xLeft}" y1="${gy}" x2="${xRight}" y2="${gy}" stroke="${gridColor}" stroke-width="1" stroke-dasharray="2 4"/>
-        <text x="${xLeft - 10}" y="${gy + 4}" font-size="9" font-family="var(--font-mono)" fill="${textMuted}" text-anchor="end">${pct}%</text>
-      `;
-    });
-
-    let pointsSvg = "";
-    points.forEach(p => {
-      const color = p.isQuar ? "#F43F5E" : goldPrimary;
-      const r = p.isQuar ? 6 : 4;
-      pointsSvg += `
-        <g class="wave-data-point" data-row="${p.index}" data-status="${p.isQuar ? 'Quarantined' : 'Valid Conforming'}" style="cursor: pointer;">
-          ${p.isQuar ? `<circle cx="${p.x}" cy="${p.y}" r="10" fill="none" stroke="#F43F5E" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.8"/>` : ''}
-          <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="${cardBg}" stroke-width="1.5" filter="url(#goldDropGlow)"/>
-        </g>
-      `;
-    });
-
-    svg.innerHTML = `
-      ${defs}
-      ${gridLinesSvg}
-      <path d="${areaD}" fill="url(#goldWaveFill)"/>
-      <path d="${pathD}" fill="none" stroke="url(#goldRadialGrad)" stroke-width="3" filter="url(#goldDropGlow)"/>
-      ${pointsSvg}
-      <line x1="${xLeft}" y1="${yBottom}" x2="${xRight}" y2="${yBottom}" stroke="${gridColor}" stroke-width="1.5"/>
-      <text x="${xLeft}" y="${yBottom + 18}" font-size="10" font-family="var(--font-mono)" fill="${textMuted}">Batch Row #01</text>
-      <text x="${(xLeft + xRight) / 2}" y="${yBottom + 18}" font-size="10" font-family="var(--font-mono)" fill="${goldSparkle}" text-anchor="middle">Dynamic Conformance Waveform</text>
-      <text x="${xRight}" y="${yBottom + 18}" font-size="10" font-family="var(--font-mono)" fill="${textMuted}" text-anchor="end">Row #${total || pointsCount}</text>
-    `;
-
-    svg.querySelectorAll(".wave-data-point").forEach(el => {
-      el.addEventListener("mouseenter", () => {
-        const row = el.getAttribute("data-row");
-        const status = el.getAttribute("data-status");
-        if (tooltip) {
-          tooltip.innerHTML = `
-            <div style="font-weight: 700; color: ${status.includes('Quarantined') ? '#F43F5E' : '#FBBF24'};">Record #${row} // ${status}</div>
-            <div style="font-size: 10px; color: #E2E8F0; margin-top: 2px;">Target schema invariants evaluated</div>
-          `;
-          tooltip.classList.remove("hidden");
-          const rect = svg.getBoundingClientRect();
-          const p = el.querySelector("circle:last-child");
-          const cx = parseFloat(p.getAttribute("cx"));
-          const cy = parseFloat(p.getAttribute("cy"));
-          const scaleX = rect.width / 860;
-          const scaleY = rect.height / 260;
-          tooltip.style.left = `${cx * scaleX + 12}px`;
-          tooltip.style.top = `${cy * scaleY - 25}px`;
-        }
-      });
-      el.addEventListener("mouseleave", () => {
-        if (tooltip) tooltip.classList.add("hidden");
-      });
-    });
-  } else if (mode === "flow") {
-    const stages = [
-      { name: "01 INGEST", desc: "Raw Payloads", count: total, color: goldPrimary, x: 90 },
-      { name: "02 COERCION", desc: "Type Normalization", count: total, color: goldSecondary, x: 310 },
-      { name: "03 CONTRACT", desc: "Invariant Rules", count: total, color: goldSparkle, x: 530 }
-    ];
-
-    let conduitsSvg = "";
-    conduitsSvg += `
-      <path d="M 180 125 C 240 125, 250 125, 310 125" fill="none" stroke="${trackColor}" stroke-width="8"/>
-      <path d="M 180 125 C 240 125, 250 125, 310 125" fill="none" stroke="url(#goldPipeGrad)" stroke-width="6" stroke-dasharray="8 6" class="gold-flow-pipe"/>
-      <path d="M 400 125 C 460 125, 470 125, 530 125" fill="none" stroke="${trackColor}" stroke-width="8"/>
-      <path d="M 400 125 C 460 125, 470 125, 530 125" fill="none" stroke="url(#goldPipeGrad)" stroke-width="6" stroke-dasharray="8 6" class="gold-flow-pipe"/>
-      <path d="M 620 115 C 670 115, 680 78, 720 78" fill="none" stroke="${trackColor}" stroke-width="6"/>
-      <path d="M 620 115 C 670 115, 680 78, 720 78" fill="none" stroke="url(#validPipeGrad)" stroke-width="5" stroke-dasharray="6 6" class="gold-flow-pipe"/>
-      <path d="M 620 135 C 670 135, 680 172, 720 172" fill="none" stroke="${trackColor}" stroke-width="6"/>
-      <path d="M 620 135 C 670 135, 680 172, 720 172" fill="none" stroke="url(#quarPipeGrad)" stroke-width="5" stroke-dasharray="6 6" class="gold-flow-pipe"/>
-    `;
-
-    let stageBoxesSvg = "";
-    stages.forEach(st => {
-      stageBoxesSvg += `
-        <g class="gold-node-box" transform="translate(${st.x - 45}, 90)">
-          <rect width="135" height="70" rx="8" fill="${cardBg}" stroke="${cardBorder}" stroke-width="1.2"/>
-          <rect x="0" y="0" width="4" height="70" rx="2" fill="${st.color}"/>
-          <text x="12" y="20" font-size="9" font-family="var(--font-sans)" font-weight="700" fill="${st.color}" letter-spacing="0.08em">${st.name}</text>
-          <text x="12" y="42" font-size="17" font-family="var(--font-mono)" font-weight="800" fill="${textColor}">${Number(st.count).toLocaleString()}</text>
-          <text x="12" y="58" font-size="10" font-family="var(--font-sans)" font-weight="600" fill="${textMuted}">${st.desc}</text>
-        </g>
-      `;
-    });
-
-    svg.innerHTML = `
-      ${defs}
-      ${conduitsSvg}
-      ${stageBoxesSvg}
-
-      <!-- Destination 04A: Cleared Ledger -->
-      <g class="gold-node-box" transform="translate(710, 48)">
-        <rect width="135" height="60" rx="8" fill="${cardBg}" stroke="rgba(16, 185, 129, 0.4)" stroke-width="1.2"/>
-        <rect x="0" y="0" width="4" height="60" rx="2" fill="#10B981"/>
-        <text x="12" y="18" font-size="9" font-family="var(--font-sans)" font-weight="700" fill="#10B981" letter-spacing="0.08em">04A // VERIFIED</text>
-        <text x="12" y="38" font-size="16" font-family="var(--font-mono)" font-weight="800" fill="#10B981">${Number(valid).toLocaleString()}</text>
-        <text x="12" y="52" font-size="10" font-family="var(--font-sans)" font-weight="600" fill="${textMuted}">Passed Conformance</text>
-      </g>
-
-      <!-- Destination 04B: Quarantine Vault -->
-      <g class="gold-node-box" transform="translate(710, 142)">
-        <rect width="135" height="60" rx="8" fill="${cardBg}" stroke="${quarantined > 0 ? 'rgba(244, 63, 94, 0.45)' : cardBorder}" stroke-width="1.2"/>
-        <rect x="0" y="0" width="4" height="60" rx="2" fill="${quarantined > 0 ? '#F43F5E' : goldPrimary}"/>
-        <text x="12" y="18" font-size="9" font-family="var(--font-sans)" font-weight="700" fill="${quarantined > 0 ? '#F43F5E' : textMuted}" letter-spacing="0.08em">04B // QUARANTINE</text>
-        <text x="12" y="38" font-size="16" font-family="var(--font-mono)" font-weight="800" fill="${quarantined > 0 ? '#F43F5E' : textColor}">${Number(quarantined).toLocaleString()}</text>
-        <text x="12" y="52" font-size="10" font-family="var(--font-sans)" font-weight="600" fill="${textMuted}">Diagnostic Log</text>
-      </g>
-    `;
+  for (let i = 0; i < pointsCount; i++) {
+    const px = padX + (i / (pointsCount - 1)) * graphW;
+    const isQuar = quarantined > 0 && (i === Math.floor(pointsCount / 2) || (quarantined > 1 && i % 4 === 0));
+    const variance = Math.sin(i * 0.9) * 4;
+    const py = isQuar ? (padY + graphH * 0.75 + variance) : (padY + 12 + variance);
+    points.push({ x: px, y: py, isQuar, index: i + 1 });
   }
+
+  let pathD = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const cx = (p0.x + p1.x) / 2;
+    pathD += ` C ${cx} ${p0.y}, ${cx} ${p1.y}, ${p1.x} ${p1.y}`;
+  }
+
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${padY + graphH} L ${points[0].x} ${padY + graphH} Z`;
+
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const lineColor = isDark ? "#E5C158" : "#D4AF37";
+
+  let dotsSvg = "";
+  points.forEach(p => {
+    dotsSvg += `
+      <circle cx="${p.x}" cy="${p.y}" r="${p.isQuar ? 5 : 3.5}" 
+              fill="${p.isQuar ? '#FF3B30' : lineColor}" 
+              stroke="var(--apple-glass-bg)" stroke-width="2" class="apple-trend-dot" 
+              data-row="${p.index}" data-status="${p.isQuar ? 'Quarantined' : 'Valid Conforming'}"
+              style="cursor: pointer;" />
+    `;
+  });
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="appleTrendFill" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="${lineColor}" stop-opacity="${isDark ? '0.28' : '0.18'}" />
+        <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.0" />
+      </linearGradient>
+    </defs>
+    <!-- Baseline 100% -->
+    <line x1="${padX}" y1="${padY + 12}" x2="${padX + graphW}" y2="${padY + 12}" stroke="var(--apple-track-bg)" stroke-width="1" stroke-dasharray="2 3"/>
+    <!-- Area & Line -->
+    <path d="${areaD}" fill="url(#appleTrendFill)" />
+    <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round" />
+    ${dotsSvg}
+  `;
+
+  // Tooltip interaction
+  svg.querySelectorAll(".apple-trend-dot").forEach(dot => {
+    dot.addEventListener("mouseenter", () => {
+      const row = dot.getAttribute("data-row");
+      const status = dot.getAttribute("data-status");
+      if (tooltip) {
+        tooltip.textContent = `Record #${row} · ${status}`;
+        tooltip.classList.remove("hidden");
+        const rect = svg.getBoundingClientRect();
+        const cx = parseFloat(dot.getAttribute("cx"));
+        const cy = parseFloat(dot.getAttribute("cy"));
+        const scaleX = rect.width / w;
+        const scaleY = rect.height / h;
+        tooltip.style.left = `${cx * scaleX + 8}px`;
+        tooltip.style.top = `${cy * scaleY - 28}px`;
+      }
+    });
+    dot.addEventListener("mouseleave", () => {
+      if (tooltip) tooltip.classList.add("hidden");
+    });
+  });
 }
 
 function renderValidationLab(data) {
@@ -3587,6 +3453,7 @@ function renderValidationLab(data) {
   const validPct = total > 0 ? ((valid / total) * 100).toFixed(1) : "0";
   const quarnPct = total > 0 ? ((quarantined / total) * 100).toFixed(1) : "0";
 
+  // Standard metrics
   document.getElementById("metric-total-records").textContent = Number(total).toLocaleString();
   document.getElementById("metric-valid-records").textContent = Number(valid).toLocaleString();
   document.getElementById("metric-valid-pct").textContent = `${validPct}%`;
@@ -3594,47 +3461,48 @@ function renderValidationLab(data) {
   document.getElementById("metric-quarantined-pct").textContent = `${quarnPct}%`;
   document.getElementById("metric-pass-rate").textContent = `${rate}%`;
 
-  // Update golden progress bars & telemetry headers
-  const barValid = document.getElementById("golden-bar-valid");
-  if (barValid) barValid.style.width = `${validPct}%`;
-  const barQuar = document.getElementById("golden-bar-quarantined");
-  if (barQuar) barQuar.style.width = `${quarnPct}%`;
-  const barYield = document.getElementById("golden-bar-yield");
-  if (barYield) barYield.style.width = `${rate}%`;
+  // Apple progress fills
+  const fillValid = document.getElementById("apple-fill-valid");
+  if (fillValid) fillValid.style.width = `${validPct}%`;
+  const fillQuar = document.getElementById("apple-fill-quarantine");
+  if (fillQuar) fillQuar.style.width = `${quarnPct}%`;
 
-  const statusBadge = document.getElementById("golden-status-badge");
-  if (statusBadge) {
-    if (total === (valid + quarantined)) {
-      statusBadge.textContent = quarantined === 0 ? "100% CONFORMANT" : "ZERO-LOSS BALANCED";
-      statusBadge.className = "badge badge-gold";
+  // Apple status
+  const isBalanced = total === (valid + quarantined);
+  const statusDot = document.getElementById("apple-status-dot");
+  const statusText = document.getElementById("apple-status-text");
+  if (statusDot && statusText) {
+    if (isBalanced) {
+      statusDot.className = "apple-pulse-green";
+      statusText.textContent = quarantined === 0 
+        ? "100% Conformance · Zero Data Loss Guaranteed" 
+        : `Ledger Balanced · ${quarantined} quarantined records isolated`;
     } else {
-      statusBadge.textContent = "INTEGRITY ALERT";
-      statusBadge.className = "badge badge-rose";
+      statusDot.className = "apple-pulse-red";
+      statusText.textContent = "Ledger Discrepancy Detected";
     }
   }
 
-  const balanceText = document.getElementById("golden-balance-text");
-  if (balanceText) {
-    balanceText.textContent = total === (valid + quarantined) ? "Zero Data Loss Verified" : "Ledger Discrepancy";
+  // Render Apple Visual
+  lastAppleValidationData = data;
+  if (activeAppleView === "ring") {
+    renderAppleConformance(data);
+  } else {
+    renderAppleTrend(data);
   }
 
-  // Render the Golden SVG Graph
-  lastValidationData = data;
-  renderGoldenGraph(data, activeGoldenMode);
-
   // Ledger Accounting Identity Verification: N_total = N_valid + N_quarantine
-  const isBalanced = total === (valid + quarantined);
   const ledgerBar = document.getElementById("ledger-balance-bar");
   const ledgerEq = document.getElementById("ledger-balance-equation");
 
   if (isBalanced) {
-    ledgerBar.className = "ledger-balance-bar balanced";
-    ledgerBar.firstElementChild.textContent = "[✓ LEDGER BALANCED]";
-    ledgerEq.textContent = `N_total (${total}) = N_valid (${valid}) + N_quarantine (${quarantined}). Zero data loss verified.`;
+    if (ledgerBar) ledgerBar.className = "ledger-balance-bar balanced hidden";
+    if (ledgerBar && ledgerBar.firstElementChild) ledgerBar.firstElementChild.textContent = "[✓ LEDGER BALANCED]";
+    if (ledgerEq) ledgerEq.textContent = `N_total (${total}) = N_valid (${valid}) + N_quarantine (${quarantined}). Zero data loss verified.`;
   } else {
-    ledgerBar.className = "ledger-balance-bar unbalanced";
-    ledgerBar.firstElementChild.textContent = "[✕ LEDGER UNBALANCED]";
-    ledgerEq.textContent = `CRITICAL INTEGRITY FAILURE: N_total (${total}) ≠ N_valid (${valid}) + N_quarantine (${quarantined}).`;
+    if (ledgerBar) ledgerBar.className = "ledger-balance-bar unbalanced";
+    if (ledgerBar && ledgerBar.firstElementChild) ledgerBar.firstElementChild.textContent = "[✕ LEDGER UNBALANCED]";
+    if (ledgerEq) ledgerEq.textContent = `CRITICAL INTEGRITY FAILURE: N_total (${total}) ≠ N_valid (${valid}) + N_quarantine (${quarantined}).`;
   }
 
   // Test Cases
