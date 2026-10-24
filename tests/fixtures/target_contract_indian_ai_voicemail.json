@@ -1,0 +1,98 @@
+{
+  "contract_name": "indian_ai_voicemail_contract",
+  "version": "1.0.0",
+  "description": "Downstream schema contract for Indian AI Voice Agent & Telephony Voicemail Ingestion",
+  "fields": {
+    "call_id": {
+      "name": "call_id",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique identifier for the telephony voice session"
+    },
+    "customer_name": {
+      "name": "customer_name",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Full name of the caller or customer"
+    },
+    "phone_number": {
+      "name": "phone_number",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "E.164 formatted Indian contact number (+91)"
+    },
+    "telecom_circle": {
+      "name": "telecom_circle",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Licensed Indian telecom circle / state"
+    },
+    "language_code": {
+      "name": "language_code",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Detected spoken language (e.g. hi-IN, en-IN, hinglish, ta-IN, te-IN, mr-IN)"
+    },
+    "call_timestamp": {
+      "name": "call_timestamp",
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "ISO-8601 call initiation timestamp with IST offset"
+    },
+    "duration_seconds": {
+      "name": "duration_seconds",
+      "target_type": "integer",
+      "required": true,
+      "nullable": false,
+      "description": "Total call connected duration in seconds"
+    },
+    "call_intent": {
+      "name": "call_intent",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Categorized intent of the voicemail or conversation"
+    },
+    "voicemail_transcript": {
+      "name": "voicemail_transcript",
+      "target_type": "string",
+      "required": false,
+      "nullable": true,
+      "description": "Automated STT transcript of voicemail or conversation in Hinglish/English/Indic"
+    },
+    "stt_confidence": {
+      "name": "stt_confidence",
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Speech-to-Text model confidence score between 0.0 and 1.0"
+    },
+    "sentiment": {
+      "name": "sentiment",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Sentiment score: positive, neutral, negative, urgent"
+    },
+    "resolution_status": {
+      "name": "resolution_status",
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Resolution status: resolved_by_ai, voicemail_saved, escalated_to_human, callback_scheduled"
+    },
+    "cost_inr": {
+      "name": "cost_inr",
+      "target_type": "float",
+      "required": false,
+      "nullable": true,
+      "description": "Telephony compute and carrier cost in Indian Rupees (INR)"
+    }
+  }
+}

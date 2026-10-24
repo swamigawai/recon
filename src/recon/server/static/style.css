@@ -4469,6 +4469,323 @@ button:active:not(:disabled),
   border-left: 3px solid var(--recon-primary-base);
 }
 
+/* =============================================================================
+   Screen 06: Golden Conformance Telemetry & Interactive Graph HUD
+   ============================================================================= */
+
+:root, [data-theme="light"] {
+  --golden-amber-bright:   #D97706;
+  --golden-amber-deep:     #B45309;
+  --golden-amber-dark:     #78350F;
+  --golden-sparkle:        #F59E0B;
+  --golden-light-tint:     #FEF3C7;
+  --golden-surface-bg:     linear-gradient(180deg, #FFFFFF 0%, #FFFDF5 100%);
+  --golden-card-border:    rgba(217, 119, 6, 0.28);
+  --golden-card-glow:      0 8px 30px rgba(217, 119, 6, 0.08);
+  --golden-text-primary:   #78350F;
+  --golden-text-secondary: #92400E;
+  --golden-grid-line:      rgba(217, 119, 6, 0.12);
+  --golden-track-bg:       rgba(217, 119, 6, 0.08);
+}
+
+[data-theme="dark"] {
+  --golden-amber-bright:   #FBBF24;
+  --golden-amber-deep:     #F59E0B;
+  --golden-amber-dark:     #D97706;
+  --golden-sparkle:        #FDE68A;
+  --golden-light-tint:     rgba(251, 191, 36, 0.12);
+  --golden-surface-bg:     linear-gradient(180deg, #131A28 0%, #0D1424 100%);
+  --golden-card-border:    rgba(245, 158, 11, 0.32);
+  --golden-card-glow:      0 12px 40px rgba(245, 158, 11, 0.18);
+  --golden-text-primary:   #FEF08A;
+  --golden-text-secondary: #FBBF24;
+  --golden-grid-line:      rgba(245, 158, 11, 0.14);
+  --golden-track-bg:       rgba(245, 158, 11, 0.08);
+}
+
+.golden-telemetry-card {
+  background: var(--golden-surface-bg);
+  border: 1px solid var(--golden-card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--golden-card-glow);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.golden-telemetry-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #D97706, #FBBF24, #F59E0B, #FEF3C7, #D97706);
+  background-size: 200% 100%;
+  animation: goldenSheen 4s linear infinite;
+  z-index: 2;
+}
+
+@keyframes goldenSheen {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.golden-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--golden-card-border);
+  background: rgba(245, 158, 11, 0.04);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.golden-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.golden-header-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--golden-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-gold {
+  background: var(--golden-light-tint);
+  color: var(--golden-text-secondary);
+  border: 1px solid var(--golden-card-border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.golden-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.golden-tab-group {
+  display: inline-flex;
+  background: var(--golden-track-bg);
+  border: 1px solid var(--golden-card-border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.golden-tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--recon-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.golden-tab-btn:hover {
+  color: var(--golden-text-primary);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.golden-tab-btn.active {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+}
+
+.golden-balance-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--golden-light-tint);
+  border: 1px solid var(--golden-card-border);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--golden-text-primary);
+}
+
+.golden-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #F59E0B;
+  box-shadow: 0 0 8px #F59E0B;
+  animation: pulseGold 2s infinite ease-in-out;
+}
+
+@keyframes pulseGold {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 4px #F59E0B; }
+  50% { opacity: 0.6; transform: scale(1.25); box-shadow: 0 0 12px #FBBF24; }
+}
+
+.golden-stage-wrapper {
+  padding: 18px 20px 8px 20px;
+  position: relative;
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+#golden-svg-canvas {
+  width: 100%;
+  height: auto;
+  max-height: 270px;
+  overflow: visible;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.08));
+}
+
+/* Golden Orbit SVG Text Styles */
+.gold-orbit-pct {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 800;
+  fill: var(--golden-amber-bright);
+  text-anchor: middle;
+  letter-spacing: -0.02em;
+}
+
+.gold-orbit-lbl {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  fill: var(--golden-text-secondary);
+  text-anchor: middle;
+}
+
+.gold-node-box {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.gold-node-box:hover {
+  transform: translateY(-2px);
+}
+.gold-node-box:hover rect {
+  filter: brightness(1.15);
+  stroke-width: 1.8;
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.gold-flow-pipe {
+  animation: dashFlow 1.2s linear infinite;
+}
+
+/* Golden Telemetry Bottom Ribbon */
+.golden-telemetry-ribbon {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--golden-card-border);
+  border-top: 1px solid var(--golden-card-border);
+}
+
+@media (max-width: 768px) {
+  .golden-telemetry-ribbon {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.golden-metric-tile {
+  background: var(--recon-bg-card);
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.golden-metric-num {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--recon-text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.golden-metric-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--recon-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.golden-bar-track {
+  width: 100%;
+  height: 4px;
+  background: var(--golden-track-bg);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.golden-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(90deg, #F59E0B, #FBBF24);
+}
+
+.golden-bar-fill.emerald {
+  background: linear-gradient(90deg, #10B981, #34D399);
+}
+
+.golden-bar-fill.rose {
+  background: linear-gradient(90deg, #F43F5E, #FB7185);
+}
+
+/* Interactive Floating Tooltip */
+.golden-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.95);
+  color: #FEF3C7;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  z-index: 1000;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
 /* Accessibility: Respect Reduced Motion Preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
