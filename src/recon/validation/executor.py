@@ -1,17 +1,48 @@
 """Isolated test executor and contract validator for generated adapters."""
 
+import ast
 import datetime
 import re
 from typing import Any
 
 from recon.adapters.models import GeneratedAdapter
 from recon.contracts.models import ContractType, TargetContract
-from recon.exceptions import ValidationError
+from recon.exceptions import SecurityError, ValidationError
 from recon.logging import log_safe_event
 from recon.validation.models import TestCaseResult, ValidationResult
 
 
 ALLOWED_SANDBOX_MODULES = {"re", "datetime", "typing", "time", "_strptime", "math"}
+
+
+class SandboxSecurityVisitor(ast.NodeVisitor):
+    """AST visitor that detects and prevents sandbox escapes and dangerous dunder attributes."""
+
+    FORBIDDEN_ATTRIBUTES = {
+        "__class__",
+        "__subclasses__",
+        "__bases__",
+        "__mro__",
+        "__globals__",
+        "__code__",
+        "__closure__",
+        "__builtins__",
+        "gi_frame",
+        "cr_frame",
+        "f_globals",
+        "f_locals",
+        "f_builtins",
+    }
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        if node.attr in self.FORBIDDEN_ATTRIBUTES or (
+            node.attr.startswith("__") and node.attr.endswith("__") and node.attr not in ("__name__", "__doc__")
+        ):
+            raise SecurityError(
+                f"Access to dangerous attribute '{node.attr}' is forbidden in adapter sandbox (line {node.lineno}).",
+                actionable_suggestion="Avoid accessing internal dunder attributes in transformation adapters.",
+            )
+        self.generic_visit(node)
 
 
 def _sandbox_import(name: str, *args: Any, **kwargs: Any) -> Any:
@@ -23,6 +54,10 @@ def _sandbox_import(name: str, *args: Any, **kwargs: Any) -> Any:
 
 def compile_adapter_sandbox(python_code: str) -> dict[str, Any]:
     """Compiles adapter code in a restricted execution namespace without access to dangerous builtins, filesystem, or OS hooks."""
+    # 1. Parse and validate AST for sandbox escapes before execution
+    tree = ast.parse(python_code, "<recon_generated_adapter>")
+    SandboxSecurityVisitor().visit(tree)
+
     safe_builtins: dict[str, Any] = {
         "abs": abs,
         "all": all,
@@ -120,8 +155,13 @@ def validate_contract_payload(payload: dict[str, Any], contract: TargetContract)
 
 def _find_source_field(target_field_name: str, adapter_code: str) -> str | None:
     """Extracts the source dataset column mapped to a target field from generated adapter code."""
-    match = re.search(rf"raw_val_{re.escape(target_field_name)}\s*=\s*record\.get\(['\"]([^'\"]+)['\"]", adapter_code)
-    return match.group(1) if match else None
+    var_name = re.sub(r"[^a-zA-Z0-9_]", "_", target_field_name)
+    match = re.search(rf"raw_val_{re.escape(var_name)}\s*=\s*record\.get\((['\"])(.*?)\1\)", adapter_code)
+    if match:
+        return match.group(2)
+    match2 = re.search(rf"raw_val_{re.escape(target_field_name)}\s*=\s*record\.get\((['\"])(.*?)\1\)", adapter_code)
+    return match2.group(2) if match2 else None
+
 
 
 def validate_adapter(

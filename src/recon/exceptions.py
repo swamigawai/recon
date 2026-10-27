@@ -54,3 +54,8 @@ class AdapterError(ReconError):
 
 class ValidationError(ReconError):
     """Raised when target contract validation or test execution fails."""
+
+
+class SecurityError(ValidationError):
+    """Raised when unsafe code patterns, forbidden imports, or sandbox escapes are detected."""
+

@@ -39,6 +39,21 @@ router = APIRouter(prefix="/api")
 # Session storage for in-flight evaluations
 SESSIONS: dict[str, dict[str, Any]] = {}
 TEMP_DIRS: dict[str, tempfile.TemporaryDirectory] = {}
+MAX_SESSIONS = 50
+
+
+def _prune_old_sessions() -> None:
+    """Evicts oldest sessions if session count exceeds MAX_SESSIONS to prevent memory/disk exhaustion."""
+    while len(SESSIONS) > MAX_SESSIONS:
+        oldest_id = next(iter(SESSIONS))
+        SESSIONS.pop(oldest_id, None)
+        old_temp = TEMP_DIRS.pop(oldest_id, None)
+        if old_temp:
+            try:
+                old_temp.cleanup()
+            except Exception:
+                pass
+
 
 MAX_SOURCE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
 MAX_CONTRACT_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
@@ -234,7 +249,7 @@ async def assess_integration(
         TEMP_DIRS.pop(session_id, None)
         raise
 
-    # Store in session
+    # Store in session and evict oldest if limit exceeded
     SESSIONS[session_id] = {
         "dataset": dataset,
         "profile": profile,
@@ -244,6 +259,7 @@ async def assess_integration(
         "source_path": source_path,
         "contract_path": contract_path,
     }
+    _prune_old_sessions()
 
     # 4. Format Mapping Proposals with Genuine Engine Evidence (No Fake Confidence Scores)
     proposals_summary: list[dict[str, Any]] = []
@@ -468,79 +484,93 @@ def approve_and_generate(request: ApprovalRequest) -> dict[str, Any]:
 @router.get("/download/report/{session_id}")
 def download_report(session_id: str, format: str = "md") -> Response:
     """Downloads the generated Readiness Report in Markdown or JSON format."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
     if not session or "report_md" not in session:
         raise HTTPException(status_code=404, detail="Readiness report not found. Run approval and validation first.")
 
+    safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
     if format == "json":
         content = json.dumps(session["report_json"], indent=2)
         return Response(
             content=content,
             media_type="application/json",
-            headers={"Content-Disposition": f"attachment; filename=readiness_report_{session_id[:8]}.json"}
+            headers={"Content-Disposition": f'attachment; filename="readiness_report_{safe_id}.json"'}
         )
 
     return PlainTextResponse(
         content=session["report_md"],
         media_type="text/markdown",
-        headers={"Content-Disposition": f"attachment; filename=readiness_report_{session_id[:8]}.md"}
+        headers={"Content-Disposition": f'attachment; filename="readiness_report_{safe_id}.md"'}
     )
 
 
 @router.get("/download/adapter/{session_id}")
 def download_adapter(session_id: str) -> Response:
     """Downloads the reviewable generated Python adapter code."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
     if not session or "adapter" not in session:
         raise HTTPException(status_code=404, detail="Adapter code not generated yet.")
 
     adapter = session["adapter"]
+    safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", adapter.adapter_name)
     return PlainTextResponse(
         content=adapter.python_code,
         media_type="text/x-python",
-        headers={"Content-Disposition": f"attachment; filename={adapter.adapter_name}.py"}
+        headers={"Content-Disposition": f'attachment; filename="{safe_name}.py"'}
     )
 
 
 @router.get("/download/valid-records/{session_id}")
 def download_valid_records(session_id: str) -> Response:
     """Downloads valid transformed records in JSONL format."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
     if not session or "validation" not in session:
         raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
 
+    safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
     val = session["validation"]
     records = val.all_valid_records if getattr(val, "all_valid_records", None) else val.sample_valid_output
-    lines = [json.dumps(rec) for rec in records]
+    lines = [json.dumps(rec, default=str) for rec in records]
     content = "\n".join(lines)
     return PlainTextResponse(
         content=content,
         media_type="application/x-jsonlines",
-        headers={"Content-Disposition": f"attachment; filename=valid_records_{session_id[:8]}.jsonl"}
+        headers={"Content-Disposition": f'attachment; filename="valid_records_{safe_id}.jsonl"'}
     )
 
 
 @router.get("/download/quarantine-records/{session_id}")
 def download_quarantine_records(session_id: str) -> Response:
     """Downloads quarantined records with diagnostics in JSONL format."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
     if not session or "validation" not in session:
         raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
 
+    safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
     val = session["validation"]
     records = val.all_quarantined_records if getattr(val, "all_quarantined_records", None) else val.sample_quarantined_records
-    lines = [json.dumps(rec) for rec in records]
+    lines = [json.dumps(rec, default=str) for rec in records]
     content = "\n".join(lines)
     return PlainTextResponse(
         content=content,
         media_type="application/x-jsonlines",
-        headers={"Content-Disposition": f"attachment; filename=quarantine_records_{session_id[:8]}.jsonl"}
+        headers={"Content-Disposition": f'attachment; filename="quarantine_records_{safe_id}.jsonl"'}
     )
 
 
 @router.get("/download/mapping-spec/{session_id}")
 def download_mapping_spec(session_id: str) -> Response:
     """Downloads versioned mapping specification JSON generated from current session mapping state."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
     if not session or "plan" not in session or "contract" not in session or "profile" not in session:
         raise HTTPException(status_code=404, detail="Mapping plan not found for session.")
@@ -567,6 +597,8 @@ async def upload_mapping_spec(
     spec_json: str | None = Form(None),
 ) -> dict[str, Any]:
     """Uploads, validates, and applies a reusable mapping specification to an active session."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found or expired.")
@@ -576,9 +608,10 @@ async def upload_mapping_spec(
         if len(content_bytes) > MAX_CONTRACT_SIZE_BYTES:
             raise HTTPException(status_code=413, detail="Mapping specification file exceeds size limit.")
         try:
-            spec_dict = json.loads(content_bytes.decode("utf-8"))
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON in mapping specification: {exc}")
+            content_str = content_bytes.decode("utf-8")
+            spec_dict = json.loads(content_str)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON/UTF-8 mapping specification: {exc}")
     elif spec_json and spec_json.strip():
         try:
             spec_dict = json.loads(spec_json)
@@ -657,6 +690,8 @@ async def upload_mapping_spec(
 @router.delete("/session/{session_id}")
 def delete_session(session_id: str) -> dict[str, str]:
     """Explicitly terminates a session and cleans up its temporary directory and artifacts."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.pop(session_id, None)
     temp_dir = TEMP_DIRS.pop(session_id, None)
     if temp_dir:
