@@ -1,375 +1,196 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="Recon — The Integration Readiness Engine">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="Recon — The Integration Readiness Engine">
   <title>Recon — The Integration Readiness Engine</title>
   
   <defs>
-    <!-- Deep obsidian base gradient with cinematic peripheral falloff -->
-    <radialGradient id="vfxCanvasGrad" cx="50%" cy="50%" r="70%" fx="50%" fy="30%">
-      <stop offset="0%" stop-color="#0E131F" />
-      <stop offset="55%" stop-color="#080B12" />
-      <stop offset="100%" stop-color="#030407" />
+    <!-- Deep carbon ambient canvas gradient -->
+    <radialGradient id="canvasGrad" cx="70%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#0F1626" stop-opacity="0.9" />
+      <stop offset="45%" stop-color="#080C14" stop-opacity="0.98" />
+      <stop offset="100%" stop-color="#030508" stop-opacity="1" />
     </radialGradient>
 
-    <!-- Titanium metallic text gradient -->
-    <linearGradient id="titaniumGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="35%" stop-color="#F1F5F9" />
-      <stop offset="70%" stop-color="#CBD5E1" />
-      <stop offset="100%" stop-color="#94A3B8" />
-    </linearGradient>
+    <!-- Ambient backlight behind the prism -->
+    <radialGradient id="ambientBacklight" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.22" />
+      <stop offset="45%" stop-color="#6366F1" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#080C14" stop-opacity="0" />
+    </radialGradient>
 
-    <!-- Laser emerald coherent beam -->
-    <linearGradient id="laserEmerald" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#10B981" stop-opacity="1" />
-      <stop offset="70%" stop-color="#34D399" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="#6EE7B7" stop-opacity="0.2" />
-    </linearGradient>
-
-    <!-- Laser amber quarantine trace -->
-    <linearGradient id="laserAmber" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#F59E0B" stop-opacity="1" />
-      <stop offset="70%" stop-color="#FBBF24" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#FDE68A" stop-opacity="0.2" />
-    </linearGradient>
-
-    <!-- Port 1 Cyan Ingest Beam -->
-    <linearGradient id="portCyan" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284C7" stop-opacity="0.3" />
-      <stop offset="70%" stop-color="#38BDF8" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#E0F2FE" stop-opacity="1" />
-    </linearGradient>
-
-    <!-- Port 2 Indigo Target Beam -->
-    <linearGradient id="portIndigo" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#4F46E5" stop-opacity="0.3" />
-      <stop offset="70%" stop-color="#818CF8" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#EEF2FF" stop-opacity="1" />
-    </linearGradient>
-
-    <!-- Anamorphic horizon flare gradient -->
-    <linearGradient id="anamorphicFlare" x1="0%" y1="0%" x2="100%" y2="0%">
+    <!-- Top hairline subtle border -->
+    <linearGradient id="topBorderGlow" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#38BDF8" stop-opacity="0" />
-      <stop offset="30%" stop-color="#38BDF8" stop-opacity="0.15" />
-      <stop offset="50%" stop-color="#60A5FA" stop-opacity="0.4" />
-      <stop offset="70%" stop-color="#818CF8" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#818CF8" stop-opacity="0" />
+      <stop offset="25%" stop-color="#38BDF8" stop-opacity="0.4" />
+      <stop offset="50%" stop-color="#818CF8" stop-opacity="0.5" />
+      <stop offset="75%" stop-color="#10B981" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0" />
     </linearGradient>
 
-    <!-- Precision coordinate grid (40px cells) -->
-    <pattern id="coordGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1E293B" stroke-width="0.5" stroke-opacity="0.45" />
-      <circle cx="0" cy="0" r="0.75" fill="#475569" fill-opacity="0.6" />
-    </pattern>
+    <!-- Facet gradients for the geometric prism -->
+    <linearGradient id="prismTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D3748" />
+      <stop offset="100%" stop-color="#1A202C" />
+    </linearGradient>
 
-    <!-- Subtle micro-mesh grid (10px cells) -->
-    <pattern id="microMesh" width="10" height="10" patternUnits="userSpaceOnUse">
-      <circle cx="0" cy="0" r="0.4" fill="#334155" fill-opacity="0.35" />
-    </pattern>
+    <linearGradient id="prismLeft" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B4758" />
+      <stop offset="50%" stop-color="#1F2937" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
 
-    <!-- Machined Bezel Gradient -->
-    <linearGradient id="bezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#334155" />
-      <stop offset="50%" stop-color="#1E293B" />
+    <linearGradient id="prismRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4B5563" />
+      <stop offset="50%" stop-color="#242E3D" />
       <stop offset="100%" stop-color="#0F172A" />
     </linearGradient>
 
-    <!-- Lens Flare Glow Point -->
-    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.6" />
-      <stop offset="40%" stop-color="#38BDF8" stop-opacity="0.2" />
-      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0" />
-    </radialGradient>
+    <!-- Laser beam gradients -->
+    <linearGradient id="beamCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="1" />
+    </linearGradient>
+
+    <linearGradient id="beamIndigo" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4338CA" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#818CF8" stop-opacity="1" />
+    </linearGradient>
+
+    <linearGradient id="beamEmerald" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="1" />
+      <stop offset="100%" stop-color="#059669" stop-opacity="0.2" />
+    </linearGradient>
+
+    <linearGradient id="beamAmber" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="1" />
+      <stop offset="100%" stop-color="#D97706" stop-opacity="0.2" />
+    </linearGradient>
+
+    <!-- Logotype subtle metallic sheen -->
+    <linearGradient id="logoSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
   </defs>
 
-  <!-- BACKGROUND LAYERS -->
-  <!-- 1. Deep Obsidian Base Canvas -->
-  <rect width="1200" height="420" fill="url(#vfxCanvasGrad)" />
+  <!-- Base Canvas -->
+  <rect width="1200" height="360" fill="url(#canvasGrad)" />
 
-  <!-- 2. Technical Coordinate Grid -->
-  <rect width="1200" height="420" fill="url(#coordGrid)" />
-  <rect width="1200" height="420" fill="url(#microMesh)" />
+  <!-- Elegant Top Accent Line (1px) -->
+  <rect width="1200" height="1.5" fill="url(#topBorderGlow)" />
 
-  <!-- 3. Anamorphic Cinematic Flare Hairline -->
-  <line x1="0" y1="210" x2="1200" y2="210" stroke="url(#anamorphicFlare)" stroke-width="1" />
-  <line x1="680" y1="210" x2="1140" y2="210" stroke="#38BDF8" stroke-width="0.5" stroke-opacity="0.25" stroke-dasharray="2, 6" />
-
-  <!-- CINEMATIC REGISTRATION & RETICLES -->
-  <!-- Top Calibrated Millimeter Scale -->
-  <g opacity="0.45">
-    <line x1="40" y1="18" x2="1160" y2="18" stroke="#475569" stroke-width="0.75" />
-    <!-- Major ticks every 100px -->
-    <path d="M 40 12 L 40 18 M 140 14 L 140 18 M 240 12 L 240 18 M 340 14 L 340 18 M 440 12 L 440 18 M 540 14 L 540 18 M 640 12 L 640 18 M 740 14 L 740 18 M 840 12 L 840 18 M 940 14 L 940 18 M 1040 12 L 1040 18 M 1140 12 L 1140 18" stroke="#64748B" stroke-width="1" />
-    <!-- Coordinate readouts -->
-    <text x="40" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="7" fill="#64748B" letter-spacing="1">000_REF</text>
-    <text x="240" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="7" fill="#64748B" letter-spacing="1">200_GRID</text>
-    <text x="440" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="7" fill="#64748B" letter-spacing="1">400_SPEC</text>
-    <text x="640" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="7" fill="#64748B" letter-spacing="1">600_GATE</text>
-    <text x="840" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="7" fill="#64748B" letter-spacing="1">800_CORE</text>
-    <text x="1040" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="7" fill="#64748B" letter-spacing="1">1000_EGRESS</text>
-  </g>
-
-  <!-- Viewfinder Framing Brackets -->
-  <!-- Top Left -->
-  <path d="M 32 46 L 32 30 L 48 30" fill="none" stroke="#64748B" stroke-width="1.5" stroke-linecap="square" />
-  <text x="56" y="35" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#64748B" letter-spacing="1.5">RECON // OPTICAL_SYS [OK]</text>
-
-  <!-- Top Right -->
-  <path d="M 1168 46 L 1168 30 L 1152 30" fill="none" stroke="#64748B" stroke-width="1.5" stroke-linecap="square" />
-  <text x="1144" y="35" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#64748B" letter-spacing="1.5" text-anchor="end">FINGERPRINT // SHA-256</text>
-
-  <!-- Bottom Left -->
-  <path d="M 32 374 L 32 390 L 48 390" fill="none" stroke="#64748B" stroke-width="1.5" stroke-linecap="square" />
-  <text x="56" y="388" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#64748B" letter-spacing="1.5">INVARIANT // N_IN ≡ N_VAL + N_QUAR</text>
-
-  <!-- Bottom Right -->
-  <path d="M 1168 374 L 1168 390 L 1152 390" fill="none" stroke="#64748B" stroke-width="1.5" stroke-linecap="square" />
-  <text x="1144" y="388" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#10B981" letter-spacing="1.5" text-anchor="end">LOCAL-FIRST // 0-TELEMETRY</text>
-
-  <!-- Precision Optical Registration Crosshairs (+) -->
-  <g stroke="#475569" stroke-width="1" opacity="0.6">
-    <path d="M 395 105 L 405 105 M 400 100 L 400 110" />
-    <path d="M 395 315 L 405 315 M 400 310 L 400 320" />
-    <path d="M 685 65 L 695 65 M 690 60 L 690 70" />
-    <path d="M 685 355 L 695 355 M 690 350 L 690 360" />
-  </g>
-
-  <!-- LEFT COLUMN: HERO IDENTITY & ARCHITECTURE -->
-  <g transform="translate(68, 72)">
+  <!-- LEFT SECTION: MINIMALIST & CONFIDENT TYPOGRAPHY -->
+  <g transform="translate(84, 62)">
     
-    <!-- System Classification Header -->
+    <!-- Status Pill -->
     <g transform="translate(0, 0)">
-      <!-- Radar Pulse Beacon -->
-      <circle cx="6" cy="6" r="4" fill="#10B981" />
-      <circle cx="6" cy="6" r="8" fill="none" stroke="#10B981" stroke-width="0.75" opacity="0.5" />
-      
-      <text x="22" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#38BDF8" letter-spacing="2">
-        SPEC // INTEGRATION READINESS PLATFORM
-      </text>
-      <text x="345" y="9" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="9" fill="#64748B" letter-spacing="1.5">
-        REV 2.4.0 • DETERMINISTIC
-      </text>
+      <rect width="210" height="26" rx="13" fill="#0B1324" stroke="#1E293B" stroke-width="1" />
+      <circle cx="14" cy="13" r="3.5" fill="#10B981" />
+      <text x="26" y="17" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="9.5" font-weight="600" fill="#94A3B8" letter-spacing="1.2">PREFLIGHT DATA ENGINE</text>
     </g>
 
-    <!-- Main Architectural Logotype -->
-    <g transform="translate(0, 52)">
-      <!-- Precision Machined Geometric RECON Glyph -->
-      <text x="0" y="44" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="54" font-weight="900" fill="url(#titaniumGrad)" letter-spacing="6">
-        RECON
-      </text>
+    <!-- Brand Wordmark -->
+    <text x="0" y="86" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="58" font-weight="900" fill="url(#logoSheen)" letter-spacing="2.5">
+      RECON
+    </text>
 
-      <!-- Laser Accent Underline -->
-      <rect x="2" y="58" width="84" height="3" fill="#38BDF8" rx="1.5" />
-      <rect x="92" y="58" width="12" height="3" fill="#818CF8" rx="1.5" />
-      <rect x="108" y="58" width="4" height="3" fill="#10B981" rx="1.5" />
+    <!-- Value Proposition -->
+    <text x="0" y="136" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600" fill="#F8FAFC">
+      Know what will break before you build the integration.
+    </text>
 
-      <text x="225" y="44" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#94A3B8" letter-spacing="3.5">
-        PREFLIGHT ENGINE
-      </text>
-    </g>
+    <!-- Subtitle -->
+    <text x="0" y="170" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="400" fill="#94A3B8">
+      Deterministic columnar preflight for incoming third-party data batches. Catches schema drift,
+    </text>
+    <text x="0" y="192" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="400" fill="#94A3B8">
+      missing required fields, and domain violations before any pipeline code is deployed.
+    </text>
 
-    <!-- High-Impact Value Proposition / Tagline -->
-    <g transform="translate(0, 142)">
-      <text x="0" y="0" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="21" font-weight="700" fill="#F8FAFC" letter-spacing="0.2">
-        “Know what will break before you build the integration.”
-      </text>
-      
-      <!-- Crisp Engineering Subtitle -->
-      <text x="0" y="28" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="400" fill="#94A3B8">
-        Deterministic columnar preflight for incoming third-party data batches. Catches schema
-      </text>
-      <text x="0" y="48" font-family="system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="400" fill="#94A3B8">
-        drift, missing required fields, and domain violations before any ingestion code is deployed.
-      </text>
-    </g>
-
-    <!-- Precision Technical Specification Modules -->
-    <g transform="translate(0, 222)">
-      <!-- Module 1: Zero-Sampling Profiler -->
+    <!-- Minimalist Feature Row -->
+    <g transform="translate(0, 232)">
+      <!-- Item 1: 100% Columnar Scan -->
       <g transform="translate(0, 0)">
-        <rect width="180" height="36" rx="4" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
-        <line x1="0" y1="0" x2="3" y2="36" stroke="#38BDF8" stroke-width="3" />
-        <text x="14" y="15" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#38BDF8" letter-spacing="1">CORE PHASE // 01</text>
-        <text x="14" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E2E8F0">100% Columnar Scan</text>
+        <circle cx="4" cy="4" r="3" fill="#38BDF8" />
+        <text x="14" y="8" font-family="system-ui, -apple-system, sans-serif" font-size="12.5" font-weight="500" fill="#CBD5E1">100% Columnar Scan</text>
       </g>
 
-      <!-- Module 2: Human Sign-Off Gate -->
-      <g transform="translate(192, 0)">
-        <rect width="180" height="36" rx="4" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
-        <line x1="0" y1="0" x2="3" y2="36" stroke="#818CF8" stroke-width="3" />
-        <text x="14" y="15" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#818CF8" letter-spacing="1">AUDIT GATE // 02</text>
-        <text x="14" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E2E8F0">Lead Sign-Off Invariant</text>
+      <!-- Item 2: Zero-Loss Quarantine -->
+      <g transform="translate(180, 0)">
+        <circle cx="4" cy="4" r="3" fill="#10B981" />
+        <text x="14" y="8" font-family="system-ui, -apple-system, sans-serif" font-size="12.5" font-weight="500" fill="#CBD5E1">Zero-Loss Quarantine</text>
       </g>
 
-      <!-- Module 3: Pure Python AST -->
-      <g transform="translate(384, 0)">
-        <rect width="180" height="36" rx="4" fill="#0F172A" stroke="#1E293B" stroke-width="1" />
-        <line x1="0" y1="0" x2="3" y2="36" stroke="#10B981" stroke-width="3" />
-        <text x="14" y="15" font-family="'SF Mono', 'JetBrains Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#10B981" letter-spacing="1">DELIVERABLE // 03</text>
-        <text x="14" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E2E8F0">Pure Python 3.11 AST</text>
+      <!-- Item 3: Pure Python AST -->
+      <g transform="translate(370, 0)">
+        <circle cx="4" cy="4" r="3" fill="#818CF8" />
+        <text x="14" y="8" font-family="system-ui, -apple-system, sans-serif" font-size="12.5" font-weight="500" fill="#CBD5E1">Pure Python AST</text>
+      </g>
+
+      <!-- Item 4: 100% Local-First -->
+      <g transform="translate(530, 0)">
+        <circle cx="4" cy="4" r="3" fill="#F59E0B" />
+        <text x="14" y="8" font-family="system-ui, -apple-system, sans-serif" font-size="12.5" font-weight="500" fill="#CBD5E1">100% Local-First</text>
       </g>
     </g>
 
   </g>
 
-  <!-- RIGHT COLUMN: SCHEMATIC OPTICAL COLLIMATOR -->
-  <!-- Centered at (890, 205) for balanced composition and full text margins -->
-  <g transform="translate(890, 205)">
+  <!-- RIGHT SECTION: MINIMALIST & SCULPTURAL GEOMETRIC PRISM -->
+  <g transform="translate(915, 180)">
     
-    <!-- Ambient Core Glow -->
-    <circle cx="0" cy="0" r="135" fill="url(#coreGlow)" opacity="0.4" />
+    <!-- Soft Ambient Light Glow -->
+    <circle cx="0" cy="0" r="150" fill="url(#ambientBacklight)" />
 
-    <!-- Outer Azimuth / Degree Calibration Ring (Radius: 125) -->
-    <circle cx="0" cy="0" r="125" fill="none" stroke="#1E293B" stroke-width="1" stroke-dasharray="2, 4" />
-    <circle cx="0" cy="0" r="132" fill="none" stroke="#334155" stroke-width="0.5" opacity="0.4" />
+    <!-- Subtle Minimalist Orbit -->
+    <circle cx="0" cy="0" r="115" fill="none" stroke="#1E293B" stroke-width="0.75" stroke-dasharray="2, 6" opacity="0.7" />
+
+    <!-- INTAKE BEAMS -->
+    <!-- Port 1 (Raw Stream) -->
+    <g>
+      <line x1="-155" y1="-55" x2="-48" y2="-17" stroke="url(#beamCyan)" stroke-width="2" stroke-linecap="round" />
+      <rect x="-215" y="-68" width="54" height="22" rx="4" fill="#0B1324" stroke="#1E293B" stroke-width="1" />
+      <circle cx="-204" cy="-57" r="2.5" fill="#38BDF8" />
+      <text x="-194" y="-53" font-family="'SF Mono', Consolas, monospace" font-size="8.5" font-weight="600" fill="#38BDF8">PORT 1</text>
+    </g>
+
+    <!-- Port 2 (Target Contract) -->
+    <g>
+      <line x1="-155" y1="55" x2="-48" y2="17" stroke="url(#beamIndigo)" stroke-width="2" stroke-linecap="round" />
+      <rect x="-215" y="44" width="54" height="22" rx="4" fill="#0B1324" stroke="#1E293B" stroke-width="1" />
+      <circle cx="-204" cy="55" r="2.5" fill="#818CF8" />
+      <text x="-194" y="59" font-family="'SF Mono', Consolas, monospace" font-size="8.5" font-weight="600" fill="#818CF8">PORT 2</text>
+    </g>
+
+    <!-- CENTRAL SCULPTURAL ISOMETRIC PRISM (Width: 110, Height: 126) -->
+    <!-- Top Chamfered Facet -->
+    <polygon points="0,-60 55,-30 0,0 -55,-30" fill="url(#prismTop)" stroke="#475569" stroke-width="1.25" stroke-linejoin="round" />
     
-    <!-- Cardinal Degree Labels -->
-    <text x="0" y="-136" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#64748B" text-anchor="middle">000°</text>
-    <text x="138" y="3" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#64748B" text-anchor="start">090°</text>
-    <text x="0" y="144" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#64748B" text-anchor="middle">180°</text>
-    <text x="-139" y="3" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#64748B" text-anchor="end">270°</text>
-
-    <!-- Circular Calibration Ticks (12 points around circle) -->
-    <g stroke="#475569" stroke-width="1">
-      <line x1="0" y1="-125" x2="0" y2="-119" />
-      <line x1="62" y1="-108" x2="59" y2="-103" />
-      <line x1="108" y1="-62" x2="103" y2="-59" />
-      <line x1="125" y1="0" x2="119" y2="0" />
-      <line x1="108" y1="62" x2="103" y2="59" />
-      <line x1="62" y1="108" x2="59" y2="103" />
-      <line x1="0" y1="125" x2="0" y2="119" />
-      <line x1="-62" y1="108" x2="-59" y2="103" />
-      <line x1="-108" y1="62" x2="-103" y2="59" />
-      <line x1="-125" y1="0" x2="-119" y2="0" />
-      <line x1="-108" y1="-62" x2="-103" y2="-59" />
-      <line x1="-62" y1="-108" x2="-59" y2="-103" />
-    </g>
-
-    <!-- Secondary Concentric Reticle Ring (Radius: 85) -->
-    <circle cx="0" cy="0" r="85" fill="none" stroke="#334155" stroke-width="1" />
-    <circle cx="0" cy="0" r="81" fill="none" stroke="#1E293B" stroke-width="0.5" stroke-dasharray="4, 8" />
-
-    <!-- Precision Vernier Caliper Brackets -->
-    <path d="M -85 -18 L -85 -32 L -71 -32" fill="none" stroke="#38BDF8" stroke-width="1.5" />
-    <path d="M 85 -18 L 85 -32 L 71 -32" fill="none" stroke="#818CF8" stroke-width="1.5" />
-    <path d="M -85 18 L -85 32 L -71 32" fill="none" stroke="#38BDF8" stroke-width="1.5" />
-    <path d="M 85 18 L 85 32 L 71 32" fill="none" stroke="#10B981" stroke-width="1.5" />
-
-    <!-- INTAKE BEAMS (CONVERGENCE) -->
-    <!-- Port 1: Raw Stream Ingest Vector (Upper-Left -> Core) -->
-    <g>
-      <line x1="-185" y1="-80" x2="-35" y2="-15" stroke="url(#portCyan)" stroke-width="2" stroke-linecap="round" />
-      <line x1="-185" y1="-80" x2="-205" y2="-80" stroke="#38BDF8" stroke-width="0.75" />
-      <circle cx="-185" cy="-80" r="3" fill="#0284C7" stroke="#38BDF8" stroke-width="1" />
-      <text x="-210" y="-77" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#38BDF8" text-anchor="end">PORT 01 // RAW_STREAM</text>
-      <text x="-210" y="-67" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#64748B" text-anchor="end">CSV • JSON • AUTO-UTF8</text>
-      
-      <circle cx="-120" cy="-53" r="2" fill="#E0F2FE" />
-      <circle cx="-68" cy="-29" r="2.5" fill="#FFFFFF" />
-    </g>
-
-    <!-- Port 2: Target Contract Vector (Lower-Left -> Core) -->
-    <g>
-      <line x1="-185" y1="80" x2="-35" y2="15" stroke="url(#portIndigo)" stroke-width="2" stroke-linecap="round" />
-      <line x1="-185" y1="80" x2="-205" y2="80" stroke="#818CF8" stroke-width="0.75" />
-      <circle cx="-185" cy="80" r="3" fill="#4F46E5" stroke="#818CF8" stroke-width="1" />
-      <text x="-210" y="76" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#818CF8" text-anchor="end">PORT 02 // TARGET_SPEC</text>
-      <text x="-210" y="86" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#64748B" text-anchor="end">OPENAPI 3.1 • JSON_SCHEMA</text>
-
-      <circle cx="-120" cy="53" r="2" fill="#EEF2FF" />
-      <circle cx="-68" cy="29" r="2.5" fill="#FFFFFF" />
-    </g>
-
-    <!-- CENTRAL PRISMATIC ALIGNMENT CORE -->
-    <!-- Machined Titanium Octagonal Aperture -->
-    <polygon points="
-      -26,-40  26,-40 
-      40,-26   40,26 
-      26,40   -26,40 
-      -40,26  -40,-26" 
-      fill="url(#bezelGrad)" stroke="#475569" stroke-width="1.5" />
-
-    <!-- Internal Prismatic Diffraction Facets -->
-    <polygon points="
-      -18,-28  18,-28 
-      28,-18   28,18 
-      18,28   -18,28 
-      -28,18  -28,-18" 
-      fill="#0B0F19" stroke="#60A5FA" stroke-width="1" opacity="0.85" />
-
-    <!-- Optical Core Lens Crosshairs -->
-    <line x1="-24" y1="0" x2="24" y2="0" stroke="#38BDF8" stroke-width="0.75" stroke-dasharray="2, 2" />
-    <line x1="0" y1="-24" x2="0" y2="24" stroke="#38BDF8" stroke-width="0.75" stroke-dasharray="2, 2" />
+    <!-- Left Chamfered Facet -->
+    <polygon points="-55,-30 0,0 0,60 -55,30" fill="url(#prismLeft)" stroke="#374151" stroke-width="1.25" stroke-linejoin="round" />
     
-    <!-- Optical Center Core Focal Spark -->
-    <circle cx="0" cy="0" r="5" fill="#FFFFFF" />
-    <circle cx="0" cy="0" r="9" fill="none" stroke="#38BDF8" stroke-width="1.5" />
-    <polygon points="0,-11 3,-3 11,0 3,3 0,11 -3,3 -11,0 -3,-3" fill="#67E8F9" opacity="0.75" />
+    <!-- Right Chamfered Facet -->
+    <polygon points="0,0 55,-30 55,30 0,60" fill="url(#prismRight)" stroke="#475569" stroke-width="1.25" stroke-linejoin="round" />
 
-    <!-- EGRESS BEAMS (DUAL-STREAM PARTITION) -->
-    <!-- Upper Stream: Valid Deliverable (Coherent Laser Emerald) -->
+    <!-- Center Core Optical Diamond Aperture -->
+    <polygon points="0,-20 20,0 0,20 -20,0" fill="#060911" stroke="#38BDF8" stroke-width="1.5" />
+    <circle cx="0" cy="0" r="4" fill="#FFFFFF" />
+
+    <!-- EGRESS BEAMS -->
+    <!-- Valid Stream (Laser Emerald) -->
     <g>
-      <path d="M 38 -12 L 72 -34 L 145 -34" fill="none" stroke="url(#laserEmerald)" stroke-width="2.5" stroke-linecap="round" />
-      <circle cx="72" cy="-34" r="2" fill="#34D399" />
-      <circle cx="145" cy="-34" r="3" fill="#10B981" stroke="#34D399" stroke-width="1" />
-      
-      <line x1="145" y1="-34" x2="155" y2="-34" stroke="#10B981" stroke-width="0.75" />
-      <text x="160" y="-37" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#10B981">VALID_RECORDS.JSONL</text>
-      <text x="160" y="-27" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#6EE7B7">100% SCHEMA COMPLIANT</text>
+      <line x1="55" y1="-17" x2="155" y2="-52" stroke="url(#beamEmerald)" stroke-width="2" stroke-linecap="round" />
+      <rect x="160" y="-64" width="60" height="22" rx="4" fill="#061A14" stroke="#065F46" stroke-width="1" />
+      <circle cx="171" cy="-53" r="2.5" fill="#10B981" />
+      <text x="180" y="-49" font-family="'SF Mono', Consolas, monospace" font-size="8.5" font-weight="600" fill="#34D399">VALID</text>
     </g>
 
-    <!-- Lower Stream: Isolated Quarantine Ledger (Laser Amber) -->
+    <!-- Quarantine Stream (Laser Amber) -->
     <g>
-      <path d="M 38 12 L 72 34 L 145 34" fill="none" stroke="url(#laserAmber)" stroke-width="2" stroke-linecap="round" />
-      <circle cx="72" cy="34" r="2" fill="#FBBF24" />
-      <circle cx="145" cy="34" r="3" fill="#F59E0B" stroke="#FBBF24" stroke-width="1" />
-
-      <line x1="145" y1="34" x2="155" y2="34" stroke="#F59E0B" stroke-width="0.75" />
-      <text x="160" y="31" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#F59E0B">QUARANTINE.JSONL</text>
-      <text x="160" y="41" font-family="'SF Mono', Consolas, monospace" font-size="7" fill="#FCD34D">ZERO-LOSS DIAGNOSTICS</text>
+      <line x1="55" y1="17" x2="155" y2="52" stroke="url(#beamAmber)" stroke-width="2" stroke-linecap="round" />
+      <rect x="160" y="42" width="94" height="22" rx="4" fill="#1C1206" stroke="#78350F" stroke-width="1" />
+      <circle cx="171" cy="53" r="2.5" fill="#F59E0B" />
+      <text x="180" y="57" font-family="'SF Mono', Consolas, monospace" font-size="8.5" font-weight="600" fill="#FBBF24">QUARANTINE</text>
     </g>
 
-    <!-- Zero-Loss Balance Equation Stamp -->
-    <g transform="translate(0, 114)">
-      <rect x="-80" y="-10" width="160" height="20" rx="3" fill="#0A0E17" stroke="#1E293B" stroke-width="1" />
-      <text x="0" y="3" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#94A3B8" text-anchor="middle" letter-spacing="1">
-        N_IN ≡ N_VALID + N_QUAR
-      </text>
-    </g>
-
-  </g>
-
-  <!-- BOTTOM TELEMETRY RIBBON -->
-  <g transform="translate(0, 404)">
-    <line x1="0" y1="0" x2="1200" y2="0" stroke="#1E293B" stroke-width="1" />
-    
-    <g transform="translate(68, 11)">
-      <!-- Segment 1: Engine Core -->
-      <text x="0" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" fill="#475569">ENGINE:</text>
-      <text x="46" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#94A3B8">PURE PYTHON 3.11 AST</text>
-      
-      <!-- Divider -->
-      <circle cx="180" cy="-3" r="1.5" fill="#334155" />
-
-      <!-- Segment 2: Validator -->
-      <text x="195" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" fill="#475569">CORE:</text>
-      <text x="230" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#94A3B8">PYDANTIC V2 (RUST)</text>
-
-      <!-- Divider -->
-      <circle cx="360" cy="-3" r="1.5" fill="#334155" />
-
-      <!-- Segment 3: Profiling Speed -->
-      <text x="375" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" fill="#475569">THROUGHPUT:</text>
-      <text x="450" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#94A3B8">220K CELLS &lt; 2.8s</text>
-
-      <!-- Divider -->
-      <circle cx="585" cy="-3" r="1.5" fill="#334155" />
-
-      <!-- Segment 4: Security -->
-      <text x="600" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" fill="#475569">PRIVACY:</text>
-      <text x="652" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="600" fill="#10B981">100% LOCAL / ZERO-TELEMETRY</text>
-
-      <!-- Segment 5: Status -->
-      <text x="1064" y="0" font-family="'SF Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#38BDF8" text-anchor="end">STATUS: READY_FOR_PREFLIGHT</text>
-    </g>
   </g>
 
 </svg>
