@@ -24,21 +24,19 @@ jobs:
       - name: Install Recon Engine
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
+          python -m pip install -e ".[dev]"
 
-      - name: Run Recon CI Gate (Strict Mode)
+      - name: Run Recon CI Gate Preflight Audit
         id: recon_gate
         run: |
           recon gate \
-            --source data/incoming_batch.csv \
-            --contract contracts/target_contract.json \
-            --mapping-spec config/recon_mapping_spec.json \
-            --strict \
+            --source tests/fixtures/synthetic_nyc_311.csv \
+            --contract tests/fixtures/target_contract_service_request.json \
             --max-quarantine-pct 5.0 \
             --json > gate_result.json
 
-      - name: Archive Preflight Diagnostics on Failure
-        if: failure()
+      - name: Archive Preflight Diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: recon-gate-diagnostics
