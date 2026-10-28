@@ -137,3 +137,31 @@ def test_type_inference_booleans():
     assert inferred == InferredType.BOOLEAN
     assert min_val is False
     assert max_val is True
+
+
+def test_profiler_resilient_to_unhashable_structures():
+    """Verifies that datasets containing unhashable structures (nested lists or dicts) profile safely."""
+    dataset = RawDataset(
+        file_path="memory://unhashable.json",
+        file_name="unhashable.json",
+        fingerprint="sha256_mock",
+        file_size_bytes=256,
+        encoding="utf-8",
+        headers=["id", "tags", "metadata"],
+        row_count=3,
+        rows=[
+            {"id": 1, "tags": ["admin", "beta"], "metadata": {"role": "owner"}},
+            {"id": 2, "tags": ["admin", "beta"], "metadata": {"role": "viewer"}},
+            {"id": 3, "tags": ["guest"], "metadata": {"role": "owner"}},
+        ],
+    )
+    profile = profile_dataset(dataset)
+    assert profile.total_rows == 3
+    assert profile.total_columns == 3
+    tags_col = profile.get_column("tags")
+    assert tags_col is not None
+    assert tags_col.distinct_count == 2
+    assert len(tags_col.sample_values) == 2
+    meta_col = profile.get_column("metadata")
+    assert meta_col is not None
+    assert meta_col.distinct_count == 2

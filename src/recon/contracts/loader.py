@@ -47,7 +47,7 @@ def load_target_contract(
                 context={"file_path": str(path)},
             )
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8-sig") as f:
                 raw_data = json.load(f)
         except json.JSONDecodeError as exc:
             raise ContractError(

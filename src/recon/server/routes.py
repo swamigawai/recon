@@ -89,7 +89,7 @@ def list_sample_contracts() -> list[dict[str, Any]]:
     contracts = []
     for file in fixtures.glob("target_contract_*.json"):
         try:
-            with open(file, "r", encoding="utf-8") as f:
+            with open(file, "r", encoding="utf-8-sig") as f:
                 data = json.load(f)
             contracts.append({
                 "id": file.stem,

@@ -21,7 +21,14 @@ def calculate_file_hash(path: Path) -> str:
 
 def detect_file_encoding(path: Path, candidate_encodings: list[str] | None = None) -> str:
     """Detects encoding by testing candidate encodings against raw bytes."""
-    candidates = candidate_encodings or ["utf-8", "utf-8-sig", "latin1", "cp1252"]
+    try:
+        with open(path, "rb") as f:
+            prefix = f.read(4)
+        if prefix.startswith(b"\xef\xbb\xbf"):
+            return "utf-8-sig"
+    except Exception:
+        pass
+    candidates = candidate_encodings or ["utf-8", "latin1", "cp1252"]
     for enc in candidates:
         try:
             with open(path, "r", encoding=enc) as f:

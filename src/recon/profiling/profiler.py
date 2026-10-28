@@ -11,6 +11,15 @@ from recon.profiling.type_inference import infer_column_type
 DEFAULT_NULL_TOKENS = {"", "null", "none", "nan", "n/a", "undefined"}
 
 
+def _make_hashable(val: Any) -> Any:
+    """Converts potentially unhashable structures (lists, dicts) into hashable tuples."""
+    if isinstance(val, (list, tuple)):
+        return tuple(_make_hashable(x) for x in val)
+    if isinstance(val, dict):
+        return tuple(sorted((k, _make_hashable(v)) for k, v in val.items()))
+    return val
+
+
 def is_null_value(val: Any, null_tokens: set[str]) -> bool:
     """Checks whether a value represents a null/missing value."""
     if val is None:
@@ -60,8 +69,8 @@ def profile_dataset(
         null_pct = round((null_count / total_rows) * 100.0, 2) if total_rows > 0 else 0.0
 
         non_null_values = [v for v in raw_values if not is_null_value(v, active_null_tokens)]
-        distinct_vals = set(non_null_values)
-        distinct_count = len(distinct_vals)
+        distinct_hashable = {_make_hashable(v) for v in non_null_values}
+        distinct_count = len(distinct_hashable)
 
         has_whitespace = any(isinstance(v, str) and v != v.strip() for v in raw_values if v is not None)
 
@@ -70,8 +79,17 @@ def profile_dataset(
         if is_constant:
             warnings.append(f"Column '{col}' is constant across all {total_rows} rows.")
 
-        # Safe sample values: first 5 sorted unique non-null values
-        sample_values = [str(x) for x in sorted(list(distinct_vals), key=lambda x: str(x))[:5]]
+        # Safe sample values: first 5 unique non-null values
+        seen_samples: set[Any] = set()
+        sample_values: list[str] = []
+        for v in non_null_values:
+            hv = _make_hashable(v)
+            if hv not in seen_samples:
+                seen_samples.add(hv)
+                sample_values.append(str(v))
+                if len(sample_values) >= 5:
+                    break
+        sample_values.sort()
 
         # Type inference & range evaluation
         inferred_type, type_dist, formats, min_val, max_val = infer_column_type(non_null_values)

@@ -59,6 +59,14 @@ def extract_records_from_json(payload: Any, file_name: str) -> tuple[list[dict[s
                     warnings.append(f"Extracted {len(enveloped_list)} records from envelope key '{key}'")
                     break
 
+        if enveloped_list is None:
+            # Inspect for any secondary envelope key holding a non-empty list of dicts
+            for k, v in payload.items():
+                if isinstance(v, list) and v and all(isinstance(item, dict) for item in v):
+                    enveloped_list = v
+                    warnings.append(f"Extracted {len(enveloped_list)} records from envelope key '{k}'")
+                    break
+
         if enveloped_list is not None:
             raw_records = enveloped_list
         else:
