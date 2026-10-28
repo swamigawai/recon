@@ -29,6 +29,7 @@
   <a href="#-why-recon-the-paradigm-shift"><b>Why Recon</b></a> •
   <a href="#-cli--cicd-gate"><b>CI/CD Gate</b></a> •
   <a href="#-tech-stack--architecture-foundation"><b>Tech Stack</b></a> •
+  <a href="docs/FDE_PLAYBOOK.md"><b>FDE Playbook</b></a> •
   <a href="docs/"><b>Documentation</b></a>
 </p>
 
@@ -202,7 +203,10 @@ pip install -e ".[dev]"
 ### 2. Launch the Web Studio
 
 ```bash
-# Start the local server
+# One-command FDE launcher (checks runtime, dependencies & opens browser)
+python scripts/fde_launcher.py
+
+# Or start the local server directly
 recon serve --host 127.0.0.1 --port 8000
 ```
 Open your browser at **[http://127.0.0.1:8000](http://127.0.0.1:8000)** to launch the Recon Studio.
@@ -257,6 +261,7 @@ Detailed security architecture and threat models are documented in [`docs/SECURI
 
 ## 📚 Documentation Index
 
+- [`docs/FDE_PLAYBOOK.md`](docs/FDE_PLAYBOOK.md) — Forward Deployed Engineer standard operating procedures, edge-case resolution, and production deployment patterns.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Core engine internals, schemas, and data pipelines.
 - [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — Contributor instructions, testing setup, and coding conventions.
 - [`docs/SECURITY.md`](docs/SECURITY.md) — Detailed threat modeling, isolation boundaries, and audit policies.
