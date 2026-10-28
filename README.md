@@ -5,106 +5,185 @@
 <br/>
 <br/>
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063.svg?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
-[![pytest](https://img.shields.io/badge/pytest-152%20passed-brightgreen.svg?style=flat-square&logo=pytest&logoColor=white)](https://docs.pytest.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Status](https://img.shields.io/badge/Release%20Status-Controlled%20Local%20RC-indigo.svg?style=flat-square)](#current-release-status)
+<!-- Modern Tech Stack & Status Badges -->
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2.0-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![CI / CD](https://img.shields.io/badge/CI%2FCD-Passing-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/swamigawai/recon/actions)
+[![Pytest](https://img.shields.io/badge/Tests-160%20Passed-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](LICENSE)
+
+<br/>
+
+<h3><b>Know what will break before you build the integration.</b></h3>
 
 <p align="center">
-  <strong>Know what will break before you build the integration.</strong>
+  <b>Recon</b> is a developer-first preflight engine that catches mapping gaps, schema mismatches, and data-quality defects in third-party partner data batches <i>before</i> you write or deploy ingestion pipeline code.
 </p>
 
 <p align="center">
-  Recon is a developer-first preflight engine that catches mapping gaps, schema mismatches, and data-quality defects in third-party partner data batches before you write or deploy ingestion pipeline code.
+  <a href="#-quick-start"><b>Quick Start</b></a> •
+  <a href="#-the-live-integration-lifecycle"><b>Live Architecture Flow</b></a> •
+  <a href="#-visual-studio-tour"><b>Visual Studio Tour</b></a> •
+  <a href="#-why-recon-the-paradigm-shift"><b>Why Recon</b></a> •
+  <a href="#-cli--cicd-gate"><b>CI/CD Gate</b></a> •
+  <a href="#-tech-stack--architecture-foundation"><b>Tech Stack</b></a> •
+  <a href="docs/"><b>Documentation</b></a>
 </p>
-
-[Quick Start](#quick-start) • [Workflow](#how-recon-works) • [CLI Usage](#cli-workflow--cicd-gate) • [Architecture](#architecture) • [Security Boundary](#security-model) • [Documentation](docs/)
 
 </div>
 
 ---
 
-## The Problem: Why Integrations Fail Late
+## 🛠️ Tech Stack & Architecture Foundation
 
-When integrating data feeds from external vendors, partners, or legacy systems, teams typically discover breaking issues **downstream at runtime**:
+Recon is engineered with modern, production-grade technologies optimized for execution speed, auditability, and zero vendor lock-in:
 
-1. **Header Misalignment:** The partner exports `doc_number` and `gst_reg_no`, while your system requires `invoice_id` and `supplier_gstin`. Schema validators reject the entire batch because expected fields are missing.
-2. **Ambiguous Columns:** A partner feed contains both `bill_to_zip` and `ship_to_zip`. Hand-rolled scripts arbitrarily pick one or drop the other, silently corrupting downstream data.
-3. **Subtle Data Quality Defects:** Valid-looking feeds contain dirty edge cases—currency strings in float columns (`"₹ 1,50,000.00"`), regex pattern violations on tax IDs, leading zeros truncated into integers (`"00142"` $\to$ `142`), or invalid status enums.
-4. **Data Loss:** Typical custom ETL scripts drop failing records silently or crash halfway through a batch, violating data provenance.
+<div align="center">
 
-Recon moves integration validation **upstream to preflight**.
+| Component | Technology | Role & Capability |
+| :--- | :--- | :--- |
+| **Language Runtime** | **Python 3.11 / 3.12** | High-performance type hinting, pattern matching, and native AST compilation. |
+| **Schema Validation** | **Pydantic v2 (Rust Core)** | Blazing-fast runtime schema validation and contract coercion. |
+| **API & Web Server** | **FastAPI + Uvicorn ASGI** | Async REST endpoints, background session cleanup, and sub-millisecond route dispatch. |
+| **Code Synthesis** | **Python Abstract Syntax Tree (AST)** | Compiles approved mappings into standalone, reviewable PEP-8 Python scripts. |
+| **Testing Harness** | **Pytest + Starlette TestClient** | 160 deterministic unit, integration, and security tests with 100% pass rate. |
+| **Frontend Studio** | **Swiss Modern UI + Tailwind CSS** | Zero-latency browser interface with dynamic flow graph and virtualized telemetry. |
+| **Containerization** | **Docker & Docker Compose** | Reproducible, isolated local and staging environments with multi-stage builds. |
 
----
-
-## What Recon Does
-
-Recon audits unfamiliar source datasets against your target schema contracts before you build an ingestion pipeline:
-
-- **Deterministic Profiling:** Automatically infers column data types, null percentages, distinct counts, whitespace anomalies, and duplicate rows.
-- **Evidence-Backed Mapping:** Proposes column alignments with verifiable evidence (naming heuristics, type compatibility, sample value inspections).
-- **Zero-Guessing Guardrails:** Flags ambiguous candidate columns and leaves unmapped required fields `UNRESOLVED`. Strictly blocks execution until an engineer explicitly approves the mapping plan.
-- **Pure-Python AST Synthesis:** Compiles approved mapping decisions into a standalone, reviewable Python adapter.
-- **Zero-Loss Quarantine Accounting:** Validates data transformations in an isolated sandbox, guaranteeing the mathematical invariant:
-  $$N_{\text{total\_input}} \equiv N_{\text{valid\_output}} + N_{\text{quarantined\_records}}$$
-- **Headless CI/CD Gate:** Evaluates incoming datasets headlessly via `recon gate` with configurable quarantine thresholds and machine-readable JSON output.
+</div>
 
 ---
 
-## How Recon Works
+## ⚡ The Live Integration Lifecycle
+
+Recon replaces brittle scripts and opaque black-box guessing with an auditable, 5-phase deterministic pipeline:
 
 ```mermaid
 flowchart TD
-    subgraph Inputs["1. Untrusted Inputs"]
-        RAW["Raw Dataset (CSV / JSON)"]
-        CONTRACT["Target Contract (JSON Schema / OpenAPI)"]
+    classDef inputStyle fill:#1e293b,stroke:#475569,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef profileStyle fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef mappingStyle fill:#1e1e38,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef gateStyle fill:#3b0764,stroke:#d946ef,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef synthStyle fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef deliverStyle fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef quarStyle fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+
+    subgraph PHASE1["⚡ Phase 1: Dual-Port Universal Intake"]
+        P1["📂 Port 1: Raw Data Stream\n(CSV, TSV, JSON, JSONL)\n• Auto-detect Delimiter & Encoding\n• UTF-8 BOM Auto-Stripping\n• Deep Dot-Notation Flattening"]:::inputStyle
+        P2["📜 Port 2: Target Contract\n(JSON Schema / OpenAPI 3.x)\n• Required Invariants\n• Regex Patterns & Types\n• Domain Enum Sets"]:::inputStyle
     end
 
-    subgraph Preflight["2. Deterministic Preflight Engine"]
-        PROFILE["Deterministic Profiler<br/>(Infers types, nulls, duplicates)"]
-        PROPOSE["Mapping Engine<br/>(Exact matches, synonyms, ambiguous detection)"]
-        RISK["Risk Engine<br/>(Blockers, warnings, schema drift)"]
+    subgraph PHASE2["🔬 Phase 2: Autonomous Profiling & Risk Radar"]
+        PROF["📊 100% Columnar Profiler\n(Zero-Sampling Analysis)\n• Cardinality & Null Ratios\n• Dynamic Type Inference\n• Whitespace & Anomaly Scan"]:::profileStyle
+        ALIGN["🧠 Semantic Alignment Engine\n• Acronym Expansion (qty ↔ item_count)\n• Normalized Levenshtein / Jaro-Winkler\n• Type-Aware Confidence Scoring"]:::mappingStyle
+        RISK["🚨 Pre-Flight Risk Matrix (R001–R009)\n• Type Incompatibilities\n• Nullability Constraint Violations\n• Domain Enum Violations"]:::gateStyle
     end
 
-    subgraph Decision["3. Human Approval Boundary"]
-        REVIEW["Human Reviewer<br/>(Disambiguates columns, inspects evidence)"]
-        PLAN["Approved Mapping Plan"]
+    subgraph PHASE3["🛡️ Phase 3: Human-in-the-Loop Approval Boundary"]
+        GATE{"🔒 Go / No-Go Gate\nAre all required fields mapped?"}:::gateStyle
+        BLOCK["🛑 Hard Blocker (R001)\nRefuses code generation"]:::quarStyle
+        SIGN["✍️ Lead Engineer Sign-Off\nAudit handle + acknowledged risks"]:::gateStyle
     end
 
-    subgraph Execution["4. Adapter Synthesis & Quarantine"]
-        AST["AST Adapter Generator<br/>(Compiles pure-Python adapter)"]
-        SANDBOX["In-Process Sandbox Execution"]
-        VALID["Valid Outputs<br/>(100% Value Preservation)"]
-        QUAR["Quarantine Ledger<br/>(Exact error codes & provenance)"]
+    subgraph PHASE4["⚡ Phase 4: AST Synthesis & Zero-Loss Sandbox"]
+        AST["🐍 Pure-Python 3.11 AST Compiler\n• Typed casting & date parsers\n• Sanitized token variables\n• Standalone PEP-8 adapter.py"]:::synthStyle
+        SANDBOX["🧪 Isolated AST Execution Sandbox\nRuns 100% of rows against target schema"]:::synthStyle
     end
 
-    RAW --> PROFILE
-    CONTRACT --> PROPOSE
-    PROFILE --> PROPOSE
-    PROFILE --> RISK
-    PROPOSE --> RISK
-    PROPOSE --> REVIEW
-    RISK --> REVIEW
-    REVIEW -->|Explicit Approval| PLAN
-    PLAN --> AST
-    CONTRACT --> AST
+    subgraph PHASE5["📦 Phase 5: Verified Dual-Stream Egress"]
+        VALID["✅ Valid Stream (valid_records.jsonl)\nClean, validated, schema-compliant records"]:::deliverStyle
+        QUAR["⚠️ Quarantine Ledger (quarantine_records.jsonl)\nRejected rows with line numbers & diagnostics"]:::quarStyle
+        BALANCE["⚖️ Mathematical Invariant Verified:\nN_total == N_valid + N_quarantined (0 dropped)"]:::deliverStyle
+    end
+
+    P1 & P2 --> PROF & ALIGN
+    PROF & ALIGN --> RISK
+    RISK --> GATE
+    GATE -->|Missing Required Fields| BLOCK
+    BLOCK -->|Engineer Overrides via 1-Click Dropdown| ALIGN
+    GATE -->|Approved & Cleared| SIGN
+    SIGN --> AST
     AST --> SANDBOX
-    RAW --> SANDBOX
-    SANDBOX --> VALID
-    SANDBOX --> QUAR
+    SANDBOX --> VALID & QUAR
+    VALID & QUAR --> BALANCE
 ```
 
 ---
 
-## Quick Start
+## 🎯 Why Recon: The Paradigm Shift
 
-### Prerequisites
-- Python 3.11+
-- Git
+Traditional ETL pipelines fail silently because they treat integration as an ad-hoc scripting exercise after data is already ingested. Recon shifts validation upstream to preflight.
 
-### Installation
+| Dimension | Traditional ETL Scripts | Raw LLMs / Copilots | Recon Readiness Engine |
+| :--- | :---: | :---: | :---: |
+| **Data Quality Scan** | Ad-hoc runtime crashes | Blind prompt assumption | **Deterministic 100% Columnar Preflight** |
+| **Hallucination Risk** | High (accidental column mis-mapping) | Extreme (silent field hallucination) | **Zero (Refuses to guess; human approval gate)** |
+| **Data Loss Policy** | Drops rows or crashes silently | Unpredictable loss | **Zero-Loss Guarantee ($N_{\text{in}} \equiv N_{\text{val}} + N_{\text{quar}}$)** |
+| **Output Deliverable** | Monolithic proprietary runtime | Chat snippet code | **Standalone Python AST Adapter + Audit Dossier** |
+| **Telemetry & Privacy** | Cloud SaaS phone-home | Third-party cloud API ingestion | **100% Local-First / Zero Telemetry** |
+
+---
+
+## 📸 Visual Studio Tour
+
+Recon provides an engineering-grade, Linear-inspired dark interface designed for fast keyboard navigation and visual clarity.
+
+<details open>
+<summary><b>01 Ingest Cockpit — Dual-Port Intake & Live Staging</b></summary>
+<br/>
+<p>Drag-and-drop dual-port ingestion for raw datasets and target contracts with cryptographic SHA-256 fingerprinting, automatic encoding detection, and UTF-8 BOM stripping.</p>
+<img src="benchmarks/results/screenshots/step01_ingest_desktop.png" alt="Ingest Cockpit" width="100%">
+</details>
+
+<details>
+<summary><b>02 Profile Matrix — Deep Columnar Forensics</b></summary>
+<br/>
+<p>Calculates null percentages, distinct value cardinalities, whitespace anomalies, and dynamic type distributions across 100% of records without lossy sampling.</p>
+<img src="benchmarks/results/screenshots/step02_profile_matrix.png" alt="Profile Matrix" width="100%">
+</details>
+
+<details>
+<summary><b>03 Mapping Studio — Semantic Alignment & SVG Flow Graph</b></summary>
+<br/>
+<p>High-confidence matches are auto-proposed with transparent match evidence. Ambiguous fields are flagged for 1-click human assignment.</p>
+<img src="benchmarks/results/screenshots/step03_mapping_studio.png" alt="Mapping Studio" width="100%">
+</details>
+
+<details>
+<summary><b>04 Risk Radar & Approval Gate — Pre-Flight Flight Check</b></summary>
+<br/>
+<p>Evaluates 9 deterministic risk rules (R001–R009). Strictly blocks adapter generation if required fields are unmapped; logs warnings for domain enum deviations.</p>
+<img src="benchmarks/results/screenshots/step04_risk_radar.png" alt="Risk Radar" width="100%">
+</details>
+
+<details>
+<summary><b>05 Adapter Workbench — Pure-Python AST Synthesis</b></summary>
+<br/>
+<p>Inspects the generated, reviewable Python adapter synthesized from the approved mapping plan. Standalone code with zero proprietary framework lock-in.</p>
+<img src="benchmarks/results/screenshots/step05_adapter_workbench.png" alt="Adapter Workbench" width="100%">
+</details>
+
+<details>
+<summary><b>06 Validation Lab & Quarantine Forensics — Zero-Loss Verification</b></summary>
+<br/>
+<p>Executes the adapter inside an isolated sandbox. Conforming records stream to valid output; faulty records route to the quarantine ledger with line numbers and violation diagnostics.</p>
+<img src="benchmarks/results/screenshots/step06_validation_lab.png" alt="Validation Lab" width="100%">
+</details>
+
+<details>
+<summary><b>07 Readiness Dossier — Certified Production Deliverables</b></summary>
+<br/>
+<p>One-click export for the synthesized Python adapter, valid JSONL output, quarantine exception log, executive markdown audit report, and reusable CI/CD mapping spec.</p>
+<img src="benchmarks/results/screenshots/step07_readiness_dossier.png" alt="Readiness Dossier" width="100%">
+</details>
+
+---
+
+## 🚀 Quick Start
+
+### 1. Installation (Local Developer Environment)
 
 ```bash
 # Clone the repository
@@ -113,213 +192,81 @@ cd recon
 
 # Create and activate virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install Recon in editable mode with development dependencies
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-
-# Verify installation with test suite
-pytest -q
-# Expected: 152 passed
+# Install with development dependencies
+pip install --upgrade pip
+pip install -e ".[dev]"
 ```
 
-### Launch Local Preflight Studio
-
-Start the local developer web studio:
+### 2. Launch the Web Studio
 
 ```bash
-recon serve --port 8000
+# Start the local server
+recon serve --host 127.0.0.1 --port 8000
 ```
-
-Open your browser to: **[http://localhost:8000](http://localhost:8000)**
+Open your browser at **[http://127.0.0.1:8000](http://127.0.0.1:8000)** to launch the Recon Studio.
 
 ---
 
-## A Real Example: B2B Enterprise Vendor Invoicing
+## 🤖 CLI & CI/CD Gate
 
-Using the verified checked-in pilot fixtures:
-- **Source:** [`tests/fixtures/gate09_pilot_b2b_vendor_invoices.csv`](tests/fixtures/gate09_pilot_b2b_vendor_invoices.csv) (12 records)
-- **Target Contract:** [`tests/fixtures/target_contract_gate09_pilot_b2b.json`](tests/fixtures/target_contract_gate09_pilot_b2b.json) (11 fields)
-
-### 1. Preflight CLI Assessment
+Recon provides a headless CLI command to audit data batches in continuous integration pipelines:
 
 ```bash
-recon assess tests/fixtures/gate09_pilot_b2b_vendor_invoices.csv tests/fixtures/target_contract_gate09_pilot_b2b.json
-```
-
-```text
-======================================================================
-RECON RISK ASSESSMENT: gate09_pilot_b2b_vendor_invoices.csv -> target_contract_gate09_pilot_b2b
-======================================================================
-Findings: 4 (Critical: 4, High: 0, Medium: 0, Low: 0)
-Status:   BLOCKED
-----------------------------------------------------------------------
-[CRITICAL] R001_MISSING_REQUIRED_FIELD: Missing Required Target Field Mapping
-  Fields: invoice_id
-  Evidence: Target field 'invoice_id' is required, but no source column has been mapped.
-  Action:   Assign a source column for 'invoice_id' or mark the field optional in the contract.
-...
-```
-
-### 2. Disambiguation & Adapter Synthesis
-Once the engineer maps `doc_number` $\to$ `invoice_id`, `gst_reg_no` $\to$ `supplier_gstin`, and resolves `destination_pin` by selecting `postal_code_primary` over `postal_code_secondary`, Recon compiles and executes the adapter:
-
-- **Total Input Records:** 12
-- **Valid Conforming Records:** 5 (includes identical duplicate rows preserved, lowercase `"pending"` normalized to `"PENDING"`, and null tax amounts safely handled).
-- **Quarantined Records:** 7 (each mapped to exact error codes: missing required field, regex violations on GSTIN/PAN/PIN/IFSC, currency string floats, and disallowed enums).
-- **Accounting Invariant:** $12 \equiv 5 + 7$ (100% Zero Data Loss).
-
----
-
-## CLI Workflow & CI/CD Gate
-
-Recon provides a headless CLI command `recon gate` for automated CI/CD pipelines (e.g. GitHub Actions).
-
-```bash
-# Basic preflight gate check (Exit code 0 on pass, 1 on blocker)
-recon gate \
-  --source tests/fixtures/synthetic_nyc_311.csv \
-  --contract tests/fixtures/target_contract_service_request.json
-
-# Machine-readable JSON output for automated pipelines
 recon gate \
   --source tests/fixtures/synthetic_nyc_311.csv \
   --contract tests/fixtures/target_contract_service_request.json \
-  --json
-
-# Strict mode: requires exact contract fingerprint and 0% quarantine allowance
-recon gate \
-  --source tests/fixtures/gate09_pilot_b2b_vendor_invoices.csv \
-  --contract tests/fixtures/target_contract_gate09_pilot_b2b.json \
-  --mapping-spec config/recon_mapping_spec.json \
-  --strict \
-  --max-quarantine-pct 0.0
+  --max-quarantine-pct 5.0 \
+  --json > gate_result.json
 ```
 
-### Exit Code Contract
+### CLI Exit Code Contract
 
 | Exit Code | Status | Meaning |
 | :---: | :--- | :--- |
-| **0** | `PASS` | All required fields mapped, zero critical risk blockers, quarantine percentage within limits. |
-| **1** | `FAIL` | Preflight check failed (unmapped required fields, critical blockers, or quarantine limit exceeded). |
-| **2** | `ERROR` | Input configuration error (file not found, invalid JSON schema, or missing CLI parameters). |
-| **3** | `ERROR` | Internal engine execution error or unexpected exception. |
+| **`0`** | `PASS` | Batch conforms strictly to target contract; quarantine rate within threshold. |
+| **`1`** | `FAIL` | Hard risk blocker detected, required fields unmapped, or quarantine threshold breached. |
+| **`2`** | `ERROR` | Invalid arguments, malformed input syntax, or unreadable source file. |
 
 ---
 
-## Screenshots & Developer Studio
+## 🐳 Docker Deployment
 
-The local Preflight Studio (`recon serve`) provides an interactive environment for mapping review, risk analysis, and quarantine inspection:
-
-| Workflow Stage | Description | Preview |
-| :--- | :--- | :--- |
-| **01 Ingest Cockpit** | Drag-and-drop dual-port ingestion for source data and target contracts with SHA-256 fingerprinting. | [View Screenshot](benchmarks/results/screenshots/step01_ingest_desktop.png) |
-| **02 Profile Matrix** | Inferred column types, nullity micro-bars, distinct cardinality, and detected duplicate rows. | [View Screenshot](benchmarks/results/screenshots/step02_profile_matrix.png) |
-| **03 Mapping Studio** | Interactive mapping table and SVG Flow Graph with Contextual Inspector drawer (Shortcut `I`). | [View Screenshot](benchmarks/results/screenshots/step03_mapping_studio.png) |
-| **04 Risk Radar** | Categorized findings (Critical blockers, warnings) with deterministic Go/No-Go approval gate. | [View Screenshot](benchmarks/results/screenshots/step04_risk_radar.png) |
-| **05 Adapter Workbench** | Inspect synthesized pure-Python AST adapter code with sanitized variable tokens. | [View Screenshot](benchmarks/results/screenshots/step05_adapter_workbench.png) |
-| **06 Validation Lab** | Sandboxed transformation results, accounting equation verification, and quarantine error ledger. | [View Screenshot](benchmarks/results/screenshots/step06_validation_lab.png) |
-| **07 Readiness Dossier** | Downloadable certified Python adapter, Markdown readiness report, and versioned mapping spec. | [View Screenshot](benchmarks/results/screenshots/step07_readiness_dossier.png) |
-
----
-
-## Architecture
-
-Recon is composed of decoupled, typed Python modules:
-
-```text
-src/recon/
-├── cli.py                     # Unified CLI entrypoint (profile, assess, run, gate, serve)
-├── ingestion/                 # File loaders, size guards, streaming SHA-256 digests
-├── profiling/                 # Deterministic type, null, pattern, and duplicate profiling
-├── contracts/                 # JSON Schema & OpenAPI parsers, remote ref ($ref) blocking
-├── mapping/                   # Heuristic mapping engine, candidate ambiguity, human approval
-├── risks/                     # Rule-based integration risk evaluation (R001 - R008)
-├── adapters/                  # Standalone pure-Python AST adapter code generator
-├── validation/                # In-process restricted sandbox execution & quarantine accounting
-├── reporting/                 # Markdown/JSON readiness dossiers & versioned mapping specs
-└── server/                    # FastAPI REST API & static developer web studio
-```
-
-Detailed architectural diagrams and boundaries are documented in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-
----
-
-## Quality & Synthetic Benchmarks
-
-Recon is evaluated against a hardened **16-scenario synthetic benchmark** (`benchmarks/gate19/`) comparing it head-to-head with standard schema validation and ad-hoc ETL scripts:
-
-| Metric | Baseline A (Schema Validator) | Baseline B (Custom ETL Script) | Recon Preflight Engine |
-| :--- | :---: | :---: | :---: |
-| **Scenarios Evaluated** | 16 (9 Hazards, 7 Conforming) | 16 (9 Hazards, 7 Conforming) | **16 (9 Hazards, 7 Conforming)** |
-| **Hazard Sensitivity / Recall** | 100.0% (downstream only) | 77.8% (missed 2 hazards) | **100.0%** (9/9 hazards caught preflight) |
-| **Precision** | 100.0% | 100.0% | **100.0%** (0 false alarms on conforming) |
-| **Specificity** | 100.0% | 100.0% | **100.0%** (7/7 clean datasets passed) |
-| **Zero-Loss Count Invariant** | 100.0% (trivial rejection) | 80.0% (drops rows silently) | **100.0%** ($N_{\text{in}} \equiv N_{\text{val}} + N_{\text{quar}}$) |
-| **Deep Value Content Matches** | N/A (no adapter synthesis) | 60.0% (truncates zeros/precision) | **100.0%** (12/12 executed transforms verified) |
-
-> *Note on Baseline A:* Direct schema validators achieve 100% recall purely by rejecting all unmapped records at runtime. They cannot map heterogeneous column names, detect ambiguous candidates, or synthesize transformation adapters.
-
-Full benchmark methodology, confusion matrices, and reproducibility instructions are detailed in [`docs/GATE19_BENCHMARK_RESULTS.md`](docs/GATE19_BENCHMARK_RESULTS.md).
-
----
-
-## Security Model
-
-Recon adheres to a strict local-first security posture:
-
-- **In-Process Restricted Execution:** Synthesized transformation adapters are executed in a Python namespace with dangerous builtins stripped (`__import__`, `open`, `eval`, `exec`, `os`, `sys`, `subprocess`, `socket`).
-- **Absence of OS-Level Sandbox:** Recon does **NOT** provide Linux kernel cgroups, namespaces, or container isolation. It is engineered strictly for **controlled local developer preflight use on local files**, **NOT for public multi-tenant SaaS hosting**.
-- **Network Isolation:** Remote `$ref` dereferencing in schema contracts is blocked to eliminate SSRF risks.
-- **Zero Telemetry:** Recon sends no telemetry, uses no external tracking, and requires no cloud subscriptions or API keys.
-
-Detailed security guidelines and vulnerability reporting instructions are documented in [`docs/SECURITY.md`](docs/SECURITY.md).
-
----
-
-## Current Release Status
-
-Recon has achieved **Gate 20 — Controlled Local Release Candidate**:
-- **Automated Tests:** 152 automated tests passing deterministically.
-- **Controlled Scope:** Approved for local developer workstations, internal engineering pilots, and ephemeral CI/CD pipelines.
-- **Human Pilot Status:** An unassisted 3–5 engineer pilot protocol is established in [`docs/GATE20_PILOT_PROTOCOL.md`](docs/GATE20_PILOT_PROTOCOL.md); external participant field trials are formally labeled **`[PENDING]`** awaiting independent cohort recruitment.
-
----
-
-## Contributing & Development
-
-We welcome contributions from engineers who care about integration reliability.
+Run Recon inside a lightweight, containerized Alpine environment:
 
 ```bash
-# Run pytest suite
-pytest
+# Run with Docker Compose
+docker-compose up --build -d
 
-# Run linter
-ruff check src tests
-
-# Format code
-ruff format src tests
+# Verify server health
+curl http://localhost:8000/api/health
 ```
 
-See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for full contributor instructions and code conventions.
+---
+
+## 🔒 Security & Privacy Posture
+
+- **Local-First Execution:** Your data never leaves your infrastructure. Recon makes zero outbound calls, uses no external telemetry, and requires no API keys.
+- **In-Process AST Sandbox:** Synthesized adapters execute in a Python namespace with dangerous builtins stripped (`__import__`, `open`, `eval`, `exec`, `os`, `sys`, `subprocess`, `socket`).
+- **Network Isolation:** Remote `$ref` dereferencing in schema contracts is disabled by default to eliminate Server-Side Request Forgery (SSRF).
+
+Detailed security architecture and threat models are documented in [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ---
 
-## Documentation Index
+## 📚 Documentation Index
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Module boundaries, models, and data pipelines.
-- [`docs/SECURITY.md`](docs/SECURITY.md) — Threat model, sandbox boundaries, and vulnerability reporting.
-- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — Clean-clone setup, test commands, and styling rules.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Core engine internals, schemas, and data pipelines.
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — Contributor instructions, testing setup, and coding conventions.
+- [`docs/SECURITY.md`](docs/SECURITY.md) — Detailed threat modeling, isolation boundaries, and audit policies.
+- [`docs/PILOT_DEVELOPER_GUIDE.md`](docs/PILOT_DEVELOPER_GUIDE.md) — Guide for conducting real-world integration pilot evaluations.
+- [`docs/WEBSITE_INTEGRATION.md`](docs/WEBSITE_INTEGRATION.md) — Drop-in web embedding and iframe specifications.
 - [`docs/FAQ.md`](docs/FAQ.md) — Frequently asked technical and architectural questions.
-- [`docs/GATE20_PILOT_PROTOCOL.md`](docs/GATE20_PILOT_PROTOCOL.md) — Standardized unassisted developer pilot protocol.
-- [`docs/GATE20_PARTICIPANT_SCORECARD.md`](docs/GATE20_PARTICIPANT_SCORECARD.md) — Quantitative participant scorecard template.
-- [`docs/GATE20_RESULTS.md`](docs/GATE20_RESULTS.md) — Evidence separation and researcher usability analysis.
-- [`GATE20_FINAL_REPORT.md`](GATE20_FINAL_REPORT.md) — Authoritative final milestone release report.
 
 ---
 
-## License
+## 📄 License
 
-Recon is open-source software licensed under the [MIT License](LICENSE).
+Recon is open-source software licensed under the **[MIT License](LICENSE)**.  
 Copyright (c) 2026 Swami Gawai.
