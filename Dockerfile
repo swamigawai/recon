@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy packaging configuration and install dependencies
-COPY pyproject.toml ./
+COPY pyproject.toml README.md LICENSE ./
 RUN pip install --upgrade pip && \
     pip install "fastapi>=0.104.0" "uvicorn[standard]>=0.24.0" "pydantic>=2.4.0" "python-multipart>=0.0.6" "click>=8.1.0"
 

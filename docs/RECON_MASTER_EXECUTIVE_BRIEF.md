@@ -115,11 +115,11 @@ python scripts/fde_launcher.py
 
 #### Option B: Headless CI/CD Automation Gate
 ```bash
-# Automated preflight verification in GitHub Actions / GitLab CI
+# Automated preflight verification in GitHub Actions / GitLab CI (Strict mode requires an approved mapping spec)
 recon gate \
   --source partner_batch.csv \
   --contract target_schema.json \
-  --max-quarantine-pct 2.0 \
+  --mapping-spec recon_mapping_spec.json \
   --strict
 ```
 

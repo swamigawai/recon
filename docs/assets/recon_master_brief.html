@@ -331,7 +331,7 @@ cd recon
 python scripts/fde_launcher.py
 
 # Option B: Automated Headless CI/CD Gate
-recon gate --source partner_feed.csv --contract target_schema.json --strict
+recon gate --source partner_feed.csv --contract target_schema.json --mapping-spec recon_mapping_spec.json --strict
 
 # Option C: Containerized Deployment
 docker compose up -d</div>
