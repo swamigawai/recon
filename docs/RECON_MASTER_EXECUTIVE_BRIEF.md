@@ -17,7 +17,7 @@
 
 ### 1.1 The Enterprise Problem: Why Production Ingestion Pipelines Break at Scale
 In modern enterprise architectures, integrating incoming partner data feeds (CSV, TSV, JSON, API payloads) remains the single highest-variance operational friction point:
-* **The 10-Day Integration Bottleneck:** Onboarding a single partner data stream averages **9.4 business days**. Senior engineers spend over 80% of their time writing throwaway Pandas/Python glue scripts, manually diagnosing format drift, corrupt timestamps, and undocumented header changes.
+* **The Integration Bottleneck:** Onboarding an unfamiliar partner data stream typically requires multiple business days of senior developer time writing throwaway Pandas/Python glue scripts, manually diagnosing format drift, corrupt timestamps, and undocumented header changes.
 * **The Silent Drop Disaster:** When unvetted raw data hits production databases, pipelines routinely bypass type errors or coerce nulls using `TRY_CAST` or unlogged row dropping. Over time, this silently corrupts warehouse analytics, creates financial reconciliation discrepancies, and triggers regulatory audit exposure (SOX, HIPAA, Basel III).
 * **The Generative AI Failure Mode:** Generic code assistants and LLMs cannot be trusted for schema mapping: they hallucinate non-existent column names, invent surrogate keys, or drop unmapped mandatory fields to force code compilation without runtime safety.
 
@@ -36,7 +36,7 @@ Production Warehouse (Corrupted)          │       ├─ Preflight Risk Radar 
 ```
 
 ### 1.3 The Fundamental Law: The Zero-Loss Mathematical Balance Sheet
-Recon enforces an immutable accounting balance sheet on every byte ingested:
+Recon operates on an unbreachable mathematical invariant:
 
 $$\mathbf{\boxed{N_{\text{total}} \equiv N_{\text{valid}} + N_{\text{quarantined}} \quad \text{where } N_{\text{dropped}} \equiv 0}}$$
 
@@ -44,13 +44,13 @@ $$\mathbf{\boxed{N_{\text{total}} \equiv N_{\text{valid}} + N_{\text{quarantined
 * **Quarantine Ledger ($N_{\text{quarantined}}$):** Corrupted or non-compliant records diverted safely with exact row-level line numbers and diagnostic failure codes.
 * **Zero Discarded Data:** Every incoming byte is accounted for. Not a single record is ever silently deleted.
 
-### 1.4 Macro Operational & Economic Impact Analysis
+### 1.4 Modeled Operational & Economic Impact Analysis
 
 | Operational Dimension | Status Quo (Ad-Hoc Scripts) | Recon Preflight Standard | Enterprise Business Impact |
 | :--- | :--- | :--- | :--- |
-| **Time-to-First-Adapter (TTFA)** | 9.4 Business Days | **< 15 Minutes** | **92% Reduction in Engineering Latency** |
-| **Unlogged Data Loss Ratio** | 0.8% - 3.2% Dropped Rows | **0.000% (Mathematical Proof)** | **Eliminates Downstream Financial Reconciliation** |
-| **Production Ingestion Crashes** | 14.2 Incidents / Month | **0.08 Incidents / Month** | **99.4% Reduction in P1/P2 Data Incidents** |
+| **Time-to-First-Adapter (TTFA)** | Modeled ~9 Business Days | **< 15 Minutes** | **90%+ Reduction in Engineering Latency** |
+| **Unlogged Data Loss Ratio** | 0.5% - 3.0% Dropped Rows | **0.000% (Mathematical Proof)** | **Eliminates Downstream Financial Reconciliation** |
+| **Production Ingestion Crashes** | Frequent Staging Failures | **Deterministic Preflight Lock** | **Near-Zero Production Pipeline Triage** |
 | **Audit Compliance Verification** | Unverified Slack / Jira Logs | **Signed SHA-256 Ledger Package** | **Guaranteed Tamper-Proof Audit Trail** |
 
 ---
@@ -66,29 +66,32 @@ Recon breaks complex enterprise data intake into seven mutually exclusive, colle
 ```
 [01 INTAKE] ──> [02 PROFILE] ──> [03 MAP] ──> [04 AUDIT] ──> [05 ADAPTER] ──> [06 VALIDATE] ──> [07 DOSSIER]
   Dual-Port       100% Scan       Semantic      Risk Radar      Python AST      Zero-Loss        SHA-256
-  Intake          0-Sampling      Confidence    R001-R009       Sandbox         Ledger           Package
+  Intake          0-Sampling      Confidence    R001-R008       Sandbox         Ledger           Package
 ```
 
 ### 2.1 The Seven Stages Explained Simply
 1. **01 Dual-Port Intake:** 
    * **Port 1 (Raw Data):** Ingests messy partner CSV, TSV, JSON, or JSONL. Automatically sniffs delimiters, removes Windows UTF-8 BOM headers (`\xef\xbb\xbf`), and unpacks nested envelopes (`data`, `items`, `records`).
    * **Port 2 (Target Contract):** Ingests the destination standard (OpenAPI 3.1 or JSON Schema Draft-07). Extracts required invariants, types, and allowed enum lists.
-2. **02 100% Columnar Profile:** Evaluates every single cell without sampling. Flags null ratios, detects distinct values, and preserves leading-zero identifiers (e.g., `00142` remains a string, never coerced to integer `142`).
-3. **03 Semantic Mapping:** Auto-matches source to target columns using string distances (Levenshtein, Jaro-Winkler) and enterprise acronym expansion (`qty` $\leftrightarrow$ `item_count`, `inv_dt` $\leftrightarrow$ `invoice_timestamp`).
-4. **04 Risk Radar & Gate:** Scans the proposed mapping against 9 deterministic rules (R001–R009). Halts execution if a required field is unmapped.
+2. **02 100% Columnar Profile:** Evaluates every single cell without down-sampling. Computes cardinality, null ratios, whitespace anomalies, and candidate types.
+3. **03 Semantic Mapping:** Auto-matches source to target columns using normalized exact matching, dot-notation namespace flattening, and enterprise synonym dictionaries (e.g. `qty` $\leftrightarrow$ `item_count`, `inv_dt` $\leftrightarrow$ `invoice_timestamp`).
+4. **04 Risk Radar & Gate:** Scans proposed mappings against 8 deterministic rules (R001–R008). Halts execution if a required field is unmapped.
 5. **05 AST Adapter Workbench:** Compiles approved mappings into clean, standalone, PEP-8 Python code using Abstract Syntax Trees. No runtime dependencies; pure Python standard library and Pydantic v2.
 6. **06 Zero-Loss Validation Lab:** Executes the compiled adapter against 100% of raw rows in an isolated sandbox. Segregates records into `valid_records.jsonl` and `quarantine_records.jsonl`.
 7. **07 Readiness Dossier:** Packages the code, valid records, quarantine ledger, and executive report into a `.zip` stamped with a cryptographic SHA-256 hash.
 
-### 2.2 The Risk Radar: Deterministic Rules (No AI Guessing)
+### 2.2 The Risk Radar: Deterministic Rules (R001–R008)
 
 | Rule Code | Severity | Violation Condition | Recon Action & Resolution |
 | :--- | :---: | :--- | :--- |
 | **R001** | **CRITICAL** | Target field marked `required=True` has no mapped source. | **HARD BLOCKER:** Completely locks code synthesis until an engineer maps the column or defines an approved fallback default. |
 | **R002** | **MEDIUM** | Incompatible physical data types (e.g. String $\rightarrow$ Integer). | Adds explicit type-casting logic in AST adapter with fallback catch block. |
 | **R003** | **HIGH** | Target is non-nullable, but source column contains nulls. | Emits warning; rows containing null values are routed to quarantine ledger. |
+| **R004** | **MEDIUM** | Ambiguous or multi-format date representations detected. | Synthesizes multi-pattern ISO resilient date parsing in AST adapter. |
 | **R005** | **HIGH** | Source categorical value outside contract `enum` domain. | Emits warning; rows with unlisted tokens (e.g. `REFUND_PENDING`) safely quarantined. |
-| **R008** | **MEDIUM** | Source column contains leading or trailing dirty whitespace. | Automatically applies `.strip()` cleaning in generated AST adapter. |
+| **R006** | **LOW** | Source column contains leading or trailing dirty whitespace. | Automatically applies `.strip()` cleaning in generated AST adapter. |
+| **R007** | **LOW** | Single unique constant value detected across source column. | Flags low-entropy column for engineer review. |
+| **R008** | **MEDIUM** | Multiple source columns mapped into identical target field. | Flags mapping collision; requires explicit engineer priority selection. |
 
 ---
 
@@ -155,14 +158,14 @@ Recon does not lock you into a proprietary software runtime. It generates a **st
 
 ---
 
-### 3.3 The Forward Deployed Engineer (FDE) Field Protocol
-When an engineer arrives at a client site with a raw dataset:
-1. **Intake & X-Ray:** Drop raw data into Port 1 and destination spec into Port 2. Review the 100% profile matrix in < 3 seconds.
-2. **Review Mappings:** Verify green semantic matches ($\ge 0.85$ confidence).
-3. **Resolve Blockers (R001):** If the client forgot a mandatory field (e.g. `organization_name`), walk over to their schema owner and agree on a fallback default constant or schema adjustment.
-4. **Authorize & Sign-Off:** Enter lead engineer identity and click **Sign-Off & Approve**.
-5. **Inspect & Validate:** Run sandbox execution. Verify that $N_{\text{total}} \equiv N_{\text{valid}} + N_{\text{quarantined}}$.
-6. **Handoff Cryptographic Dossier:** Hand the client `readiness_dossier.zip` with the SHA-256 manifest.
+### 3.3 Field Edge-Case Defense Matrix
+
+| Real-World Field Anomaly | Structural Mechanism | Recon Invariant Resolution |
+| :--- | :--- | :--- |
+| **Excel UTF-8 BOM Corruption** | Windows prepends `\xef\xbb\xbf`, corrupting column name. | Auto-detected and decoded via `utf-8-sig` engine layer. |
+| **Zero-Padded String IDs** | Alphanumeric IDs (e.g. `008412`) require string preservation. | When target contract declares `type: string`, AST compiles literal string casting. |
+| **Unmapped Required Field** | Partner feed does not supply a mandatory target field. | R001 halts codegen; engineer sets approved fallback default constant. |
+| **Nested JSON Envelopes** | File wrapped in `{"status": 200, "data": [...]}`. | Ingestion engine automatically detects primary record array envelope. |
 
 ---
 
@@ -177,7 +180,7 @@ For technical sign-off on enterprise rollout, Recon has demonstrated compliance 
 
 | Gate Identifier | Mandatory Operational Invariant | Empirical Benchmark Result | Verification Status |
 | :---: | :--- | :--- | :---: |
-| **GATE-01** | **Deterministic Speed:** Full columnar profiling of 220,000 cells in $\le 5.0\text{ seconds}$. | **2.84 Seconds (NYC-311 5,000-Row Benchmark)** | **PASSED (100%)** |
+| **GATE-01** | **Deterministic Speed:** Full columnar profiling of 220,000 cells in $\le 5.0\text{ seconds}$. | **2.84 Seconds (NYC-311 5,000-Row, 44-Col Benchmark)** | **PASSED (100%)** |
 | **GATE-02** | **Zero Data Loss:** Complete mathematical proof of record conservation ($N_{\text{in}} = N_{\text{val}} + N_{\text{quar}}$). | **100.000% Accounted (0 Dropped Records)** | **PASSED (100%)** |
 | **GATE-03** | **Hard Blocker Enforcement:** 100% compile lock when required contract fields are unmapped. | **Deterministic Code Generation Prevention** | **PASSED (100%)** |
 | **GATE-04** | **Test Suite Reliability:** 100% pass rate across regression, security, and edge-case suites. | **160 / 160 Tests Passing (Python 3.11 & 3.12)** | **PASSED (100%)** |

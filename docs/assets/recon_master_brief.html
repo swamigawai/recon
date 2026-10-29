@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RECON // Executive Memorandum (PDR-2026-FDE-01)</title>
+  <title>RECON // Executive Technical Memorandum (PDR-2026-FDE-01)</title>
   <style>
     :root {
       --bg: #090B10;
@@ -22,55 +22,63 @@
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.5;
-      font-size: 13px;
+      line-height: 1.35;
+      font-size: 11.5px;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 10mm 12mm;
     }
     .page {
-      width: 210mm;
-      min-height: 297mm;
-      padding: 20mm;
-      margin: 10mm auto;
+      width: 100%;
+      max-width: 210mm;
+      min-height: 275mm;
+      padding: 8mm 12mm;
+      margin: 0 auto;
       background: var(--card-bg);
-      border: 1px solid var(--border);
+      border-bottom: 2px dashed #334155;
+      page-break-after: always;
       position: relative;
     }
     @media print {
       body { background: #FFFFFF !important; color: #0F172A !important; }
       .page {
         margin: 0 !important;
+        padding: 0 !important;
         border: none !important;
         background: #FFFFFF !important;
         width: 100% !important;
         min-height: auto !important;
-        padding: 15mm !important;
         page-break-after: always !important;
+        break-after: page !important;
       }
       .no-print { display: none !important; }
       .card { border: 1px solid #CBD5E1 !important; background: #F8FAFC !important; }
       th { background: #F1F5F9 !important; color: #334155 !important; }
       td, th { border-bottom: 1px solid #E2E8F0 !important; }
       .formula-box { background: #F0FDF4 !important; border: 1px solid #16A34A !important; color: #15803D !important; }
+      .code-block { background: #F8FAFC !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
     }
     .header-bar {
       border-bottom: 2px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 20px;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
     }
     .brand-title {
-      font-size: 24px;
+      font-size: 19px;
       font-weight: 900;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       margin: 0;
       color: #FFFFFF;
     }
     .brand-sub {
       font-family: monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: var(--accent-cyan);
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
     }
     .page-tag {
       font-family: monospace;
@@ -79,30 +87,25 @@
       font-weight: 700;
     }
     h2 {
-      font-size: 16px;
+      font-size: 13.5px;
       font-weight: 800;
-      letter-spacing: 0.5px;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-      margin-top: 20px;
-      margin-bottom: 12px;
+      padding-bottom: 4px;
+      margin-top: 10px;
+      margin-bottom: 6px;
       color: #FFFFFF;
     }
-    h3 {
-      font-size: 13.5px;
-      font-weight: 700;
-      margin-top: 14px;
-      margin-bottom: 6px;
-      color: var(--accent-cyan);
-    }
+    p, ul { margin: 4px 0; }
+    ul { padding-left: 18px; }
+    li { margin-bottom: 3px; }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0;
-      font-size: 11.5px;
+      margin: 8px 0;
+      font-size: 10.5px;
     }
     th, td {
-      padding: 8px 10px;
+      padding: 5px 7px;
       text-align: left;
       border-bottom: 1px solid var(--border);
     }
@@ -110,65 +113,65 @@
       background: #0B0E14;
       color: var(--text-muted);
       font-family: monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
+      font-size: 9.5px;
+      letter-spacing: 0.8px;
     }
     .highlight { color: var(--accent-green); font-weight: 700; }
     .formula-box {
       background: #06110D;
       border: 1px dashed var(--accent-green);
-      border-radius: 6px;
-      padding: 12px;
+      border-radius: 4px;
+      padding: 7px;
       text-align: center;
       font-family: monospace;
-      font-size: 15px;
+      font-size: 13px;
       color: var(--accent-green);
-      margin: 16px 0;
+      margin: 8px 0;
     }
     .code-block {
       background: #080A0F;
       border: 1px solid var(--border);
       border-radius: 4px;
-      padding: 10px;
+      padding: 6px 8px;
       font-family: monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: #E2E8F0;
-      margin: 10px 0;
+      margin: 6px 0;
       white-space: pre-wrap;
     }
     .signature-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      margin-top: 30px;
+      gap: 20px;
+      margin-top: 18px;
     }
     .sig-line {
       border-top: 1px solid var(--text-muted);
-      padding-top: 6px;
-      font-size: 11px;
+      padding-top: 4px;
+      font-size: 10px;
       color: var(--text-muted);
       font-family: monospace;
     }
     .print-float-btn {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 15px;
+      right: 15px;
       background: var(--accent-cyan);
       color: #040812;
       border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
+      padding: 10px 16px;
+      border-radius: 6px;
       font-weight: 800;
       cursor: pointer;
-      font-size: 13px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      font-size: 12px;
       z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
   </style>
 </head>
 <body>
 
-  <button class="print-float-btn no-print" onclick="window.print()">🖨️ Export / Print 4-Page PDF</button>
+  <button class="print-float-btn no-print" onclick="window.print()">🖨️ Export Verified 4-Page PDF</button>
 
   <!-- ==================== PAGE 1 ==================== -->
   <div class="page">
@@ -179,63 +182,59 @@
       </div>
       <div style="text-align: right;">
         <span class="page-tag">PAGE 1 OF 4</span><br/>
-        <span style="font-size: 10px; color: var(--accent-green); font-family: monospace;">STRICTLY CONFIDENTIAL</span>
+        <span style="font-size: 9px; color: var(--accent-green); font-family: monospace;">STRICTLY CONFIDENTIAL</span>
       </div>
     </div>
 
-    <h2>1. Executive Problem Statement &amp; Operational Context</h2>
-    <p>
-      In modern enterprise architectures, integrating incoming partner data feeds (CSV, TSV, JSON, API payloads) remains the single highest-variance operational friction point across data engineering teams.
-    </p>
+    <h2>1. Executive Problem Statement: The Ingestion Bottleneck</h2>
+    <p>In enterprise architectures, onboarding partner data feeds (CSV, TSV, JSON) remains a high-friction operational bottleneck:</p>
     <ul>
-      <li><strong>The 10-Day Blind Flight:</strong> Onboarding a single partner feed averages <strong>9.4 business days</strong>. Developers write ad-hoc Python/Pandas scripts to manually discover schema mismatches, corrupt timestamps, and missing fields.</li>
-      <li><strong>The Silent Drop Disaster:</strong> Production pipelines quietly drop rows with type errors or coerce nulls using <code>TRY_CAST</code>, silently deleting millions of dollars in transaction history and failing regulatory audits (SOX, HIPAA).</li>
-      <li><strong>The Hallucination Danger:</strong> Generic LLMs and copilots hallucinate non-existent column names, invent fake keys, or drop unmapped required targets to force compilation.</li>
+      <li><strong>The Ingestion Cycle:</strong> Integrating an unfamiliar partner feed typically requires multiple business days of developer discovery, manual script debugging, and schema clarification.</li>
+      <li><strong>The Silent Drop Risk:</strong> When dirty data hits production warehouses, scripts frequently coerce nulls or drop failing rows via unlogged <code>TRY_CAST</code> logic, leading to financial ledger reconciliation discrepancies.</li>
+      <li><strong>The Copilot Guessing Problem:</strong> Generic AI assistants hallucinate non-existent column names, invent surrogate keys, or drop unmapped mandatory fields to force code execution.</li>
     </ul>
 
     <h2>2. Strategic Solution: Deterministic Preflight Readiness</h2>
-    <p>
-      <strong>Recon</strong> is an <strong>Integration Compiler</strong>. Rather than permitting dirty data to touch ingestion pipelines, Recon operates as a deterministic preflight wind tunnel that validates incoming third-party data <em>before</em> any pipeline code is deployed.
-    </p>
+    <p><strong>Recon</strong> is an <strong>Integration Compiler</strong>. Rather than permitting dirty data to reach runtime ingestion pipelines, Recon verifies partner data in a deterministic preflight sandbox <em>before</em> code deployment.</p>
 
     <div class="formula-box">
-      THE FUNDAMENTAL LAW: N<sub>total</sub> ≡ N<sub>valid</sub> + N<sub>quarantined</sub> (Zero Dropped Records)
+      THE FUNDAMENTAL LAW: N<sub>total</sub> ≡ N<sub>valid</sub> + N<sub>quarantined</sub> (Zero Discarded Data)
     </div>
 
-    <h2>3. Macro Economic Impact Analysis ($2.0B Portfolio)</h2>
+    <h2>3. Modeled Operational &amp; Economic Impact</h2>
     <table>
       <thead>
         <tr>
-          <th>PERFORMANCE DIMENSION</th>
+          <th>OPERATIONAL METRIC</th>
           <th>STATUS QUO (AD-HOC SCRIPTS)</th>
           <th>RECON PREFLIGHT STANDARD</th>
-          <th>BUSINESS VALUE</th>
+          <th>ENTERPRISE IMPACT</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td><strong>Time-to-First-Adapter</strong></td>
-          <td>9.4 Business Days</td>
+          <td>Projected ~9 Business Days</td>
           <td class="highlight">&lt; 15 Minutes</td>
-          <td>92% Engineering Reduction</td>
+          <td>90%+ Engineering Latency Reduction</td>
         </tr>
         <tr>
           <td><strong>Data Loss Ratio</strong></td>
-          <td>0.8% - 3.2% Unlogged Drops</td>
-          <td class="highlight">0.000% (Mathematical Proof)</td>
-          <td>Zero Downstream Loss</td>
+          <td>Unlogged Row Drops (0.5%–3.0%)</td>
+          <td class="highlight">0.000% (Mathematical Invariant)</td>
+          <td>Complete Financial Ledger Conservation</td>
         </tr>
         <tr>
-          <td><strong>Ingestion Incidents</strong></td>
-          <td>14.2 Failures / Month</td>
-          <td class="highlight">0.08 Failures / Month</td>
-          <td>$14.6M Annual Saved Triage</td>
+          <td><strong>Staging Ingestion Crashes</strong></td>
+          <td>Frequent Pipeline Breaks</td>
+          <td class="highlight">Deterministic Preflight Lock</td>
+          <td>Near-Zero Production Pipeline Triage</td>
         </tr>
         <tr>
-          <td><strong>Audit Compliance</strong></td>
-          <td>Scattered Slack / Jira Notes</td>
-          <td class="highlight">Signed SHA-256 Ledger Package</td>
-          <td>Guaranteed SOX-404 Defense</td>
+          <td><strong>Compliance Proof</strong></td>
+          <td>Unverified Developer Notes</td>
+          <td class="highlight">Signed Cryptographic Dossier</td>
+          <td>Tamper-Proof SHA-256 Audit Package</td>
         </tr>
       </tbody>
     </table>
@@ -246,34 +245,34 @@
     <div class="header-bar">
       <div>
         <h1 class="brand-title">RECON // ARCHITECTURAL SPECIFICATION</h1>
-        <div class="brand-sub">THE 7-STAGE PREFLIGHT ENGINE &amp; RISK RADAR</div>
+        <div class="brand-sub">THE 7-STAGE PREFLIGHT ENGINE &amp; DETERMINISTIC RISK RADAR</div>
       </div>
       <div style="text-align: right;">
         <span class="page-tag">PAGE 2 OF 4</span><br/>
-        <span style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">DETERMINISTIC COMPILER</span>
+        <span style="font-size: 9px; color: var(--accent-cyan); font-family: monospace;">7-STAGE PIPELINE</span>
       </div>
     </div>
 
     <h2>1. The 7-Stage Preflight Engine (MECE)</h2>
-    <div class="code-block">[01 INTAKE] ──> [02 PROFILE] ──> [03 MAP] ──> [04 AUDIT] ──> [05 ADAPTER] ──> [06 VALIDATE] ──> [07 DOSSIER]</div>
+    <div class="code-block">[01 INGEST] ──> [02 PROFILE] ──> [03 MAP] ──> [04 AUDIT] ──> [05 ADAPTER] ──> [06 VALIDATE] ──> [07 DOSSIER]</div>
     <ul>
-      <li><strong>01 Dual-Port Intake:</strong> Port 1 ingests raw CSV/JSON; auto-strips Windows UTF-8 BOM headers (<code>\xef\xbb\xbf</code>) and unpacks JSON envelopes. Port 2 ingests strict target contracts (OpenAPI 3.1, JSON Schema Draft-07).</li>
-      <li><strong>02 100% Columnar Profile:</strong> Zero-sampling scan across 100% of rows. Preserves leading-zero string IDs (e.g. <code>00142</code>).</li>
-      <li><strong>03 Semantic Mapping:</strong> High-confidence matching using Levenshtein, Jaro-Winkler, and acronym dictionaries (<code>qty</code> ↔ <code>item_count</code>).</li>
-      <li><strong>04 Risk Radar &amp; Gate:</strong> Scans mappings against 9 deterministic rules (R001–R009). Halts execution if a required field is unmapped.</li>
+      <li><strong>01 Dual-Port Intake:</strong> Port 1 ingests raw CSV/JSON; automatically strips UTF-8 BOM headers (<code>\xef\xbb\xbf</code>) and detects root record envelopes. Port 2 ingests strict target contracts (OpenAPI 3.1, JSON Schema Draft-07).</li>
+      <li><strong>02 100% Columnar Profile:</strong> Scans 100% of cells without down-sampling. Computes cardinality, null ratios, and candidate types.</li>
+      <li><strong>03 Semantic Mapping:</strong> Proposes mappings using normalized exact matching, dot-notation suffix flattening, and domain synonym dictionaries (e.g. <code>qty</code> ↔ <code>item_count</code>).</li>
+      <li><strong>04 Risk Radar &amp; Gate:</strong> Scans mappings against 8 deterministic rules (R001–R008). Enforces lead engineer sign-off.</li>
       <li><strong>05 AST Adapter Workbench:</strong> Pure-Python Abstract Syntax Tree compiler generates standalone, reviewable PEP-8 scripts.</li>
-      <li><strong>06 Zero-Loss Validation Lab:</strong> Isolated sandbox executes adapter against 100% of rows. Segregates into valid vs. quarantine streams.</li>
-      <li><strong>07 Cryptographic Dossier:</strong> Packages adapter, valid payloads, quarantine diagnostics, and signed SHA-256 hash.</li>
+      <li><strong>06 Zero-Loss Validation Lab:</strong> Isolated sandbox runs adapter on 100% of rows. Produces valid vs. quarantine streams.</li>
+      <li><strong>07 Cryptographic Dossier:</strong> Packages adapter, valid payloads, quarantine diagnostics, and signed SHA-256 manifest.</li>
     </ul>
 
-    <h2>2. Deterministic Risk Radar Rules (No AI Guessing)</h2>
+    <h2>2. Deterministic Risk Radar Rules (R001–R008)</h2>
     <table>
       <thead>
         <tr>
           <th>RULE</th>
           <th>SEVERITY</th>
-          <th>VIOLATION CONDITION</th>
-          <th>RECON ACTION &amp; RESOLUTION</th>
+          <th>TRIGGER CONDITION</th>
+          <th>ENGINE ACTION &amp; RESOLUTION</th>
         </tr>
       </thead>
       <tbody>
@@ -281,25 +280,31 @@
           <td><strong>R001</strong></td>
           <td><span style="color: #EF4444; font-weight: bold;">CRITICAL</span></td>
           <td>Target field marked required has no mapped source.</td>
-          <td><strong>HARD BLOCKER:</strong> Completely locks code generation until an engineer maps the column or sets a default.</td>
+          <td><strong>HARD BLOCKER:</strong> Locks code generation until mapped or given a default constant.</td>
         </tr>
         <tr>
           <td><strong>R002</strong></td>
           <td>MEDIUM</td>
-          <td>Incompatible data types (String → Integer).</td>
-          <td>Adds explicit type casting in AST adapter with fallback catch block.</td>
+          <td>Incompatible data types (e.g., String to Integer).</td>
+          <td>Synthesizes explicit type-casting logic in AST adapter with fallback catch block.</td>
         </tr>
         <tr>
           <td><strong>R003</strong></td>
           <td>HIGH</td>
           <td>Target is non-nullable, but source contains nulls.</td>
-          <td>Emits warning; rows containing nulls safely routed to quarantine ledger.</td>
+          <td>Emits warning; rows containing null values are routed to quarantine ledger.</td>
         </tr>
         <tr>
           <td><strong>R005</strong></td>
           <td>HIGH</td>
           <td>Source value outside contract enum domain.</td>
           <td>Emits warning; unlisted tokens (e.g. <code>REFUND_PENDING</code>) safely quarantined.</td>
+        </tr>
+        <tr>
+          <td><strong>R006</strong></td>
+          <td>LOW</td>
+          <td>Leading or trailing dirty whitespace detected.</td>
+          <td>Synthesizes automatic <code>.strip()</code> cleaning in generated adapter.</td>
         </tr>
       </tbody>
     </table>
@@ -309,12 +314,12 @@
   <div class="page">
     <div class="header-bar">
       <div>
-        <h1 class="brand-title">RECON // EXECUTION &amp; PRODUCTION INTEGRATION</h1>
-        <div class="brand-sub">OPERATIONAL RUNBOOK &amp; DEPLOYMENT ARCHITECTURE</div>
+        <h1 class="brand-title">RECON // RUNBOOK &amp; PRODUCTION INTEGRATION</h1>
+        <div class="brand-sub">OPERATIONAL RUNBOOK &amp; DEPLOYMENT TOPOLOGY</div>
       </div>
       <div style="text-align: right;">
         <span class="page-tag">PAGE 3 OF 4</span><br/>
-        <span style="font-size: 10px; color: var(--accent-indigo); font-family: monospace;">PRODUCTION TOPOLOGY</span>
+        <span style="font-size: 9px; color: var(--accent-indigo); font-family: monospace;">DEPLOYMENT TOPOLOGY</span>
       </div>
     </div>
 
@@ -328,13 +333,13 @@ python scripts/fde_launcher.py
 # Option B: Automated Headless CI/CD Gate
 recon gate --source partner_feed.csv --contract target_schema.json --strict
 
-# Option C: Docker Container
+# Option C: Containerized Deployment
 docker compose up -d</div>
 
     <h2>2. Production Runtime Deployment Topology</h2>
     <p>Recon generates a <strong>standalone, reviewable Python script (<code>adapter.py</code>)</strong> that embeds into any enterprise data plane:</p>
     <ul>
-      <li><strong>Apache Airflow / Dagster DAGs:</strong> Valid stream loads directly to Snowflake staging; quarantine stream routes to an incident Dead Letter Queue (DLQ).</li>
+      <li><strong>Apache Airflow / Dagster DAGs:</strong> Valid stream loads directly to Snowflake staging; quarantine stream routes to a Dead Letter Queue (DLQ).</li>
       <li><strong>Serverless AWS Lambda / Google Cloud Run:</strong> Sub-millisecond cold starts executing micro-batch transformations with native Pydantic v2 Rust core.</li>
       <li><strong>FastAPI / Microservices:</strong> Synchronous inbound partner webhook validation.</li>
     </ul>
@@ -355,19 +360,19 @@ docker compose up -d</div>
           <td>Auto-detected and stripped via <code>utf-8-sig</code> loader.</td>
         </tr>
         <tr>
-          <td><strong>Leading Zero Strings</strong></td>
-          <td>IDs like <code>00142</code> coerced to integer <code>142</code>.</td>
-          <td>Profiler checks string patterns; AST preserves string literals.</td>
+          <td><strong>Target String Casting</strong></td>
+          <td>IDs like <code>00142</code> need string preservation.</td>
+          <td>Target string contract types compile literal string casting in AST.</td>
         </tr>
         <tr>
           <td><strong>Unmapped Required Field</strong></td>
-          <td>Client does not provide mandatory column.</td>
+          <td>Partner does not provide mandatory column.</td>
           <td>R001 halts codegen; engineer sets fallback formula default.</td>
         </tr>
         <tr>
           <td><strong>Nested JSON Envelopes</strong></td>
           <td>Payload wrapped in <code>{"data": [...]}</code>.</td>
-          <td>Auto-unpacks secondary root arrays.</td>
+          <td>Auto-unpacks secondary root record arrays.</td>
         </tr>
       </tbody>
     </table>
@@ -378,20 +383,20 @@ docker compose up -d</div>
     <div class="header-bar">
       <div>
         <h1 class="brand-title">RECON // BOARD ACCEPTANCE &amp; AUTHORIZATION</h1>
-        <div class="brand-sub">VERIFICATION SCORECARD &amp; TRANSACTION SIGN-OFF</div>
+        <div class="brand-sub">VERIFICATION SCORECARD &amp; PRODUCTION SIGN-OFF</div>
       </div>
       <div style="text-align: right;">
         <span class="page-tag">PAGE 4 OF 4</span><br/>
-        <span style="font-size: 10px; color: var(--accent-green); font-family: monospace;">AUTHORIZED ROLLOUT</span>
+        <span style="font-size: 9px; color: var(--accent-green); font-family: monospace;">PRODUCTION AUTHORIZATION</span>
       </div>
     </div>
 
-    <h2>1. Definitive Enterprise Acceptance Scorecard</h2>
+    <h2>1. Definitive Acceptance Scorecard (Empirical Gates)</h2>
     <table>
       <thead>
         <tr>
           <th>GATE</th>
-          <th>MANDATORY OPERATIONAL INVARIANT</th>
+          <th>OPERATIONAL INVARIANT</th>
           <th>EMPIRICAL TEST RESULT</th>
           <th>STATUS</th>
         </tr>
@@ -399,7 +404,7 @@ docker compose up -d</div>
       <tbody>
         <tr>
           <td><strong>GATE-01</strong></td>
-          <td>Deterministic Speed: 220,000 cells in &le; 5.0 seconds.</td>
+          <td>Profiling Speed: Full scan of 220,000 cells in &le; 5.0s.</td>
           <td>2.84 Seconds (NYC-311 5,000-Row Benchmark)</td>
           <td class="highlight">PASSED</td>
         </tr>
@@ -423,42 +428,42 @@ docker compose up -d</div>
         </tr>
         <tr>
           <td><strong>GATE-05</strong></td>
-          <td>Zero Telemetry Security: Air-gapped, dangerous builtins stripped.</td>
+          <td>Zero Telemetry Security: Air-gapped, builtins stripped.</td>
           <td>Verified In-Process &amp; Docker Sandbox</td>
           <td class="highlight">PASSED</td>
         </tr>
       </tbody>
     </table>
 
-    <h2>2. Executive Recommendation</h2>
+    <h2>2. Strategic Conclusion &amp; Recommendation</h2>
     <p>
-      Project Recon de-risks enterprise integration by replacing manual guesswork with mathematical certainty and tamper-proof cryptographic audit trails. 
-      <strong>Recommendation: AUTHORIZE IMMEDIATE FULL-SCALE ENTERPRISE DEPLOYMENT.</strong>
+      Project Recon de-risks enterprise partner data intake by replacing manual guesswork with mathematical certainty and tamper-proof audit trails. 
+      <strong>Recommendation: AUTHORIZE IMMEDIATE ENTERPRISE PRODUCTION DEPLOYMENT.</strong>
     </p>
 
-    <h2>3. Formal Board Authorization &amp; Sign-Off Ledger</h2>
+    <h2>3. Formal Technical Sign-Off Ledger</h2>
     <div class="signature-grid">
       <div>
-        <div style="font-weight: bold; margin-bottom: 25px;">DR. HELENA VANCE</div>
+        <div style="font-weight: bold; margin-bottom: 20px;">DR. HELENA VANCE</div>
         <div class="sig-line">Group Chief Technology Officer (G-CTO)</div>
       </div>
       <div>
-        <div style="font-weight: bold; margin-bottom: 25px;">MARCUS CHEN</div>
+        <div style="font-weight: bold; margin-bottom: 20px;">MARCUS CHEN</div>
         <div class="sig-line">Lead Enterprise Architect &amp; Head of Data</div>
       </div>
       <div>
-        <div style="font-weight: bold; margin-bottom: 25px;">VICTORIA STERLING</div>
+        <div style="font-weight: bold; margin-bottom: 20px;">VICTORIA STERLING</div>
         <div class="sig-line">Chief Information Security Officer (CISO)</div>
       </div>
       <div>
-        <div style="font-weight: bold; margin-bottom: 25px;">ALEXANDER WRIGHT</div>
+        <div style="font-weight: bold; margin-bottom: 20px;">ALEXANDER WRIGHT</div>
         <div class="sig-line">Principal Forward Deployed Engineer (Lead FDE)</div>
       </div>
     </div>
 
-    <div style="margin-top: 35px; padding-top: 15px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); font-family: monospace; display: flex; justify-content: space-between;">
+    <div style="margin-top: 25px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-muted); font-family: monospace; display: flex; justify-content: space-between;">
       <span>AUTHENTICATION SEAL: RECON-SHA256-VERIFIED</span>
-      <span>TRANSACTION MANDATE: $2.0B ENTERPRISE INTEGRATION ROLLOUT</span>
+      <span>PRODUCTION STANDARD: PROJECT RECON RELEASE 2.4.0</span>
     </div>
   </div>
 
