@@ -261,6 +261,7 @@ Detailed security architecture and threat models are documented in [`docs/SECURI
 
 ## 📚 Documentation Index
 
+- [`docs/FDE_PDR_BRIEF.md`](docs/FDE_PDR_BRIEF.md) — Product Design & Delivery Review (PDR) executive mission brief for pilot stakeholders.
 - [`docs/FDE_PLAYBOOK.md`](docs/FDE_PLAYBOOK.md) — Forward Deployed Engineer standard operating procedures, edge-case resolution, and production deployment patterns.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Core engine internals, schemas, and data pipelines.
 - [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) — Contributor instructions, testing setup, and coding conventions.
