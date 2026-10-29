@@ -1,0 +1,66 @@
+﻿{
+  "": "http://json-schema.org/draft-07/schema#",
+  "title": "B2BEnterpriseInvoiceContract",
+  "description": "Standardized enterprise target contract for B2B billing and revenue ledger ingestion.",
+  "type": "object",
+  "required": [
+    "invoice_id",
+    "organization_name",
+    "billing_cycle",
+    "issue_timestamp",
+    "item_count",
+    "unit_price",
+    "total_amount",
+    "payment_status",
+    "auto_debit_enabled"
+  ],
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "Unique alphanumeric enterprise invoice identifier formatted as INV-XXXXX"
+    },
+    "organization_name": {
+      "type": "string",
+      "description": "Corporate client or account legal entity name"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "description": "Contractual billing cadence",
+      "enum": ["MONTHLY", "QUARTERLY", "ANNUAL"]
+    },
+    "issue_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 canonical invoice issuance timestamp"
+    },
+    "item_count": {
+      "type": "integer",
+      "description": "Total units or billable license seat count"
+    },
+    "unit_price": {
+      "type": "number",
+      "description": "Contractual unit price per seat/unit in USD"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Gross invoice billing total in USD"
+    },
+    "tax_rate": {
+      "type": "number",
+      "description": "Applicable sales or VAT tax percentage (nullable for tax-exempt entities)"
+    },
+    "payment_status": {
+      "type": "string",
+      "description": "Current lifecycle status of invoice settlement",
+      "enum": ["PAID", "PENDING", "OVERDUE", "CANCELLED"]
+    },
+    "auto_debit_enabled": {
+      "type": "boolean",
+      "description": "Whether recurring automated ACH or card debit is active"
+    },
+    "customer_notes": {
+      "type": "string",
+      "description": "Optional auditor comments or billing annotations"
+    }
+  }
+}

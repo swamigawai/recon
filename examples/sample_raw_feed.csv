@@ -1,0 +1,16 @@
+﻿invoice_id,cust_org_v2,billing_cycle,issue_date,qty,unit_price,total_amt,tax_rate,payment_status,auto_debit,notes
+INV-00101,Acme Industrial Ltd,MONTHLY,2024-11-01T09:15:00Z,10,49.99,499.90,0.08,PAID,true,Approved by finance director
+INV-00102,  Globex Logistics  ,QUARTERLY,2024-11-02T14:30:00Z,25,120.00,3000.00,0.18,PAID,true,High priority recurring client
+INV-00103,Initech Software,MONTHLY,2024-11-03T11:00:00Z,5,15.50,77.50,0.05,PENDING,false,Standard net-30 terms
+INV-00104,Wayne Enterprises,ANNUAL,2024-11-04T16:45:00Z,100,990.00,99000.00,0.18,PAID,true,Annual enterprise tier license
+INV-00105,Stark Global Robotics,ANNUAL,2024-11-05T10:20:00Z,50,450.00,22500.00,0.12,PAID,true,Dedicated server cluster maintenance
+INV-00106,Cyberdyne Dynamics,MONTHLY,2024-11-06T08:00:00Z,8,75.25,602.00,N/A,PENDING,false,Tax exempt government certificate on file
+INV-00107,Umbrella BioTech,QUARTERLY,2024-11-07T13:10:00Z,40,310.00,12400.00,0.18,OVERDUE,false,Second notice sent via email
+INV-00108,Hooli Search Labs,MONTHLY,2024-11-08T15:25:00Z,15,85.00,1275.00,0.08,PAID,yes,Cloud storage expansion
+INV-00109,Massive Dynamic,ANNUAL,2024-11-09T17:50:00Z,200,600.00,120000.00,0.18,PAID,true,Enterprise SLA tier 1 coverage
+INV-00110,Pied Piper Compression,MONTHLY,2024-11-10T12:00:00Z,3,250.00,750.00,0.00,CANCELLED,no,Customer cancelled prior to provisioning
+INV-00111,Soylent Corporation,QUARTERLY,2024-11-11T09:40:00Z,30,110.00,3300.00,null,PENDING,true,Awaiting wire transfer confirmation
+INV-00112,Tyrell Replicant Co,MONTHLY,2024-11-12T14:15:00Z,12,195.00,2340.00,0.18,PAID,true,Off-world logistics support
+INV-00113,Wonka Confectionery,MONTHLY,2024-11-13T10:05:00Z,18,65.00,1170.00,0.05,REFUND_PENDING,false,Testing unexpected enum value
+INV-00114,Oscorp Technologies,BI_WEEKLY,2024-11-14T11:30:00Z,14,210.00,2940.00,0.18,PENDING,false,Testing unexpected billing cycle enum
+INV-00115,Aperture Science,MONTHLY,INVALID_DATE_TOKEN,22,80.00,1760.00,0.08,PAID,true,Testing corrupt date formatting for quarantine
