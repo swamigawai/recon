@@ -434,7 +434,7 @@ def main() -> None:
     # assess
     p_assess = subparsers.add_parser("assess", help="Assess mappings and integration risks against a target contract")
     p_assess.add_argument("source", help="Path to source CSV/JSON file")
-    p_assess.add_argument("contract", help="Path to target contract JSON / OpenAPI file")
+    p_assess.add_argument("contract", help="Path to target contract JSON, OpenAPI, or CSV file")
     p_assess.add_argument("--mapping-spec", default=None, help="Path to recon_mapping_spec.json for reusable mapping decisions")
     p_assess.add_argument("--schema-name", default=None, help="Model name when contract is an OpenAPI document with multiple models")
     p_assess.set_defaults(func=cmd_assess)
@@ -442,7 +442,7 @@ def main() -> None:
     # run
     p_run = subparsers.add_parser("run", help="Execute complete workflow: profile, map, risks, adapter, validation, and reports")
     p_run.add_argument("source", help="Path to source CSV/JSON file")
-    p_run.add_argument("contract", help="Path to target contract JSON / OpenAPI file")
+    p_run.add_argument("contract", help="Path to target contract JSON, OpenAPI, or CSV file")
     p_run.add_argument("--mapping-spec", default=None, help="Path to recon_mapping_spec.json for reusable mapping decisions")
     p_run.add_argument("--schema-name", default=None, help="Model name when contract is an OpenAPI document with multiple models")
     p_run.add_argument("--output-dir", default="recon_output", help="Directory to save generated reports and adapters")
@@ -451,7 +451,7 @@ def main() -> None:
     # gate (CI/CD Preflight)
     p_gate = subparsers.add_parser("gate", help="Headless CI/CD preflight gate for automated integration testing")
     p_gate.add_argument("--source", required=True, help="Path to incoming source data file (CSV, JSON, JSONL)")
-    p_gate.add_argument("--contract", required=True, help="Path to target contract JSON / OpenAPI file")
+    p_gate.add_argument("--contract", required=True, help="Path to target contract JSON, OpenAPI, or CSV file")
     p_gate.add_argument("--mapping-spec", default=None, help="Path to reusable recon_mapping_spec.json file")
     p_gate.add_argument("--schema-name", default=None, help="Model name within multi-model OpenAPI contracts")
     p_gate.add_argument("--max-quarantine-pct", type=float, default=0.0, help="Maximum allowed percentage of quarantined records (0.0 to 100.0, default: 0.0)")

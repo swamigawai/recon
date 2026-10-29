@@ -362,3 +362,98 @@ def test_unsupported_nested_type_raises_actionable_error() -> None:
         load_target_contract(schema)
     assert "Complex nested type 'array' on field 'tags' is not supported" in str(exc_info.value)
     assert "scalar types" in exc_info.value.actionable_suggestion
+
+
+def test_load_contract_from_data_dictionary_csv(tmp_path: Path) -> None:
+    """Verifies loading target contract from a field-specification data dictionary CSV."""
+    csv_file = tmp_path / "target_dict.csv"
+    csv_file.write_text(
+        "column_name,data_type,required,description\n"
+        "order_id,string,true,Unique order identifier\n"
+        "amount,float,true,Total monetary amount\n"
+        "quantity,int,false,Item quantity count\n"
+        "is_active,bool,false,Status active flag\n"
+        "created_at,datetime,true,Timestamp of creation\n",
+        encoding="utf-8",
+    )
+    contract = load_target_contract(csv_file)
+    assert contract.contract_name == "target_dict"
+    assert len(contract.fields) == 5
+    assert contract.fields["order_id"].target_type == ContractType.STRING
+    assert contract.fields["order_id"].required is True
+    assert contract.fields["amount"].target_type == ContractType.FLOAT
+    assert contract.fields["quantity"].target_type == ContractType.INTEGER
+    assert contract.fields["quantity"].required is False
+    assert contract.fields["is_active"].target_type == ContractType.BOOLEAN
+    assert contract.fields["created_at"].target_type == ContractType.DATETIME
+
+
+def test_load_contract_from_sample_data_csv(tmp_path: Path) -> None:
+    """Verifies deriving a target contract directly from an arbitrary target sample dataset CSV."""
+    csv_file = tmp_path / "target_orders.csv"
+    csv_file.write_text(
+        "order_num,customer,price,shipped_date\n"
+        "1001,Acme,49.99,2026-01-01\n"
+        "1002,GlobalCorp,199.50,2026-01-02\n"
+        "1003,Stark,12.00,\n",
+        encoding="utf-8",
+    )
+    contract = load_target_contract(csv_file)
+    assert contract.contract_name == "target_orders"
+    assert "order_num" in contract.fields
+    assert "customer" in contract.fields
+    assert "price" in contract.fields
+    assert "shipped_date" in contract.fields
+    assert contract.fields["order_num"].target_type == ContractType.INTEGER
+    assert contract.fields["order_num"].required is True
+    assert contract.fields["price"].target_type == ContractType.FLOAT
+    assert contract.fields["shipped_date"].required is False
+
+
+def test_load_contract_from_header_only_csv(tmp_path: Path) -> None:
+    """Verifies generating target contract from a CSV header template with zero rows."""
+    csv_file = tmp_path / "target_template.csv"
+    csv_file.write_text("invoice_id,amount,due_date\n", encoding="utf-8")
+    contract = load_target_contract(csv_file)
+    assert contract.contract_name == "target_template"
+    assert len(contract.fields) == 3
+    assert contract.fields["invoice_id"].target_type == ContractType.STRING
+    assert contract.fields["amount"].target_type == ContractType.FLOAT
+    assert contract.fields["due_date"].target_type == ContractType.DATE
+
+
+def test_load_contract_utf8_bom_handling(tmp_path: Path) -> None:
+    """Verifies that files and strings with UTF-8 BOM are loaded without decoding errors."""
+    import json
+
+    # 1. JSON file with UTF-8 BOM
+    json_bom_file = tmp_path / "contract_bom.json"
+    raw_json_bom = b"\xef\xbb\xbf" + json.dumps({
+        "contract_name": "BomContract",
+        "version": "1.0.0",
+        "fields": {
+            "id": {"name": "id", "target_type": "string", "required": True}
+        }
+    }).encode("utf-8")
+    json_bom_file.write_bytes(raw_json_bom)
+    c_json = load_target_contract(json_bom_file)
+    assert c_json.contract_name == "BomContract"
+
+    # 2. CSV file with UTF-8 BOM
+    csv_bom_file = tmp_path / "target_bom.csv"
+    raw_csv_bom = b"\xef\xbb\xbf" + b"id,amount\n101,45.5\n"
+    csv_bom_file.write_bytes(raw_csv_bom)
+    c_csv = load_target_contract(csv_bom_file)
+    assert "id" in c_csv.fields
+    assert "amount" in c_csv.fields
+
+    # 3. Raw JSON string with unicode BOM character
+    bom_str = "\ufeff" + json.dumps({
+        "contract_name": "StringBomContract",
+        "version": "1.0.0",
+        "fields": {
+            "name": {"name": "name", "target_type": "string", "required": True}
+        }
+    })
+    c_str = load_target_contract(bom_str)
+    assert c_str.contract_name == "StringBomContract"

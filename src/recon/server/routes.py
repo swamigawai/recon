@@ -56,8 +56,9 @@ def _prune_old_sessions() -> None:
 
 
 MAX_SOURCE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
-MAX_CONTRACT_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+MAX_CONTRACT_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB (allow large CSV target contracts)
 ALLOWED_SOURCE_EXTENSIONS = {".csv", ".tsv", ".txt", ".json", ".jsonl"}
+ALLOWED_CONTRACT_EXTENSIONS = {".json", ".csv", ".tsv"}
 IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
@@ -178,8 +179,11 @@ async def assess_integration(
             if not safe_contract_name or safe_contract_name in (".", ".."):
                 raise HTTPException(status_code=400, detail="Invalid contract file name.")
             suffix = Path(safe_contract_name).suffix.lower()
-            if suffix != ".json":
-                raise HTTPException(status_code=400, detail="Target contract file must be a .json file.")
+            if suffix not in ALLOWED_CONTRACT_EXTENSIONS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unsupported contract format '{suffix}'. Supported formats: {', '.join(sorted(ALLOWED_CONTRACT_EXTENSIONS))}",
+                )
             contract_path = dir_path / safe_contract_name
             c_bytes = await contract_file.read(MAX_CONTRACT_SIZE_BYTES + 1)
             if len(c_bytes) > MAX_CONTRACT_SIZE_BYTES:
@@ -187,17 +191,24 @@ async def assess_integration(
                     status_code=413,
                     detail=f"Contract file exceeds maximum allowed size of {MAX_CONTRACT_SIZE_BYTES // (1024 * 1024)} MB.",
                 )
+            if c_bytes.startswith(b"\xef\xbb\xbf") and suffix == ".json":
+                c_bytes = c_bytes[3:]
             with open(contract_path, "wb") as f:
                 f.write(c_bytes)
         elif contract_text and contract_text.strip():
-            contract_path = dir_path / "custom_contract.json"
-            try:
-                # Validate JSON syntax
-                json_obj = json.loads(contract_text)
+            clean_text = contract_text.strip().lstrip("\ufeff")
+            if clean_text.startswith("{") or clean_text.startswith("["):
+                contract_path = dir_path / "custom_contract.json"
+                try:
+                    json_obj = json.loads(clean_text)
+                    with open(contract_path, "w", encoding="utf-8") as f:
+                        json.dump(json_obj, f, indent=2)
+                except json.JSONDecodeError as exc:
+                    raise HTTPException(status_code=400, detail=f"Contract text is invalid JSON: {exc}")
+            else:
+                contract_path = dir_path / "custom_contract.csv"
                 with open(contract_path, "w", encoding="utf-8") as f:
-                    json.dump(json_obj, f, indent=2)
-            except json.JSONDecodeError as exc:
-                raise HTTPException(status_code=400, detail=f"Contract text is invalid JSON: {exc}")
+                    f.write(clean_text)
         elif sample_contract_id:
             if not IDENTIFIER_PATTERN.match(sample_contract_id):
                 raise HTTPException(status_code=400, detail="Invalid sample_contract_id format.")
@@ -230,7 +241,7 @@ async def assess_integration(
                         status_code=413,
                         detail=f"Mapping specification exceeds maximum size of {MAX_CONTRACT_SIZE_BYTES // (1024 * 1024)} MB.",
                     )
-                spec_dict = json.loads(spec_bytes.decode("utf-8"))
+                spec_dict = json.loads(spec_bytes.decode("utf-8-sig").lstrip("\ufeff"))
                 spec = load_mapping_spec(spec_dict)
                 plan, _ = validate_and_apply_mapping_spec(spec, contract, profile, plan)
 
@@ -608,13 +619,13 @@ async def upload_mapping_spec(
         if len(content_bytes) > MAX_CONTRACT_SIZE_BYTES:
             raise HTTPException(status_code=413, detail="Mapping specification file exceeds size limit.")
         try:
-            content_str = content_bytes.decode("utf-8")
+            content_str = content_bytes.decode("utf-8-sig").lstrip("\ufeff")
             spec_dict = json.loads(content_str)
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise HTTPException(status_code=400, detail=f"Invalid JSON/UTF-8 mapping specification: {exc}")
     elif spec_json and spec_json.strip():
         try:
-            spec_dict = json.loads(spec_json)
+            spec_dict = json.loads(spec_json.strip().lstrip("\ufeff"))
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"Invalid JSON in mapping specification: {exc}")
     else:

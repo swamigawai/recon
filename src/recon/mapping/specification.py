@@ -139,7 +139,7 @@ def load_mapping_spec(
                       or duplicate conflicting target mappings exist.
     """
     if isinstance(source, (str, Path)):
-        path_str = str(source)
+        path_str = str(source).strip().lstrip("\ufeff")
         if path_str.startswith("{"):
             try:
                 data = json.loads(path_str)
@@ -158,7 +158,7 @@ def load_mapping_spec(
                     context={"path": str(p)},
                 )
             try:
-                content = p.read_text(encoding="utf-8")
+                content = p.read_text(encoding="utf-8-sig").lstrip("\ufeff")
                 data = json.loads(content)
             except json.JSONDecodeError as err:
                 raise MappingError(

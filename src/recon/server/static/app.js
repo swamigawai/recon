@@ -17,6 +17,12 @@ let mappingOverrides = {};
 let sampleContractsMap = {};
 let sampleDatasetsMap = {};
 
+// Helper: Strip UTF-8 Byte Order Mark (BOM)
+function stripBOM(str) {
+  if (!str) return "";
+  return str.charCodeAt(0) === 0xFEFF ? str.slice(1) : str;
+}
+
 // Inspector Drawer State (Global Module Scope)
 let isDrawerPinned = false;
 let drawerHoverTimer = null;
@@ -1292,27 +1298,41 @@ function bindDropZones() {
   });
 
   contractTextArea.addEventListener("input", () => {
-    const text = contractTextArea.value.trim();
+    const text = stripBOM(contractTextArea.value.trim());
     const syntaxErr = document.getElementById("contract-json-syntax-error");
     if (!text) {
       syntaxErr.classList.add("hidden");
       syntaxErr.textContent = "";
+      document.getElementById("contract-status-text").textContent = "No contract schema staged.";
+      document.getElementById("contract-status-meta").textContent = "";
       updatePreflightStatus();
+      renderPreflightContractPeek();
       return;
     }
-    try {
-      const parsed = JSON.parse(text);
+    if (text.startsWith("{") || text.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(text);
+        syntaxErr.classList.add("hidden");
+        const count = Object.keys(parsed.fields || parsed.properties || {}).length;
+        document.getElementById("contract-status-text").textContent = `Pasted Contract: ${parsed.contract_name || parsed.title || "Custom JSON"}`;
+        document.getElementById("contract-status-meta").textContent = `Fields: ${count}`;
+      } catch (err) {
+        syntaxErr.classList.remove("hidden");
+        syntaxErr.textContent = `JSON Syntax Error: ${err.message}`;
+        document.getElementById("contract-status-text").textContent = "Invalid JSON Contract";
+        document.getElementById("contract-status-meta").textContent = "Syntax Error";
+        triggerHapticFeedback(contractTextArea);
+      }
+    } else {
+      // CSV or tabular template text
       syntaxErr.classList.add("hidden");
-      document.getElementById("contract-status-text").textContent = `Pasted Contract: ${parsed.contract_name || "Custom"}`;
-      document.getElementById("contract-status-meta").textContent = `Fields: ${Object.keys(parsed.fields || {}).length}`;
-    } catch (err) {
-      syntaxErr.classList.remove("hidden");
-      syntaxErr.textContent = `JSON Syntax Error: ${err.message}`;
-      document.getElementById("contract-status-text").textContent = "Invalid JSON Contract";
-      document.getElementById("contract-status-meta").textContent = "Syntax Error";
-      triggerHapticFeedback(contractTextArea);
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      const cols = lines.length > 0 ? lines[0].split(/[,\t]/).length : 0;
+      document.getElementById("contract-status-text").textContent = "Pasted Target CSV Template";
+      document.getElementById("contract-status-meta").textContent = `${cols} Columns | ${Math.max(0, lines.length - 1)} Rows`;
     }
     updatePreflightStatus();
+    renderPreflightContractPeek();
   });
 }
 
@@ -1342,9 +1362,11 @@ function handleContractFileStaged(file) {
   }
   stagedContractFile = file;
   const sizeKb = (file.size / 1024).toFixed(1);
+  const ext = file.name.split(".").pop().toUpperCase();
   document.getElementById("contract-status-text").textContent = file.name;
-  document.getElementById("contract-status-meta").textContent = `${sizeKb} KB | JSON`;
+  document.getElementById("contract-status-meta").textContent = `${sizeKb} KB | ${ext}`;
   updatePreflightStatus();
+  renderPreflightContractPeek();
 }
 
 function updatePreflightStatus() {
@@ -1356,13 +1378,18 @@ function updatePreflightStatus() {
   } else if (activeContractTab === "upload") {
     contractReady = Boolean(stagedContractFile);
   } else if (activeContractTab === "paste") {
-    const text = document.getElementById("contract-text-area").value.trim();
+    const text = stripBOM((document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "");
     if (text) {
-      try {
-        JSON.parse(text);
-        contractReady = true;
-      } catch (_) {
-        contractReady = false;
+      if (text.startsWith("{") || text.startsWith("[")) {
+        try {
+          JSON.parse(text);
+          contractReady = true;
+        } catch (_) {
+          contractReady = false;
+        }
+      } else {
+        // Non-empty CSV text with columns
+        contractReady = text.length > 0;
       }
     }
   }
@@ -1535,47 +1562,83 @@ function renderPreflightContractPeek() {
   const wrap = document.getElementById("peek-target-pills-wrap");
   if (!wrap) return;
 
-  let contractObj = null;
+  function renderFieldPills(fields) {
+    let pillsHtml = Object.entries(fields).map(([name, f]) => {
+      const isReq = Boolean(f.required);
+      const type = f.target_type || f.type || "any";
+      return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
+    }).join("");
+    wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 fields defined</span>`;
+  }
+
+  function renderPropertiesPills(props, requiredList) {
+    const reqSet = new Set(Array.isArray(requiredList) ? requiredList : []);
+    let pillsHtml = Object.entries(props).map(([name, f]) => {
+      const isReq = reqSet.has(name);
+      const type = f.type || "any";
+      return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
+    }).join("");
+    wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 properties</span>`;
+  }
+
+  function renderCsvHeaders(rawText) {
+    const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) {
+      wrap.innerHTML = `<span class="text-muted font-mono" style="font-size:11px;">Empty CSV file</span>`;
+      return;
+    }
+    const headerLine = lines[0];
+    const delim = headerLine.includes("\t") ? "\t" : ",";
+    const headers = headerLine.split(delim).map(h => h.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+    let pillsHtml = headers.map(h => `<span class="peek-field-pill is-required"><span style="color:var(--recon-rose-text); font-weight:700;">*</span> ${escapeHtml(h)} <span class="text-muted" style="font-size:9px;">(csv)</span></span>`).join("");
+    wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 CSV fields</span>`;
+  }
 
   if (activeContractTab === "sample") {
     const cSelect = document.getElementById("sample-contract-select");
     const cId = cSelect ? cSelect.value : "";
     if (cId && sampleContractsMap[cId] && sampleContractsMap[cId].content) {
-      try { contractObj = JSON.parse(sampleContractsMap[cId].content); } catch (_) {}
+      try {
+        const obj = JSON.parse(stripBOM(sampleContractsMap[cId].content));
+        if (obj.fields) return renderFieldPills(obj.fields);
+        if (obj.properties) return renderPropertiesPills(obj.properties, obj.required);
+      } catch (_) {}
     }
+  } else if (activeContractTab === "upload" && stagedContractFile) {
+    const isCsv = /\.(csv|tsv|txt)$/i.test(stagedContractFile.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = stripBOM(e.target.result);
+      if (isCsv) {
+        renderCsvHeaders(text);
+      } else {
+        try {
+          const obj = JSON.parse(text);
+          if (obj.fields) return renderFieldPills(obj.fields);
+          if (obj.properties) return renderPropertiesPills(obj.properties, obj.required);
+        } catch (_) {
+          wrap.innerHTML = `<span class="text-muted font-mono" style="font-size:11px;">Target JSON ready for validation</span>`;
+        }
+      }
+    };
+    reader.readAsText(stagedContractFile.slice(0, 8192));
+    return;
   } else if (activeContractTab === "paste") {
-    const text = (document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "";
+    const text = stripBOM((document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "");
     if (text) {
-      try { contractObj = JSON.parse(text); } catch (_) {}
+      if (text.startsWith("{") || text.startsWith("[")) {
+        try {
+          const obj = JSON.parse(text);
+          if (obj.fields) return renderFieldPills(obj.fields);
+          if (obj.properties) return renderPropertiesPills(obj.properties, obj.required);
+        } catch (_) {}
+      } else {
+        return renderCsvHeaders(text);
+      }
     }
   }
 
-  if (contractObj) {
-    if (contractObj.fields) {
-      const entries = Object.entries(contractObj.fields);
-      let pillsHtml = entries.map(([name, f]) => {
-        const isReq = Boolean(f.required);
-        const type = f.type || "any";
-        return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
-      }).join("");
-      wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 fields defined</span>`;
-      return;
-    }
-
-    if (contractObj.properties) {
-      const requiredList = Array.isArray(contractObj.required) ? contractObj.required : [];
-      const entries = Object.entries(contractObj.properties);
-      let pillsHtml = entries.map(([name, f]) => {
-        const isReq = requiredList.includes(name);
-        const type = f.type || "any";
-        return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
-      }).join("");
-      wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 properties</span>`;
-      return;
-    }
-  }
-
-  wrap.innerHTML = `<span class="text-muted font-mono" style="font-size: 11px;">Waiting for contract schema...</span>`;
+  wrap.innerHTML = `<span class="text-muted font-mono" style="font-size: 11px;">Waiting for target contract or CSV...</span>`;
 }
 
 // =============================================================================
@@ -1640,7 +1703,7 @@ async function handleAssessIntegration() {
   } else if (activeContractTab === "upload") {
     if (stagedContractFile) formData.append("contract_file", stagedContractFile);
   } else if (activeContractTab === "paste") {
-    const text = document.getElementById("contract-text-area").value.trim();
+    const text = stripBOM(document.getElementById("contract-text-area").value.trim());
     if (text) formData.append("contract_text", text);
   }
 
@@ -4568,17 +4631,6 @@ function renderPaletteResults(query) {
     }
   });
 
-  allItems.push({
-    id: "toggle-sound",
-    category: "Interface & Tools",
-    icon: svgIcons.theme,
-    title: "Toggle Audio Synthesizer Feedback",
-    sub: isAudioMuted ? "Currently Muted — Unmute click & chimes" : "Currently Active — Mute audio feedback",
-    shortcut: "M",
-    action: () => {
-      SoundEngine.toggleMute();
-    }
-  });
 
   allItems.push({
     id: "reset-session",
@@ -4927,9 +4979,13 @@ function updateDynamicIsland() {
     } else if (activeContractTab === "upload") {
       contractReady = Boolean(stagedContractFile);
     } else if (activeContractTab === "paste") {
-      const text = (document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "";
+      const text = stripBOM((document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "");
       if (text) {
-        try { JSON.parse(text); contractReady = true; } catch (_) { contractReady = false; }
+        if (text.startsWith("{") || text.startsWith("[")) {
+          try { JSON.parse(text); contractReady = true; } catch (_) { contractReady = false; }
+        } else {
+          contractReady = text.length > 0;
+        }
       }
     }
 

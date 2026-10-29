@@ -380,16 +380,54 @@ def test_path_traversal_in_sample_ids_rejected(client: TestClient) -> None:
 
 
 def test_non_json_contract_file_rejected(client: TestClient) -> None:
-    """Verifies that non-JSON contract files are rejected."""
+    """Verifies that unsupported contract file extensions are rejected."""
     import io
     txt_content = io.BytesIO(b"contract schema in text")
     res = client.post(
         "/api/assess",
         data={"sample_dataset_id": "synthetic_nyc_311"},
-        files={"contract_file": ("contract.txt", txt_content, "text/plain")},
+        files={"contract_file": ("contract.exe", txt_content, "application/octet-stream")},
     )
     assert res.status_code == 400
-    assert "Target contract file must be a .json file" in res.json()["detail"]
+    assert "Unsupported contract format" in res.json()["detail"]
+
+
+def test_csv_contract_file_accepted_by_api(client: TestClient) -> None:
+    """Verifies that arbitrary CSV files can be uploaded to Port 2 as target contracts."""
+    import io
+    csv_bytes = io.BytesIO(b"complaint_type,descriptor,status\nNoise,Loud Music,Open\n")
+    res = client.post(
+        "/api/assess",
+        data={"sample_dataset_id": "synthetic_nyc_311"},
+        files={"contract_file": ("target_contract.csv", csv_bytes, "text/csv")},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert "session_id" in data
+    assert data["contract"]["contract_name"] == "target_contract"
+    assert data["contract"]["total_fields"] == 3
+    assert any(p["target_field"] == "complaint_type" for p in data["proposals"])
+    assert any(p["target_field"] == "descriptor" for p in data["proposals"])
+
+
+def test_utf8_bom_contract_upload_accepted_by_api(client: TestClient) -> None:
+    """Verifies that JSON contracts with leading UTF-8 BOM are cleanly parsed without error."""
+    import io
+    bom_json = b"\xef\xbb\xbf" + json.dumps({
+        "contract_name": "BomApiContract",
+        "version": "1.0.0",
+        "fields": {
+            "unique_key": {"name": "unique_key", "target_type": "string", "required": True}
+        }
+    }).encode("utf-8")
+    res = client.post(
+        "/api/assess",
+        data={"sample_dataset_id": "synthetic_nyc_311"},
+        files={"contract_file": ("bom_contract.json", io.BytesIO(bom_json), "application/json")},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["contract"]["contract_name"] == "BomApiContract"
 
 
 def test_download_before_approval_rejected(client: TestClient) -> None:
