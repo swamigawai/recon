@@ -184,7 +184,21 @@ Recon provides an engineering-grade, Linear-inspired dark interface designed for
 
 ## 🚀 Quick Start
 
-### 1. Installation (Local Developer Environment)
+### 1. One-Click Zero-Friction Launch (Recommended)
+
+Recon includes smart self-healing launchers for every operating system that automatically check your Python runtime, establish an isolated virtual environment, install dependencies, resolve port conflicts, and launch the Web Studio:
+
+```bash
+# On Windows (Command Prompt / PowerShell or double-click in Explorer):
+start.bat
+
+# On macOS / Linux:
+chmod +x start.sh && ./start.sh
+```
+
+---
+
+### 2. Manual Developer Installation
 
 ```bash
 # Clone the repository
@@ -197,17 +211,32 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install with development dependencies
 pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev]"  # Or fallback: pip install -r requirements.txt
 ```
 
-### 2. Launch the Web Studio
+---
+
+### 3. Verify Environment Health (`recon doctor`)
+
+Run the self-diagnostic suite to ensure your runtime, dependencies, disk permissions, UTF-8 BOM engines, and pipeline invariants are 100% operational:
 
 ```bash
-# One-command FDE launcher (checks runtime, dependencies & opens browser)
+recon doctor
+
+# Machine-readable JSON output for automated CI preflights:
+recon doctor --json
+```
+
+---
+
+### 4. Launch the Web Studio Manually
+
+```bash
+# One-command FDE launcher (checks runtime, auto-installs missing packages, resolves port & opens browser)
 python scripts/fde_launcher.py
 
 # Or start the local server directly
-recon serve --host 127.0.0.1 --port 8000
+recon serve --host 0.0.0.0 --port 8000
 ```
 Open your browser at **[http://127.0.0.1:8000](http://127.0.0.1:8000)** to launch the Recon Studio.
 

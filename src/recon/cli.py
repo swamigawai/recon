@@ -415,6 +415,165 @@ def cmd_web(args: argparse.Namespace) -> int:
     uvicorn.run(app, host=args.host, port=args.port)
     return 0
 
+def cmd_doctor(args: argparse.Namespace) -> int:
+    """Runs end-to-end environment diagnostics and readiness healthcheck."""
+    import platform
+    import socket
+    import tempfile
+
+    is_json = getattr(args, "json_output", False)
+    checks: list[dict[str, Any]] = []
+
+    # 1. Python Runtime
+    py_ver = sys.version.split()[0]
+    major, minor = sys.version_info[:2]
+    py_ok = (major, minor) >= (3, 11)
+    arch = "64-bit" if sys.maxsize > 2**32 else "32-bit"
+    checks.append({
+        "check": "Python Runtime",
+        "detail": f"{py_ver} ({arch})",
+        "passed": py_ok,
+        "requirement": "Python >= 3.11 (64-bit)",
+    })
+
+    # 2. Core Dependencies
+    deps = {
+        "pydantic": "pydantic",
+        "fastapi": "fastapi",
+        "uvicorn": "uvicorn",
+        "python-multipart": "multipart",
+    }
+    missing_deps = []
+    for dep_name, imp_mod in deps.items():
+        try:
+            mod = __import__(imp_mod)
+        except ImportError:
+            missing_deps.append(dep_name)
+    checks.append({
+        "check": "Core Dependencies",
+        "detail": "All core modules present" if not missing_deps else f"Missing: {', '.join(missing_deps)}",
+        "passed": len(missing_deps) == 0,
+        "requirement": "pydantic, fastapi, uvicorn, python-multipart",
+    })
+
+    # 3. Disk Write & Temp File Permissions
+    disk_ok = False
+    try:
+        with tempfile.NamedTemporaryFile("w+", suffix=".tmp", delete=True) as tf:
+            tf.write("recon_doctor_probe")
+            tf.flush()
+            tf.seek(0)
+            disk_ok = (tf.read() == "recon_doctor_probe")
+    except Exception:
+        disk_ok = False
+    checks.append({
+        "check": "File System I/O",
+        "detail": "Read/Write permissions verified",
+        "passed": disk_ok,
+        "requirement": "Writable temp & output directories",
+    })
+
+    # 4. UTF-8 & BOM Handling
+    bom_ok = False
+    try:
+        raw_bom = b"\xef\xbb\xbf" + json.dumps({"test": 123}).encode("utf-8")
+        decoded = raw_bom.decode("utf-8-sig").lstrip("\ufeff")
+        bom_ok = (json.loads(decoded)["test"] == 123)
+    except Exception:
+        bom_ok = False
+    checks.append({
+        "check": "UTF-8 & BOM Engine",
+        "detail": "Windows BOM stripping active",
+        "passed": bom_ok,
+        "requirement": "utf-8-sig decoder verified",
+    })
+
+    # 5. Pipeline Smoke Test (End-to-End Ingest, Profile, Map, Risks, Adapter)
+    pipe_ok = False
+    pipe_detail = "In-memory pipeline functional"
+    try:
+        from recon.contracts.models import ContractType, TargetContract, TargetField
+        from recon.ingestion.models import RawDataset
+        from recon.profiling.profiler import profile_dataset
+        from recon.mapping.proposer import propose_mappings
+        from recon.risks.evaluator import evaluate_risks
+        from recon.adapters.generator import generate_adapter
+        from recon.validation.executor import validate_adapter
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_p = Path(tmp_dir)
+            src_csv = tmp_p / "probe_feed.csv"
+            src_csv.write_text("id,val\n1,Alpha\n2,Beta\n", encoding="utf-8")
+            tgt_json = tmp_p / "probe_target.json"
+            tgt_json.write_text(json.dumps({
+                "contract_name": "DoctorContract",
+                "version": "1.0.0",
+                "fields": {
+                    "id": {"name": "id", "target_type": "integer", "required": True},
+                    "val": {"name": "val", "target_type": "string", "required": True},
+                }
+            }), encoding="utf-8")
+
+            dummy_dataset = load_dataset(src_csv)
+            dummy_contract = load_target_contract(tgt_json)
+            prof = profile_dataset(dummy_dataset)
+            plan = propose_mappings(prof, dummy_contract)
+            evaluate_risks(prof, dummy_contract, plan)
+            approved = approve_mapping_plan(plan, reviewer="doctor_probe")
+            adapter = generate_adapter(approved, dummy_contract)
+            val = validate_adapter(adapter, dummy_contract, dummy_dataset.rows)
+            pipe_ok = (val.valid_records_count == 2 and val.quarantined_records_count == 0 and val.all_tests_passed)
+    except Exception as exc:
+        pipe_ok = False
+        pipe_detail = f"Pipeline smoke test failed: {exc}"
+
+    checks.append({
+        "check": "Pipeline Invariants",
+        "detail": pipe_detail,
+        "passed": pipe_ok,
+        "requirement": "Phase 1-6 zero-loss execution",
+    })
+
+    # 6. Network Port 8000 Status
+    port_in_use = False
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.3)
+            port_in_use = (s.connect_ex(("127.0.0.1", 8000)) == 0)
+    except Exception:
+        pass
+    checks.append({
+        "check": "Network Port 8000",
+        "detail": "In use (Recon studio or background server active)" if port_in_use else "Available for binding",
+        "passed": True,  # Non-blocking, as launcher auto-resolves or connects
+        "requirement": "Available or active Recon studio",
+    })
+
+    all_passed = all(c["passed"] for c in checks)
+
+    if is_json:
+        print(json.dumps({
+            "status": "HEALTHY" if all_passed else "UNHEALTHY",
+            "os": platform.platform(),
+            "checks": checks,
+        }, indent=2))
+    else:
+        print("\n" + "=" * 70)
+        print("  RECON ENVIRONMENT DIAGNOSTIC REPORT (recon doctor)")
+        print(f"  OS / Platform: {platform.platform()}")
+        print("=" * 70)
+        for c in checks:
+            status_tag = "[PASS]" if c["passed"] else "[FAIL]"
+            print(f"  {status_tag:<8} {c['check']:<22} : {c['detail']}")
+        print("=" * 70)
+        if all_passed:
+            print("  RESULT: Environment is 100% HEALTHY and production ready.\n")
+        else:
+            print("  RESULT: Some checks FAILED. Review requirements above.\n")
+
+    return 0 if all_passed else 1
+
+
 
 def main() -> None:
     """Main CLI entrypoint."""
@@ -464,6 +623,11 @@ def main() -> None:
     p_web.add_argument("--host", default="127.0.0.1", help="Host address (default: 127.0.0.1)")
     p_web.add_argument("--port", type=int, default=8000, help="Port (default: 8000)")
     p_web.set_defaults(func=cmd_web)
+
+    # doctor
+    p_doctor = subparsers.add_parser("doctor", help="Run local environment diagnostics and verify installation readiness")
+    p_doctor.add_argument("--json", dest="json_output", action="store_true", help="Output machine-readable JSON")
+    p_doctor.set_defaults(func=cmd_doctor)
 
     args = parser.parse_args()
     sys.exit(args.func(args))
