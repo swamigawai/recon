@@ -1011,6 +1011,34 @@
        Modals: Shortcuts, Reset Confirmation, Session Expired
        ==================================================================== -->
 
+  <!-- Pilot Access Key Gate Modal -->
+  <div class="recon-modal-backdrop hidden" id="modal-access-key" style="z-index: 99999;">
+    <div class="recon-modal" style="max-width: 480px; text-align: left;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; background: rgba(59, 130, 246, 0.15); color: var(--recon-primary-base); font-size: 16px;">🔒</span>
+        <div>
+          <h3 class="recon-modal-title" style="margin: 0; font-size: 16px;">Restricted Pilot Access Gate</h3>
+          <div class="text-muted" style="font-size: 11px;">Forward Deployed Engineer Verification</div>
+        </div>
+      </div>
+      <p class="text-secondary" style="font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
+        This Recon instance is operating in <strong>Private Pilot Mode</strong>. Please enter your authorized Pilot Access Key to unlock the integration cockpit:
+      </p>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label" for="access-key-input" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--recon-text-muted);">Pilot Invitation Key</label>
+        <input type="password" id="access-key-input" class="form-input font-mono" placeholder="Enter Pilot Key..." style="width: 100%; padding: 10px; font-size: 14px;" autocomplete="off">
+      </div>
+      <div id="access-key-error" class="text-rose font-mono hidden" style="font-size: 12px; margin-bottom: 14px; padding: 8px 12px; background: rgba(244, 63, 94, 0.1); border-radius: 4px; border-left: 3px solid var(--recon-rose-base);">
+        Invalid Pilot Key. Please verify with the project owner.
+      </div>
+      <div class="recon-modal-footer" style="margin-top: 16px;">
+        <button class="btn btn-primary" id="btn-submit-access-key" style="width: 100%; justify-content: center; padding: 10px; font-weight: 600;">
+          Unlock Integration Cockpit →
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Reset Confirmation Modal -->
   <div class="recon-modal-backdrop hidden" id="modal-reset-session">
     <div class="recon-modal">

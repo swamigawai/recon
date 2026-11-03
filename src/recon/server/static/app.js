@@ -1,3 +1,21 @@
+// Intercept fetch to automatically include X-Recon-Key header on all /api calls
+const _nativeFetch = window.fetch;
+window.fetch = function(input, init = {}) {
+  const key = sessionStorage.getItem("recon_access_key");
+  if (key) {
+    init = init || {};
+    init.headers = init.headers || {};
+    if (init.headers instanceof Headers) {
+      if (!init.headers.has("X-Recon-Key")) init.headers.set("X-Recon-Key", key);
+    } else if (Array.isArray(init.headers)) {
+      init.headers.push(["X-Recon-Key", key]);
+    } else {
+      init.headers["X-Recon-Key"] = key;
+    }
+  }
+  return _nativeFetch.call(this, input, init);
+};
+
 /**
    RECON — THE INTEGRATION READINESS ENGINE
    World-Class UI/UX Design Strategy & Engineering Specification
@@ -86,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindDropZones();
   bindKeyboardNavigation();
   bindActions();
+  initAuthGate();
 });
 
 // =============================================================================
@@ -5091,3 +5110,59 @@ function escapeHtml(text) {
 
 
 // =============================================================================
+
+
+async function initAuthGate() {
+  const modal = document.getElementById("modal-access-key");
+  const input = document.getElementById("access-key-input");
+  const btn = document.getElementById("btn-submit-access-key");
+  const errBox = document.getElementById("access-key-error");
+  if (!modal || !input || !btn) return;
+
+  try {
+    const res = await fetch("/api/auth-status");
+    const data = await res.json();
+    if (data.requires_auth && !data.authenticated) {
+      modal.classList.remove("hidden");
+      input.focus();
+    }
+  } catch (_) {}
+
+  async function submitKey() {
+    const key = input.value.trim();
+    if (!key) return;
+    if (errBox) errBox.classList.add("hidden");
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/verify-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_key: key }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem("recon_access_key", key);
+        modal.classList.add("hidden");
+        loadSampleDatasets();
+        loadSampleContracts();
+      } else {
+        if (errBox) errBox.classList.remove("hidden");
+        input.focus();
+      }
+    } catch (e) {
+      if (errBox) {
+        errBox.textContent = "Network error verifying key.";
+        errBox.classList.remove("hidden");
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  btn.addEventListener("click", submitKey);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitKey();
+    }
+  });
+}

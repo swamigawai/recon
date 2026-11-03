@@ -152,6 +152,10 @@ def banner(host: str, port: int) -> None:
     print("=" * 68)
     print(f"  Target Studio URL : {BOLD}{GREEN}{url}{RESET}")
     print(f"  Execution Mode    : Local-First (Zero Cloud Dependencies / Air-Gapped)")
+    if os.environ.get("RECON_ACCESS_KEY"):
+        print(f"  Access Protection : {BOLD}{YELLOW}ENABLED (Passkey Verification Required){RESET}")
+    else:
+        print(f"  Access Protection : OPEN (Zero Passkey Configured)")
     print(f"  Sample Fixtures   : examples/sample_raw_feed.csv -> examples/sample_target_schema.json")
     print(f"  Diagnostic Doctor : python -m recon.cli doctor")
     print("=" * 68 + "\n")
@@ -161,8 +165,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Recon FDE Quick Launcher")
     parser.add_argument("--host", default="0.0.0.0", help="Host interface to bind (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=8000, help="Initial port to bind (default: 8000)")
+    parser.add_argument("--access-key", default=None, help="Pilot passkey for gated access verification")
     parser.add_argument("--no-browser", action="store_true", help="Do not automatically open browser")
     args = parser.parse_args()
+
+    if args.access_key:
+        os.environ["RECON_ACCESS_KEY"] = args.access_key.strip()
 
     # Step 1: Preflight Environment Checks
     print(f"\n{BOLD}[1/3] Checking FDE Runtime Environment...{RESET}")

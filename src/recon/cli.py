@@ -410,8 +410,14 @@ def cmd_web(args: argparse.Namespace) -> int:
     import uvicorn
     from recon.server.app import create_app
 
+    access_key = getattr(args, "access_key", None)
+    if access_key:
+        os.environ["RECON_ACCESS_KEY"] = access_key.strip()
+
     app = create_app()
     print(f"\nStarting Recon Web Interface at http://{args.host}:{args.port}")
+    if os.environ.get("RECON_ACCESS_KEY"):
+        print("  [Gate] Access key protection ENABLED. Passkey verification required.")
     uvicorn.run(app, host=args.host, port=args.port)
     return 0
 
@@ -622,6 +628,7 @@ def main() -> None:
     p_web = subparsers.add_parser("serve", aliases=["web"], help="Start the Recon developer web studio")
     p_web.add_argument("--host", default="127.0.0.1", help="Host address (default: 127.0.0.1)")
     p_web.add_argument("--port", type=int, default=8000, help="Port (default: 8000)")
+    p_web.add_argument("--access-key", default=None, help="Pilot passkey for gated access verification")
     p_web.set_defaults(func=cmd_web)
 
     # doctor

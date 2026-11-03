@@ -832,5 +832,76 @@ def test_morphing_diff_and_gutter_minimap_static_assets_verified(client: TestCli
     assert "morph-wipe-target" in res_js.text
     assert "minimap-track" in res_js.text
 
+def test_auth_gate_open_by_default(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies that with no RECON_ACCESS_KEY env set, access is completely unrestricted."""
+    monkeypatch.delenv("RECON_ACCESS_KEY", raising=False)
+
+    # Auth status is open
+    res_status = client.get("/api/auth-status")
+    assert res_status.status_code == 200
+    assert res_status.json() == {"requires_auth": False, "authenticated": True}
+
+    # Assess endpoint works without any keys
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
 
 
+def test_auth_gate_enforcement_with_key(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies that when RECON_ACCESS_KEY is set, unauthenticated requests are blocked."""
+    monkeypatch.setenv("RECON_ACCESS_KEY", "pilot_secret_999")
+
+    # 1. Auth status reports gate is active and unauthenticated
+    res_status = client.get("/api/auth-status")
+    assert res_status.status_code == 200
+    assert res_status.json() == {"requires_auth": True, "authenticated": False}
+
+    # 2. POST /api/verify-key tests
+    res_bad_verify = client.post("/api/verify-key", json={"access_key": "wrong_key"})
+    assert res_bad_verify.status_code == 401
+
+    res_good_verify = client.post("/api/verify-key", json={"access_key": "pilot_secret_999"})
+    assert res_good_verify.status_code == 200
+    assert res_good_verify.json()["valid"] is True
+
+    # 3. Assess endpoint blocks unauthenticated calls with 401
+    res_blocked = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_blocked.status_code == 401
+    assert "Pilot Access Key required" in res_blocked.json()["detail"]
+
+    # 4. Assess endpoint accepts valid X-Recon-Key header
+    res_allowed = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+        headers={"X-Recon-Key": "pilot_secret_999"},
+    )
+    assert res_allowed.status_code == 200
+    assert "session_id" in res_allowed.json()
+
+
+def test_auth_modal_assets_present(client: TestClient) -> None:
+    """Verifies that the access passkey modal dialog and JS gate are present."""
+    res_html = client.get("/")
+    assert res_html.status_code == 200
+    assert "modal-access-key" in res_html.text
+    assert "access-key-input" in res_html.text
+    assert "btn-submit-access-key" in res_html.text
+
+    res_js = client.get("/app.js")
+    assert res_js.status_code == 200
+    assert "initAuthGate" in res_js.text
+    assert "X-Recon-Key" in res_js.text

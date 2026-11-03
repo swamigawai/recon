@@ -7,7 +7,8 @@ import tempfile
 from typing import Any
 import uuid
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+import os
+from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
@@ -82,6 +83,45 @@ def health_check() -> dict[str, str]:
     """Health check endpoint."""
     return {"status": "ok", "engine": "Recon — The Integration Readiness Engine"}
 
+class KeyVerificationRequest(BaseModel):
+    access_key: str
+
+
+def _check_access(request: Request) -> None:
+    """Verifies that the client provided the valid configured RECON_ACCESS_KEY if one is set."""
+    configured_key = os.environ.get("RECON_ACCESS_KEY", "").strip()
+    if not configured_key:
+        return
+    provided_key = request.headers.get("X-Recon-Key", "").strip()
+    if provided_key != configured_key:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: Valid Recon Pilot Access Key required in 'X-Recon-Key' header.",
+        )
+
+
+@router.get("/auth-status")
+def get_auth_status(request: Request) -> dict[str, Any]:
+    """Returns whether this Recon instance requires an invitation key and if the client is authenticated."""
+    configured_key = os.environ.get("RECON_ACCESS_KEY", "").strip()
+    if not configured_key:
+        return {"requires_auth": False, "authenticated": True}
+    provided_key = request.headers.get("X-Recon-Key", "").strip()
+    is_valid = (provided_key == configured_key)
+    return {"requires_auth": True, "authenticated": is_valid}
+
+
+@router.post("/verify-key")
+def verify_access_key(body: KeyVerificationRequest) -> dict[str, Any]:
+    """Validates an incoming pilot invitation access key."""
+    configured_key = os.environ.get("RECON_ACCESS_KEY", "").strip()
+    if not configured_key:
+        return {"valid": True, "message": "No access key required for this instance."}
+    if body.access_key.strip() == configured_key:
+        return {"valid": True, "message": "Pilot Access Key accepted."}
+    raise HTTPException(status_code=401, detail="Invalid Pilot Access Key. Check with project administrator.")
+
+
 
 @router.get("/sample-contracts")
 def list_sample_contracts() -> list[dict[str, Any]]:
@@ -126,6 +166,7 @@ def list_sample_datasets() -> list[dict[str, Any]]:
 
 @router.post("/assess")
 async def assess_integration(
+    request: Request,
     source_file: UploadFile | None = File(None),
     sample_dataset_id: str | None = Form(None),
     contract_file: UploadFile | None = File(None),
@@ -134,6 +175,7 @@ async def assess_integration(
     schema_name: str | None = Form(None),
     mapping_spec_file: UploadFile | None = File(None),
 ) -> dict[str, Any]:
+    _check_access(request)
     """Uploads source data and contract; profiles, proposes mappings, and assesses integration risks."""
     session_id = str(uuid.uuid4())
     temp_dir = tempfile.TemporaryDirectory()
@@ -359,7 +401,8 @@ async def assess_integration(
 
 
 @router.post("/approve-and-generate")
-def approve_and_generate(request: ApprovalRequest) -> dict[str, Any]:
+def approve_and_generate(http_req: Request, request: ApprovalRequest) -> dict[str, Any]:
+    _check_access(http_req)
     """Applies human approval & overrides, generates reviewable adapter, runs sandbox tests, and produces readiness report."""
     session = SESSIONS.get(request.session_id)
     if not session:
