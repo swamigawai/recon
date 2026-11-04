@@ -106,6 +106,16 @@ document.addEventListener("DOMContentLoaded", () => {
   bindActions();
   initAuthGate();
   initAppleStage06();
+
+  // Hash-based direct step navigation (e.g. #step-6 or #validate)
+  const initialHash = (window.location.hash || "").toLowerCase();
+  if (initialHash.includes("6") || initialHash.includes("val")) {
+    navigateToStep(6);
+  } else if (initialHash.includes("5") || initialHash.includes("adapt")) {
+    navigateToStep(5);
+  } else if (initialHash.includes("7") || initialHash.includes("doss")) {
+    navigateToStep(7);
+  }
 });
 
 // =============================================================================
@@ -734,10 +744,8 @@ function initShell() {
 }
 
 function isStepAvailable(targetStep) {
-  if (targetStep === 1) return true;
-  if (targetStep >= 2 && targetStep <= 4) return Boolean(currentAssessment);
-  if (targetStep >= 5 && targetStep <= 7) return Boolean(currentResults);
-  return false;
+  // Allow all steps to be freely navigable for instant inspection and Apple-grade stage review
+  return true;
 }
 
 function navigateToStep(stepNumber) {
