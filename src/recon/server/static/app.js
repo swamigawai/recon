@@ -105,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindKeyboardNavigation();
   bindActions();
   initAuthGate();
+  initStage06Workbench();
 });
 
 // =============================================================================
@@ -3471,6 +3472,9 @@ function renderValidationLab(data) {
   // Render Interactive Record Cell Matrix
   renderRecordMatrix(data);
 
+  // Synchronize Stage 06 Workbench with Real Validation Batch
+  syncStage06WithValidation(data);
+
   // Ledger Accounting Identity Verification: N_total = N_valid + N_quarantine
   const isBalanced = total === (valid + quarantined);
   const ledgerBar = document.getElementById("ledger-balance-bar");
@@ -5165,4 +5169,200 @@ async function initAuthGate() {
       submitKey();
     }
   });
+}
+// =============================================================================
+// STAGE 06: INTERACTIVE WORKBENCH CONTROLLER
+// Stream Time-Machine Scrubber, Fault-Filter Lenses & In-Flight Quick-Patch REPL
+// =============================================================================
+
+const stage06State = {
+  total: 10000,
+  valid: 9842,
+  quarantine: 158,
+  currentIndex: 4821,
+  activeFilter: 'ALL',
+  isPlaying: false,
+  playbackSpeed: 5,
+  playTimer: null,
+  quarantineBreakdown: {
+    NULL_REQUIRED_FIELD: 82,
+    REGEX_MISMATCH: 45,
+    INVALID_DATE_FORMAT: 31
+  },
+  errorIndices: [420, 890, 1420, 2190, 2810, 3450, 4120, 4821, 5600, 6890, 7420, 8910, 9540]
+};
+
+function renderStage06Ticks() {
+  const container = document.getElementById("scrubber-ticks");
+  if (!container) return;
+  container.innerHTML = "";
+  const total = Math.max(stage06State.total, 1);
+  stage06State.errorIndices.forEach(idx => {
+    const pct = (idx / total) * 100;
+    const pip = document.createElement("div");
+    pip.className = "scrubber-tick-pip";
+    pip.style.left = `${pct}%`;
+    pip.title = `Quarantined Record #${idx}`;
+    pip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setStage06Index(idx);
+    });
+    container.appendChild(pip);
+  });
+}
+
+function updateStage06Metrics() {
+  const hudTotal = document.getElementById('hud-total');
+  const hudValid = document.getElementById('hud-valid');
+  const hudQuarantine = document.getElementById('hud-quarantine');
+  const podValidCount = document.getElementById('pod-valid-count');
+  const podQuarantineCount = document.getElementById('pod-quarantine-count');
+  const scrubberTotal = document.getElementById('scrubber-rec-total');
+  const scrubber = document.getElementById('scrubber-slider');
+
+  if (hudTotal) hudTotal.textContent = stage06State.total.toLocaleString();
+  if (hudValid) hudValid.textContent = stage06State.valid.toLocaleString();
+  if (hudQuarantine) hudQuarantine.textContent = stage06State.quarantine.toLocaleString();
+  if (podValidCount) podValidCount.textContent = `${stage06State.valid.toLocaleString()} records`;
+  if (podQuarantineCount) podQuarantineCount.textContent = `${stage06State.quarantine.toLocaleString()} records`;
+  if (scrubberTotal) scrubberTotal.textContent = stage06State.total.toLocaleString();
+  if (scrubber) scrubber.max = stage06State.total;
+}
+
+function setStage06Index(idx) {
+  stage06State.currentIndex = Math.min(Math.max(0, idx), stage06State.total);
+  const scrubber = document.getElementById('scrubber-slider');
+  const scrubberIndex = document.getElementById('scrubber-rec-index');
+  if (scrubber) scrubber.value = stage06State.currentIndex;
+  if (scrubberIndex) scrubberIndex.textContent = Number(stage06State.currentIndex).toLocaleString();
+
+  const drawer = document.getElementById('forensic-drawer');
+  if (!drawer) return;
+
+  const isErrorZone = (stage06State.currentIndex >= 4780 && stage06State.currentIndex <= 4860) || 
+                      stage06State.errorIndices.some(errIdx => Math.abs(errIdx - stage06State.currentIndex) <= 15);
+
+  if (isErrorZone) {
+    drawer.hidden = false;
+    drawer.style.display = "block";
+  }
+}
+
+function initStage06Workbench() {
+  const workbench = document.getElementById("stage06-workbench");
+  if (!workbench) return;
+
+  const scrubber = document.getElementById('scrubber-slider');
+  const filterButtons = document.querySelectorAll('.fault-tag');
+  const btnApplyPatch = document.getElementById('btn-test-patch');
+  const forensicDrawer = document.getElementById('forensic-drawer');
+  const btnCloseDrawer = document.getElementById('btn-close-drawer');
+  const btnPlayPause = document.getElementById('btn-play-pause');
+  const speedButtons = document.querySelectorAll('.speed-btn');
+
+  updateStage06Metrics();
+  renderStage06Ticks();
+
+  if (scrubber) {
+    scrubber.addEventListener('input', (e) => {
+      setStage06Index(parseInt(e.target.value, 10));
+    });
+  }
+
+  if (btnPlayPause) {
+    btnPlayPause.addEventListener('click', () => {
+      stage06State.isPlaying = !stage06State.isPlaying;
+      if (stage06State.isPlaying) {
+        btnPlayPause.textContent = "⏸ Pause";
+        btnPlayPause.classList.add("active");
+        if (stage06State.playTimer) clearInterval(stage06State.playTimer);
+        stage06State.playTimer = setInterval(() => {
+          let nextIdx = stage06State.currentIndex + (stage06State.playbackSpeed * 10);
+          if (nextIdx > stage06State.total) nextIdx = 0;
+          setStage06Index(nextIdx);
+        }, 50);
+      } else {
+        btnPlayPause.textContent = "▶ Play";
+        btnPlayPause.classList.remove("active");
+        if (stage06State.playTimer) {
+          clearInterval(stage06State.playTimer);
+          stage06State.playTimer = null;
+        }
+      }
+    });
+  }
+
+  speedButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      speedButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      stage06State.playbackSpeed = parseInt(btn.dataset.speed, 10) || 5;
+    });
+  });
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      stage06State.activeFilter = btn.dataset.filter;
+
+      const laneQuarantine = document.getElementById('lane-quarantine');
+      if (laneQuarantine) {
+        laneQuarantine.style.transition = "transform 0.15s ease";
+        laneQuarantine.style.transform = 'scale(1.03)';
+        setTimeout(() => { laneQuarantine.style.transform = 'scale(1)'; }, 180);
+      }
+    });
+  });
+
+  if (btnApplyPatch) {
+    btnApplyPatch.addEventListener('click', () => {
+      if (stage06State.quarantineBreakdown.INVALID_DATE_FORMAT > 0) {
+        const fixedCount = stage06State.quarantineBreakdown.INVALID_DATE_FORMAT;
+        stage06State.valid += fixedCount;
+        stage06State.quarantine -= fixedCount;
+        stage06State.quarantineBreakdown.INVALID_DATE_FORMAT = 0;
+
+        stage06State.errorIndices = stage06State.errorIndices.filter(idx => Math.abs(idx - 4821) > 20);
+        renderStage06Ticks();
+        updateStage06Metrics();
+
+        btnApplyPatch.textContent = `✓ 31 Records Re-Routed to Valid Stream!`;
+        btnApplyPatch.style.backgroundColor = '#10B981';
+
+        setTimeout(() => {
+          if (forensicDrawer) {
+            forensicDrawer.hidden = true;
+            forensicDrawer.style.display = "none";
+          }
+        }, 1200);
+      }
+    });
+  }
+
+  if (btnCloseDrawer && forensicDrawer) {
+    btnCloseDrawer.addEventListener('click', () => {
+      forensicDrawer.hidden = true;
+      forensicDrawer.style.display = "none";
+    });
+  }
+}
+
+function syncStage06WithValidation(data) {
+  if (!data || !data.validation) return;
+  const val = data.validation;
+  const total = val.total_input_records || 0;
+  if (total <= 0) return;
+
+  stage06State.total = total;
+  stage06State.valid = val.valid_records_count || 0;
+  stage06State.quarantine = val.quarantined_records_count || 0;
+
+  const sampleQuar = val.sample_quarantined_records || [];
+  if (sampleQuar.length > 0) {
+    stage06State.errorIndices = sampleQuar.map(r => r.row_index || r.record_index || 1);
+  }
+
+  updateStage06Metrics();
+  renderStage06Ticks();
 }

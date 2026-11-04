@@ -569,6 +569,140 @@
             <p class="section-desc">Automated test execution, zero-loss accounting verification, and forensic diagnostic log.</p>
           </div>
 
+          <!-- ================================================================
+               Interactive Stage 06: Sandboxed Execution & Zero-Loss Quarantine Split
+               ================================================================ -->
+          <div class="stage06-container" id="stage06-workbench" style="margin-bottom: 24px;">
+            <!-- 1. Top HUD: The Mathematical Zero-Loss Ledger -->
+            <div class="stage06-hud-bar">
+              <div class="hud-left">
+                <span class="hud-pill-status"><span class="status-dot-pulse"></span> SANDBOX ACTIVE</span>
+                <span class="hud-stat">AIR-GAP: <strong>ENFORCED (0 NET I/O)</strong></span>
+              </div>
+              <div class="hud-center">
+                <div class="zero-loss-badge">
+                  <span class="eq-term">TOTAL: <strong id="hud-total">10,000</strong></span>
+                  <span class="eq-op">=</span>
+                  <span class="eq-term valid">VALID: <strong id="hud-valid">9,842</strong></span>
+                  <span class="eq-op">+</span>
+                  <span class="eq-term quarantine">QUARANTINE: <strong id="hud-quarantine">158</strong></span>
+                  <span class="eq-tag">100% BALANCED</span>
+                </div>
+              </div>
+              <div class="hud-right">
+                <span class="hud-meta">THROUGHPUT: <strong id="hud-speed">42,000 rec/s</strong></span>
+              </div>
+            </div>
+
+            <!-- 2. Main Visual Canvas: Isometric Stream Conduit -->
+            <div class="conduit-canvas-area">
+              <!-- Left: Raw Inflow Port -->
+              <div class="conduit-node inflow-node">
+                <div class="node-label">RAW INFLOW</div>
+                <div class="packet-emitter" id="inflow-emitter">
+                  <span class="packet-tag">CSV / JSON PACKETS</span>
+                </div>
+              </div>
+
+              <!-- Center: Transparent Hexagonal Glass Sandbox -->
+              <div class="sandbox-chamber" id="sandbox-chamber">
+                <div class="hex-glass-container">
+                  <div class="hex-border"></div>
+                  <div class="sandbox-core">
+                    <div class="compiler-glyph">⬡</div>
+                    <span class="sandbox-title">COMPILED ADAPTER VM</span>
+                    <span class="sandbox-sub">Air-Gapped Python Bytecode</span>
+                    <div class="sandbox-mini-metrics">
+                      <span>CPU: 14%</span> · <span>RAM: 14.2MB</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Bifurcation Split -->
+              <div class="conduit-bifurcation">
+                <!-- Top Branch: Valid Lake -->
+                <div class="branch-lane valid-lane" id="lane-valid">
+                  <div class="lane-pipe valid-pipe"></div>
+                  <div class="destination-pod valid-pod">
+                    <div class="pod-header">
+                      <span class="pod-icon">✓</span>
+                      <span class="pod-title">VALIDATED RECORDS STREAM</span>
+                    </div>
+                    <div class="pod-count" id="pod-valid-count">9,842 records</div>
+                    <div class="pod-meta">Direct Ingestion Pipeline</div>
+                  </div>
+                </div>
+
+                <!-- Bottom Branch: Quarantine Vault with Filter Lenses -->
+                <div class="branch-lane quarantine-lane" id="lane-quarantine">
+                  <div class="lane-pipe quarantine-pipe"></div>
+                  <div class="destination-pod quarantine-pod">
+                    <div class="pod-header">
+                      <span class="pod-icon">⚠</span>
+                      <span class="pod-title">QUARANTINE ISOLATION VAULT</span>
+                    </div>
+                    <div class="pod-count" id="pod-quarantine-count">158 records</div>
+                    
+                    <!-- Interactive Fault Filter Tags -->
+                    <div class="fault-filter-tags">
+                      <button class="fault-tag active" data-filter="ALL">ALL (158)</button>
+                      <button class="fault-tag" data-filter="NULL_REQUIRED_FIELD">NULL_REQ (82)</button>
+                      <button class="fault-tag" data-filter="REGEX_MISMATCH">REGEX (45)</button>
+                      <button class="fault-tag" data-filter="INVALID_DATE_FORMAT">DATE_FMT (31)</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Bottom Stream Time-Machine Scrubber -->
+            <div class="stream-scrubber-deck">
+              <div class="playback-controls">
+                <button class="ctrl-btn" id="btn-play-pause">⏸ Pause</button>
+                <button class="ctrl-btn speed-btn" data-speed="1">1x</button>
+                <button class="ctrl-btn speed-btn active" data-speed="5">5x</button>
+                <button class="ctrl-btn speed-btn" data-speed="100">Max</button>
+              </div>
+              <div class="scrubber-track-container">
+                <input type="range" min="0" max="10000" value="4821" class="scrubber-slider" id="scrubber-slider">
+                <!-- Error Tick Markers -->
+                <div class="scrubber-error-ticks" id="scrubber-ticks"></div>
+              </div>
+              <div class="scrubber-meta">
+                Record: <strong id="scrubber-rec-index">4,821</strong> / <span id="scrubber-rec-total">10,000</span>
+              </div>
+            </div>
+
+            <!-- 4. Slide-Up Forensic Inspection Drawer & Quick-Patch REPL -->
+            <div class="forensic-drawer" id="forensic-drawer">
+              <div class="drawer-header">
+                <span class="drawer-title" id="drawer-rec-title">RECORD #4,821 FORENSIC INSPECTION</span>
+                <span class="drawer-violation-badge" id="drawer-violation-badge">INVALID_DATE_FORMAT</span>
+                <button class="drawer-close" id="btn-close-drawer">×</button>
+              </div>
+              <div class="drawer-grid">
+                <!-- Left: Raw Input vs Target Contract Diff -->
+                <div class="drawer-col">
+                  <span class="col-heading">RAW SOURCE RECORD</span>
+                  <pre class="json-dump"><code id="drawer-json-dump">{
+  "id": "INV-2026-904",
+  "created_at": "18/09/2026 14:11",  // Fails ISO-8601
+  "amount": "920.50"
+}</code></pre>
+                </div>
+                <!-- Right: In-Flight Quick-Patch REPL -->
+                <div class="drawer-col repl-col">
+                  <span class="col-heading">IN-FLIGHT QUICK-PATCH REPL</span>
+                  <textarea class="repl-editor" id="repl-code-input"># Test patch for 31 date format failures:
+def parse_date(v):
+    return datetime.strptime(v, "%d/%m/%Y %H:%M").isoformat()</textarea>
+                  <button class="btn-test-patch" id="btn-test-patch">⚡ Apply Patch &amp; Re-Route (31 Records)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Section 1: Accounting Metrics Grid (Swiss Precision Cards) -->
           <div class="metrics-grid" style="margin-bottom: 16px;">
             <div class="metric-card">
