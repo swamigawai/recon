@@ -105,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindKeyboardNavigation();
   bindActions();
   initAuthGate();
+  initAccessGate();
   initAppleStage06();
 
   // Hash-based direct step navigation (e.g. #step-6 or #validate)
@@ -817,6 +818,15 @@ function navigateToStep(stepNumber) {
   }
 
   // Update Dynamic Health Island for current step
+  // Update Stage 07 Apple Stat Callouts
+  const dossierParityEl = document.getElementById("dossier-stat-parity");
+  if (dossierParityEl && data.validation) {
+    const total = data.validation.total_input_records || 0;
+    const valid = data.validation.valid_records_count || 0;
+    const quar = data.validation.quarantined_records_count || 0;
+    dossierParityEl.textContent = (total === valid + quar) ? "100%" : "FAIL";
+  }
+
   updateDynamicIsland();
 }
 
@@ -5238,5 +5248,163 @@ function syncAppleStage06(data) {
         <span class="q-count">${count} record${count > 1 ? "s" : ""}</span>
       </div>
     `).join("");
+  }
+}
+
+
+// =============================================================================
+// RECON — PRIVATE PILOT ACCESS GATE (DEMO ACCESS CONTROL)
+// "Zero loss. Proved by math."
+// =============================================================================
+
+const VALID_PILOT_KEYS = [
+  "FDE-PILOT",
+  "RECON-2026",
+  "PALANTIR-FDE",
+  "SWAMI-VIP",
+  "RECON-PILOT",
+  "FOUNDER",
+  "FORWARD-DEPLOYED"
+];
+
+function initAccessGate() {
+  const gateEl = document.getElementById("recon-access-gate");
+  const cardEl = document.getElementById("apple-access-card");
+  const formEl = document.getElementById("recon-access-form");
+  const inputEl = document.getElementById("recon-access-key-input");
+  const errorEl = document.getElementById("access-error-msg");
+  const lockBtn = document.getElementById("btn-lock-toggle");
+  const lockStatusText = document.getElementById("lock-status-text");
+  const quickKey1 = document.getElementById("btn-quick-key-1");
+  const quickKey2 = document.getElementById("btn-quick-key-2");
+
+  if (!gateEl || !inputEl) return;
+
+  function unlockStudio(key) {
+    localStorage.setItem("recon_pilot_unlocked", "true");
+    localStorage.setItem("recon_active_key", key);
+    if (errorEl) errorEl.classList.add("hidden");
+    
+    // Smooth Apple-style fade-out
+    if (gateEl) {
+      gateEl.style.opacity = "0";
+      setTimeout(() => {
+        gateEl.classList.add("hidden");
+        gateEl.style.opacity = "";
+      }, 260);
+    }
+    if (lockStatusText) {
+      lockStatusText.textContent = "PILOT KEY";
+    }
+    if (window.showToast) {
+      showToast("Access Authorized: Forward Deployed Mode Active", "success");
+    }
+  }
+
+  function lockStudio() {
+    localStorage.removeItem("recon_pilot_unlocked");
+    if (gateEl) {
+      gateEl.classList.remove("hidden");
+      gateEl.style.opacity = "1";
+    }
+    if (inputEl) {
+      inputEl.value = "";
+      inputEl.focus();
+    }
+    if (lockStatusText) {
+      lockStatusText.textContent = "LOCKED";
+    }
+  }
+
+  function validateKey(keyCandidate) {
+    const key = (keyCandidate || "").trim().toUpperCase();
+    if (!key) return false;
+    
+    // Check against authorized pilot keys or custom local override
+    const isMasterKey = VALID_PILOT_KEYS.includes(key);
+    const isPrefixKey = key.startsWith("FDE-") || key.startsWith("RECON-") || key.startsWith("PALANTIR-");
+    
+    if (isMasterKey || isPrefixKey) {
+      unlockStudio(key);
+      return true;
+    } else {
+      if (errorEl) errorEl.classList.remove("hidden");
+      if (cardEl) {
+        cardEl.classList.remove("shake");
+        void cardEl.offsetWidth; // Trigger reflow
+        cardEl.classList.add("shake");
+      }
+      inputEl.focus();
+      inputEl.select();
+      return false;
+    }
+  }
+
+  // Check URL query parameters for instant invite links: ?key=FDE-PILOT or ?invite=...
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramKey = urlParams.get("key") || urlParams.get("invite") || urlParams.get("access");
+  if (paramKey && validateKey(paramKey)) {
+    // Clean up address bar query parameter without page reload
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, document.title, cleanUrl);
+    return;
+  }
+
+  // Check persistent unlock state
+  const isUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true";
+  if (isUnlocked) {
+    gateEl.classList.add("hidden");
+    if (lockStatusText) lockStatusText.textContent = "PILOT KEY";
+  } else {
+    gateEl.classList.remove("hidden");
+    if (lockStatusText) lockStatusText.textContent = "LOCKED";
+    setTimeout(() => inputEl.focus(), 150);
+  }
+
+  // Form submit event
+  if (formEl) {
+    formEl.addEventListener("submit", (e) => {
+      e.preventDefault();
+      validateKey(inputEl.value);
+    });
+  }
+
+  const submitBtn = document.getElementById("btn-submit-access");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", () => {
+      validateKey(inputEl.value);
+    });
+  }
+
+  // Quick key pill 1-click test fill
+  if (quickKey1) {
+    quickKey1.addEventListener("click", () => {
+      inputEl.value = quickKey1.textContent.trim();
+      validateKey(inputEl.value);
+    });
+  }
+  if (quickKey2) {
+    quickKey2.addEventListener("click", () => {
+      inputEl.value = quickKey2.textContent.trim();
+      validateKey(inputEl.value);
+    });
+  }
+
+  // Header lock button toggle
+  if (lockBtn) {
+    lockBtn.addEventListener("click", () => {
+      const currentlyUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true";
+      if (currentlyUnlocked) {
+        // Toggle lock gate back open
+        gateEl.classList.remove("hidden");
+        gateEl.style.opacity = "1";
+        inputEl.value = localStorage.getItem("recon_active_key") || "FDE-PILOT";
+        inputEl.focus();
+      } else {
+        gateEl.classList.remove("hidden");
+        gateEl.style.opacity = "1";
+        inputEl.focus();
+      }
+    });
   }
 }

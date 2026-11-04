@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=8.4">
-  <link rel="stylesheet" href="apple_developer_theme.css?v=8.4">
+  <link rel="stylesheet" href="style.css?v=8.6">
+  <link rel="stylesheet" href="apple_developer_theme.css?v=8.6">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -52,6 +52,9 @@
         </button>
         <button id="btn-guide" class="btn btn-secondary btn-sm" title="Interactive Workflow Guide & Tour [G]">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-primary-base);"><circle cx="8" cy="8" r="6"/><polygon points="8,4.5 9.5,8 8,11.5 6.5,8" fill="currentColor"/></svg> <strong>Guide</strong>
+        </button>
+        <button id="btn-lock-toggle" class="btn btn-ghost btn-sm" title="Private Pilot Access (Click to lock studio / view keys)">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-action);"><rect x="3" y="7" width="10" height="8" rx="1.5"/><path d="M5 7V4a3 3 0 0 1 6 0v3"/></svg> <span id="lock-status-text">PILOT KEY</span>
         </button>
         <button id="btn-theme-toggle" class="btn btn-ghost btn-sm" title="Toggle Theme (Light / Dark)">
           <span id="theme-toggle-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 1 0 12V2z" fill="currentColor"/></svg></span> <span id="theme-toggle-text">Theme</span>
@@ -596,13 +599,13 @@
                 </div>
 
                 <!-- Connector Line -->
-                <div class="flow-line in apple-flow-line-in"></div>
+                <div class="apple-flow-line-in"></div>
 
                 <!-- Central Monolithic Chip -->
                 <div class="apple-chip-monolith">
                   <div class="chip-inner">
                     <span class="chip-title">ISOLATED RUNTIME</span>
-                    <span class="chip-meta">Air-Gapped Sandbox · 0 Network I/O</span>
+                    <span class="chip-meta">Air-Gapped Sandbox &middot; 0 Network I/O</span>
                   </div>
                 </div>
 
@@ -622,7 +625,7 @@
                   <div class="flow-step output quarantine" id="btn-inspect-quarantine" title="Click to inspect quarantine audit breakdown">
                     <span class="flow-dot red"></span>
                     <span class="flow-value" id="apple-flow-quarantine">158</span>
-                    <span class="flow-label">Quarantined <span class="chevron">›</span></span>
+                    <span class="flow-label">Quarantined <span class="chevron">&rsaquo;</span></span>
                   </div>
                 </div>
               </div>
@@ -790,44 +793,69 @@ div>
         <!-- ================================================================
              Screen G: Readiness Dossier & Artifact Export (07 DOSSIER)
              ================================================================ -->
-        <section id="screen-dossier" class="recon-screen hidden">
+        <section id="screen-dossier" class="recon-screen hidden apple-stage07">
           <!-- Full canvas overlay for celebratory particle burst -->
           <canvas id="recon-confetti-canvas" class="confetti-canvas hidden"></canvas>
 
-          <div class="section-header">
-            <h2 class="section-title">07 Readiness Dossier &amp; Certified Artifacts</h2>
-            <p class="section-desc">Download complete integration deliverables, audit report, and quarantine ledger.</p>
+          <!-- Apple Hero Text -->
+          <div class="apple-hero-text">
+            <p class="apple-eyebrow">STAGE 07 // CERTIFIED READINESS &amp; DELIVERABLES</p>
+            <h2 class="apple-headline">Certified ready. Sealed by proof.</h2>
+            <p class="apple-subhead">
+              Every schema mapping, AST adapter, and zero-loss quarantine split is compiled into production deliverables. 
+              Cryptographically signed with 100% mathematical conservation.
+            </p>
           </div>
 
-          <!-- Readiness Certification Banner & Holographic Wax Seal -->
-          <div class="radar-status-card ready" id="dossier-status-banner">
-            <div style="display: flex; align-items: center; gap: 14px;">
-              <div class="holographic-seal" id="dossier-holographic-seal" title="Certified Production Seal">
-                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" class="seal-svg" aria-label="Certified Seal">
-                  <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="3" stroke-dasharray="4 2" class="seal-ring-outer"/>
-                  <circle cx="50" cy="50" r="36" stroke="currentColor" stroke-width="2.2" class="seal-ring-inner"/>
-                  <path d="M32 50 L44 62 L68 38" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="seal-check"/>
-                </svg>
-              </div>
-              <div>
-                <div style="font-weight: 700; font-size: 15px; font-family: var(--font-mono);" id="dossier-state-heading">READINESS: PASS</div>
-                <div style="font-size: 12px; margin-top: 4px;" id="dossier-rationale-text">All required fields mapped and contract validated.</div>
+          <!-- Central Monolithic Certification Card -->
+          <div class="apple-schematic-card" style="margin-bottom: 32px;">
+            <div class="radar-status-card ready" id="dossier-status-banner" style="border: none; background: transparent; padding: 0; box-shadow: none;">
+              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 18px;">
+                  <div class="holographic-seal" id="dossier-holographic-seal" title="Certified Production Seal">
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" class="seal-svg" aria-label="Certified Seal">
+                      <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="3" stroke-dasharray="4 2" class="seal-ring-outer"/>
+                      <circle cx="50" cy="50" r="36" stroke="currentColor" stroke-width="2.2" class="seal-ring-inner"/>
+                      <path d="M32 50 L44 62 L68 38" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" class="seal-check"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style="font-weight: 700; font-size: 20px; font-family: var(--font-display); letter-spacing: -0.02em;" id="dossier-state-heading">READINESS: PASS</div>
+                    <div style="font-size: 13px; margin-top: 4px; color: var(--apple-text-secondary);" id="dossier-rationale-text">All required fields mapped and contract validated with 100% parity.</div>
+                  </div>
+                </div>
+                <span class="badge badge-emerald holographic-pill" id="dossier-state-badge" style="font-size: 12px; padding: 6px 14px;">CERTIFIED READY</span>
               </div>
             </div>
-            <span class="badge badge-emerald holographic-pill" id="dossier-state-badge">CERTIFIED READY</span>
+
+            <!-- 3 Monolithic Stats Callout Grid -->
+            <div class="apple-stats-grid" style="border-top: 1px solid var(--apple-hairline); margin-top: 28px; padding-top: 28px;">
+              <div class="stat-card">
+                <span class="stat-big" id="dossier-stat-parity" style="color: var(--apple-accent-success-text);">100%</span>
+                <span class="stat-desc">Conservation parity. Zero silent drops or unlogged records.</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-big" id="dossier-stat-artifacts">5</span>
+                <span class="stat-desc">Compiled production-ready integration deliverables.</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-big" id="dossier-stat-airgap">0 KB/s</span>
+                <span class="stat-desc">Air-gapped execution. Zero external cloud dependencies.</span>
+              </div>
+            </div>
           </div>
 
-          <!-- Certified Artifacts Grid -->
+          <!-- Certified Artifacts Grid (Monolithic Apple Pods) -->
           <div class="dossier-card-grid">
             <!-- 1. Adapter -->
             <div class="artifact-card">
               <div>
                 <div class="artifact-title">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><polyline points="5 4 1 8 5 12"/><polyline points="11 4 15 8 11 12"/><line x1="10" y1="2" x2="6" y2="14"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-action);"><polyline points="5 4 1 8 5 12"/><polyline points="11 4 15 8 11 12"/><line x1="10" y1="2" x2="6" y2="14"/></svg>
                   <span>Generated Python Adapter</span>
                 </div>
-                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
-                  Compiled AST adapter with validated regex and type casts ready for pipeline execution.
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
+                  Compiled AST adapter with validated regex patterns and deterministic type casts ready for pipeline deployment.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-adapter-name">adapter.py</div>
               </div>
@@ -838,11 +866,11 @@ div>
             <div class="artifact-card">
               <div>
                 <div class="artifact-title">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M3 2h7l4 4v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-action);"><path d="M3 2h7l4 4v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4"/></svg>
                   <span>Readiness Dossier Report</span>
                 </div>
-                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
-                  Executive summary, schema diff, mapping evidence, and complete risk log.
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
+                  Executive summary, schema diff, field mapping evidence, and complete risk log for security audits.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;">readiness_report.md / .json</div>
               </div>
@@ -856,11 +884,11 @@ div>
             <div class="artifact-card">
               <div>
                 <div class="artifact-title">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-emerald-base);"><circle cx="8" cy="8" r="6"/><polyline points="5 8 7 10 11 6"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-success);"><circle cx="8" cy="8" r="6"/><polyline points="5 8 7 10 11 6"/></svg>
                   <span>Transformed Valid Output</span>
                 </div>
-                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
-                  Transformed records conforming strictly to target schema contract.
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
+                  Transformed records conforming strictly to target schema specifications with verified type integrity.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-valid-count">0 valid records</div>
               </div>
@@ -871,11 +899,11 @@ div>
             <div class="artifact-card">
               <div>
                 <div class="artifact-title">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--recon-amber-base);"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><circle cx="8" cy="12" r="0.75" fill="currentColor"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-warning);"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><circle cx="8" cy="12" r="0.75" fill="currentColor"/></svg>
                   <span>Quarantine Diagnostic Log</span>
                 </div>
-                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
-                  Quarantined records with attached schema violation error codes.
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
+                  Quarantined records with attached schema violation error codes, payload snapshots, and failure rationales.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-quarantine-count">0 quarantined records</div>
               </div>
@@ -886,11 +914,11 @@ div>
             <div class="artifact-card">
               <div>
                 <div class="artifact-title">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><line x1="3" y1="4" x2="13" y2="4"/><circle cx="6" cy="4" r="1.5" fill="currentColor"/><line x1="3" y1="8" x2="13" y2="8"/><circle cx="10" cy="8" r="1.5" fill="currentColor"/><line x1="3" y1="12" x2="13" y2="12"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-action);"><line x1="3" y1="4" x2="13" y2="4"/><circle cx="6" cy="4" r="1.5" fill="currentColor"/><line x1="3" y1="8" x2="13" y2="8"/><circle cx="10" cy="8" r="1.5" fill="currentColor"/><line x1="3" y1="12" x2="13" y2="12"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
                   <span>Mapping Specification</span>
                 </div>
-                <p class="text-muted" style="font-size: 11px; margin-top: 6px;">
-                  Versioned JSON mapping specification with contract fingerprint for reuse in CI/CD.
+                <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
+                  Versioned JSON mapping specification with contract fingerprint for automated execution in CI/CD pipelines.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;">recon_mapping_spec.json</div>
               </div>
@@ -898,17 +926,17 @@ div>
             </div>
           </div>
 
-          <!-- Session Termination -->
-          <div class="recon-card" style="border-color: var(--recon-rose-border);">
-            <div class="recon-card-header">
-              <span style="font-weight: 600; color: var(--recon-rose-text);">Session Termination &amp; Memory Purge</span>
+          <!-- Session Termination & Memory Purge -->
+          <div class="recon-card" style="border-color: var(--apple-hairline); margin-top: 24px;">
+            <div class="recon-card-header" style="background: transparent;">
+              <span style="font-weight: 600; font-size: 12px; letter-spacing: 0.04em; color: var(--apple-text-secondary); text-transform: uppercase;">SESSION HYGIENE &amp; MEMORY PURGE</span>
             </div>
-            <div class="recon-card-body">
-              <p class="text-muted" style="font-size: 12px; margin-bottom: 14px;">
-                Purges in-memory session records, deletes temporary working directories, and resets workspace back to Screen A.
+            <div class="recon-card-body" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+              <p class="text-muted" style="font-size: 12px; max-width: 650px; margin: 0; line-height: 1.5;">
+                Purges in-memory session records, deletes temporary working sandboxes, and resets the studio back to Stage 01.
               </p>
-              <button class="btn btn-danger" id="btn-purge-session">
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V4"/></svg> Purge Session &amp; Memory
+              <button class="btn btn-secondary text-rose" id="btn-purge-session" style="border-color: rgba(255, 59, 48, 0.3);">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px;"><path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V4"/></svg> Purge In-Memory Session
               </button>
             </div>
           </div>
@@ -1346,6 +1374,62 @@ div>
       </div>
     </div>
   </div>
-  <script src="app.js?v=8.0"></script>
+  <script src="app.js?v=8.6"></script>
+
+    <!-- ====================================================================
+         Private Pilot Verification Gate (Demo Protection Overlay)
+         ==================================================================== -->
+    <div id="recon-access-gate" class="recon-access-gate hidden">
+      <div class="apple-access-card" id="apple-access-card">
+        <div class="apple-access-header">
+          <svg class="recon-brand-mark" width="46" height="28" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Recon Mark">
+            <rect class="circuit-node-pad" x="8" y="9" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <rect class="circuit-node-pad" x="8" y="47" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <rect class="circuit-node-pad" x="90" y="9" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <rect class="circuit-node-pad" x="90" y="47" width="22" height="16" rx="4" stroke-width="2.8" fill="none"/>
+            <path class="circuit-trace" d="M 30 17 H 38 C 45 17 44 36 49 36" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="circuit-trace" d="M 30 55 H 38 C 45 55 44 36 49 36" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="circuit-trace" d="M 71 36 C 76 36 75 17 82 17 H 90" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="circuit-trace" d="M 71 36 C 76 36 75 55 82 55 H 90" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect class="circuit-hub" x="49" y="24" width="22" height="24" rx="5"/>
+            <path class="circuit-hub-check" d="M 54 36.5 L 58.5 41 L 66 31.5" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p class="apple-eyebrow" style="margin-top: 16px; margin-bottom: 6px;">RESTRICTED PILOT EVALUATION</p>
+          <h2 class="apple-access-title">Forward Deployed Engineering Access</h2>
+          <p class="apple-access-desc">
+            Recon is in private evaluation for Forward Deployed Engineers and Integration Architects. Enter your access key to enter the studio.
+          </p>
+        </div>
+
+        <form id="recon-access-form" class="apple-access-form" onsubmit="return false;">
+          <div class="apple-access-input-wrap">
+            <input
+              type="text"
+              id="recon-access-key-input"
+              class="apple-access-input"
+              placeholder="ENTER ACCESS KEY (e.g. FDE-PILOT)"
+              autocomplete="off"
+              spellcheck="false"
+              autocapitalize="characters"
+            />
+            <div id="access-error-msg" class="apple-access-error hidden">Invalid authorization key. Contact Swami for evaluation access.</div>
+          </div>
+          <button type="submit" id="btn-submit-access" class="btn btn-primary" style="width: 100%; height: 42px; font-size: 13px; font-weight: 600; border-radius: 980px;">
+            Unlock Studio
+          </button>
+        </form>
+
+        <div class="apple-access-footer">
+          <div class="apple-access-badges">
+            <span class="badge badge-indigo">AIR-GAPPED SANDBOX</span>
+            <span class="badge badge-muted">ZERO CLOUD EGRESS</span>
+          </div>
+          <p class="apple-access-hint">
+            Demo evaluation keys: <code class="apple-key-pill" id="btn-quick-key-1">FDE-PILOT</code> &middot; <code class="apple-key-pill" id="btn-quick-key-2">RECON-2026</code>
+          </p>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>

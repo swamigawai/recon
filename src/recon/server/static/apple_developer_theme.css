@@ -1075,3 +1075,458 @@ footer, .app-footer, .hud-footer, .studio-footer, .recon-footer {
   color: var(--apple-text-meta) !important;
   transition: background-color var(--transition), border-color var(--transition);
 }
+
+
+/* ==========================================================================
+   STAGE 06: SCHEMATIC FLOW ALIGNMENT HARDENING (APPLE-GRADE MINIMALISM)
+   Strict Flow Geometry: Zero Collisions, Zero Absolute Overlaps
+   ========================================================================== */
+.apple-schematic-card {
+  background-color: var(--apple-surface-primary, #161617) !important;
+  border-radius: var(--radius-card, 22px) !important;
+  padding: 36px 40px !important;
+  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  box-shadow: var(--apple-card-shadow, 0 16px 40px rgba(0, 0, 0, 0.6)) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.schematic-flow {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  gap: 0 !important;
+  padding-bottom: 40px !important;
+  border-bottom: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+.apple-flow-inflow,
+.schematic-flow .flow-step:not(.output) {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  flex: 0 0 auto !important;
+  min-width: 110px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  box-sizing: border-box !important;
+}
+
+.apple-flow-inflow .flow-label,
+.schematic-flow .flow-step:not(.output) .flow-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--apple-text-meta, #86868B) !important;
+  text-transform: uppercase !important;
+  line-height: 1 !important;
+  margin-bottom: 4px !important;
+}
+
+.apple-flow-inflow .flow-value,
+.schematic-flow .flow-step:not(.output) .flow-value {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+  margin: 0 0 2px 0 !important;
+  font-family: var(--font-mono, monospace) !important;
+  line-height: 1.15 !important;
+}
+
+.apple-flow-inflow .flow-sub,
+.schematic-flow .flow-step:not(.output) .flow-sub {
+  font-size: 12px !important;
+  color: var(--apple-text-secondary, #86868B) !important;
+  line-height: 1 !important;
+}
+
+/* Hairline Conduit Connector (Inflow) */
+.apple-flow-line-in,
+.schematic-flow .flow-line.in {
+  position: relative !important;
+  display: block !important;
+  flex: 1 1 40px !important;
+  height: 1px !important;
+  min-width: 24px !important;
+  background-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+  margin: 0 20px !important;
+  padding: 0 !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* Isolated Runtime Monolithic Chip */
+.apple-chip-monolith,
+.apple-schematic-card .flow-chip {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  flex: 0 0 auto !important;
+  min-width: 220px !important;
+  padding: 16px 28px !important;
+  background: var(--apple-chip-gradient, linear-gradient(180deg, #242426 0%, #1A1A1B 100%)) !important;
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--apple-chip-shadow, 0 8px 24px rgba(0, 0, 0, 0.5)) !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  float: none !important;
+  cursor: default !important;
+  box-sizing: border-box !important;
+  z-index: 2 !important;
+}
+
+.apple-chip-monolith .chip-title,
+.apple-schematic-card .chip-title {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+}
+
+.apple-chip-monolith .chip-meta,
+.apple-schematic-card .chip-meta {
+  display: block !important;
+  font-size: 11px !important;
+  color: var(--apple-text-secondary, #86868B) !important;
+  margin-top: 4px !important;
+  font-family: var(--font-mono, monospace) !important;
+  line-height: 1.2 !important;
+}
+
+/* Bifurcation Split Lines */
+.apple-split-lines,
+.schematic-flow .flow-split-lines {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  width: 44px !important;
+  margin: 0 16px !important;
+  flex: 0 0 auto !important;
+  transform: none !important;
+}
+
+.apple-split-lines .split-line,
+.schematic-flow .split-line {
+  height: 1px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.apple-split-lines .split-line.valid,
+.schematic-flow .split-line.valid {
+  background: linear-gradient(90deg, var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)), var(--apple-accent-success, #34C759)) !important;
+}
+
+.apple-split-lines .split-line.quarantine,
+.schematic-flow .split-line.quarantine {
+  background: linear-gradient(90deg, var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)), var(--apple-accent-warning, #FF453A)) !important;
+}
+
+/* Outputs Column */
+.apple-flow-outputs,
+.schematic-flow .flow-outputs {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  flex: 0 0 auto !important;
+  min-width: 170px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.schematic-flow .flow-step.output {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background-color: var(--apple-surface-secondary, #1F1F21) !important;
+  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  transition: all var(--transition, 0.15s ease) !important;
+}
+
+.schematic-flow .flow-step.output:hover {
+  background-color: var(--apple-surface-hover, #272729) !important;
+  border-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+}
+
+.schematic-flow .flow-step.output .flow-value {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  font-family: var(--font-mono, monospace) !important;
+}
+
+.schematic-flow .flow-step.output .flow-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+}
+
+.schematic-flow .flow-step.output.valid .flow-value {
+  color: var(--apple-accent-success-text, #34C759) !important;
+}
+
+.schematic-flow .flow-step.output.quarantine .flow-value {
+  color: var(--apple-accent-warning-text, #FF453A) !important;
+}
+
+/* Responsive Scaling for Narrow Windows */
+@media (max-width: 860px) {
+  .schematic-flow {
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    justify-content: center !important;
+  }
+  .apple-flow-line-in,
+  .schematic-flow .flow-line.in,
+  .apple-split-lines,
+  .schematic-flow .flow-split-lines {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   PRIVATE PILOT ACCESS GATE (ACCESS CONTROL & DEMO PROTECTION)
+   ========================================================================== */
+.recon-access-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  padding: 20px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.recon-access-gate.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.apple-access-card {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--apple-surface-primary, #161617);
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.16));
+  border-radius: 24px;
+  padding: 40px 36px 32px 36px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: gateCardPop 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gateCardPop {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.apple-access-card.shake {
+  animation: gateShake 0.4s ease-in-out;
+}
+
+@keyframes gateShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.apple-access-title {
+  font-family: var(--font-display, -apple-system, sans-serif);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--apple-text-primary, #F5F5F7);
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.apple-access-desc {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--apple-text-secondary, #86868B);
+  margin-bottom: 24px;
+}
+
+.apple-access-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.apple-access-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.apple-access-input {
+  width: 100%;
+  height: 48px;
+  text-align: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  background-color: var(--recon-bg-subtle, #1C1C1E) !important;
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+  border-radius: 12px !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+  text-transform: uppercase;
+  transition: all var(--transition, 0.15s ease);
+  box-sizing: border-box;
+}
+
+.apple-access-input:focus {
+  outline: none;
+  border-color: var(--apple-accent-action, #0071E3) !important;
+  box-shadow: 0 0 0 3px var(--apple-accent-action-subtle, rgba(0, 113, 227, 0.12)) !important;
+}
+
+.apple-access-error {
+  font-size: 11px;
+  color: var(--apple-accent-warning-text, #FF453A);
+  font-weight: 500;
+  text-align: center;
+}
+
+.apple-access-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.apple-access-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.apple-access-hint {
+  font-size: 11px;
+  color: var(--apple-text-meta, #86868B);
+}
+
+.apple-key-pill {
+  background-color: var(--apple-surface-secondary, #1F1F21);
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.16));
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--apple-accent-action-text, #2997FF);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition, 0.15s ease);
+}
+
+.apple-key-pill:hover {
+  background-color: var(--apple-surface-hover, #272729);
+  border-color: var(--apple-accent-action, #2997FF);
+}
+
+/* Light mode for Access Gate */
+[data-theme="light"] .recon-access-gate {
+  background-color: rgba(245, 245, 247, 0.85);
+}
+
+[data-theme="light"] .apple-access-card {
+  background-color: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="light"] .apple-access-input {
+  background-color: #F5F5F7 !important;
+  border-color: rgba(0, 0, 0, 0.14) !important;
+  color: #1D1D1F !important;
+}
+
+/* ==========================================================================
+   STAGE 07 POLISH: APPLE-GRADE MINIMALISM FOR DELIVERABLES & CERTIFICATION
+   ========================================================================== */
+.apple-stage07 {
+  animation: reconScreenSlide 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.apple-stage07 .artifact-card {
+  background-color: var(--apple-surface-primary, #161617) !important;
+  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  border-radius: var(--radius-card, 20px) !important;
+  padding: 24px !important;
+  box-shadow: var(--apple-card-shadow, 0 4px 20px rgba(0, 0, 0, 0.04)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  transition: all var(--transition, 0.15s ease) !important;
+}
+
+.apple-stage07 .artifact-card:hover {
+  border-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+.apple-stage07 .artifact-title {
+  font-family: var(--font-display, sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="light"] .apple-stage07 .artifact-card {
+  background-color: #FFFFFF !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .apple-stage07 .artifact-card:hover {
+  border-color: rgba(0, 0, 0, 0.18) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
