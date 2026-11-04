@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=8.3">
-  <link rel="stylesheet" href="apple_developer_theme.css?v=8.3">
+  <link rel="stylesheet" href="style.css?v=8.4">
+  <link rel="stylesheet" href="apple_developer_theme.css?v=8.4">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -589,17 +589,17 @@
               <!-- Schematic Diagram -->
               <div class="schematic-flow">
                 <!-- Input -->
-                <div class="flow-step">
+                <div class="flow-step apple-flow-inflow">
                   <span class="flow-label">INPUT</span>
                   <span class="flow-value" id="apple-flow-input">10,000</span>
                   <span class="flow-sub">Raw Records</span>
                 </div>
 
                 <!-- Connector Line -->
-                <div class="flow-line in"></div>
+                <div class="flow-line in apple-flow-line-in"></div>
 
                 <!-- Central Monolithic Chip -->
-                <div class="flow-chip">
+                <div class="apple-chip-monolith">
                   <div class="chip-inner">
                     <span class="chip-title">ISOLATED RUNTIME</span>
                     <span class="chip-meta">Air-Gapped Sandbox · 0 Network I/O</span>
@@ -607,13 +607,13 @@
                 </div>
 
                 <!-- Connector Split Line -->
-                <div class="flow-split-lines">
+                <div class="flow-split-lines apple-split-lines">
                   <div class="split-line valid"></div>
                   <div class="split-line quarantine"></div>
                 </div>
 
                 <!-- Outputs -->
-                <div class="flow-outputs">
+                <div class="flow-outputs apple-flow-outputs">
                   <div class="flow-step output valid">
                     <span class="flow-dot green"></span>
                     <span class="flow-value" id="apple-flow-valid">9,842</span>

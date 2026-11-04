@@ -439,7 +439,7 @@ h1, h2, .apple-headline, .section-title {
 }
 
 /* Hardware Chip Die */
-.chip-hardware, .flow-chip, .hardware-die {
+.chip-hardware, .apple-chip-monolith, .hardware-die {
   background: var(--apple-chip-gradient) !important;
   border: 1px solid var(--apple-hairline-focus) !important;
   border-radius: var(--radius-chip);
@@ -480,47 +480,180 @@ h1, h2, .apple-headline, .section-title {
 }
 
 .schematic-flow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding-bottom: 48px !important;
   border-bottom: 1px solid var(--apple-hairline) !important;
+  position: relative !important;
+  box-sizing: border-box !important;
 }
 
-.flow-value {
+.apple-flow-inflow,
+.schematic-flow .flow-step:not(.output) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  min-width: 110px !important;
+  flex-shrink: 0 !important;
+  position: static !important;
+}
+
+.apple-flow-inflow .flow-label,
+.schematic-flow .flow-step:not(.output) .flow-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--apple-text-meta) !important;
+  text-transform: uppercase !important;
+}
+
+.apple-flow-inflow .flow-value,
+.schematic-flow .flow-step:not(.output) .flow-value {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
   color: var(--apple-text-primary) !important;
+  margin: 4px 0 2px 0 !important;
+  font-family: var(--font-mono) !important;
+  line-height: 1.15 !important;
 }
 
-.flow-label, .flow-sub {
+.apple-flow-inflow .flow-sub,
+.schematic-flow .flow-step:not(.output) .flow-sub {
+  font-size: 12px !important;
   color: var(--apple-text-secondary) !important;
 }
 
-.flow-line.in, .split-line {
+.apple-flow-line-in,
+.schematic-flow .flow-line.in {
+  flex: 1 1 40px !important;
+  height: 1px !important;
   background-color: var(--apple-hairline-focus) !important;
+  margin: 0 24px !important;
+  min-width: 32px !important;
+  display: block !important;
+  position: static !important;
 }
 
-.chip-title {
+.apple-chip-monolith,
+.apple-schematic-card .flow-chip {
+  position: relative !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  background: var(--apple-chip-gradient) !important;
+  border: 1px solid var(--apple-hairline-focus) !important;
+  border-radius: 14px !important;
+  padding: 16px 28px !important;
+  box-shadow: var(--apple-chip-shadow) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+  min-width: 220px !important;
+  cursor: default !important;
+  transition: all var(--transition) !important;
+}
+
+.apple-chip-monolith .chip-title,
+.apple-schematic-card .chip-title {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
   color: var(--apple-text-primary) !important;
+  text-transform: uppercase !important;
 }
 
-.chip-meta {
+.apple-chip-monolith .chip-meta,
+.apple-schematic-card .chip-meta {
+  display: block !important;
+  font-size: 11px !important;
   color: var(--apple-text-secondary) !important;
+  margin-top: 4px !important;
+  font-family: var(--font-mono) !important;
 }
 
-.flow-step.output {
+.apple-split-lines,
+.schematic-flow .flow-split-lines {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  width: 44px !important;
+  margin: 0 16px !important;
+  flex-shrink: 0 !important;
+  position: static !important;
+}
+
+.apple-split-lines .split-line,
+.schematic-flow .split-line {
+  height: 1px !important;
+  width: 100% !important;
+}
+
+.apple-split-lines .split-line.valid,
+.schematic-flow .split-line.valid {
+  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-success)) !important;
+}
+
+.apple-split-lines .split-line.quarantine,
+.schematic-flow .split-line.quarantine {
+  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-warning)) !important;
+}
+
+.apple-flow-outputs,
+.schematic-flow .flow-outputs {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+  min-width: 170px !important;
+  position: static !important;
+}
+
+.schematic-flow .flow-step.output {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
   background-color: var(--recon-bg-subtle) !important;
   border: 1px solid var(--apple-hairline) !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  transition: all var(--transition) !important;
 }
 
-.flow-step.output:hover {
+.schematic-flow .flow-step.output:hover {
   background-color: var(--apple-surface-hover) !important;
+  border-color: var(--apple-hairline-focus) !important;
 }
 
-.flow-step.output .flow-label {
+.schematic-flow .flow-step.output .flow-value {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  font-family: var(--font-mono) !important;
+}
+
+.schematic-flow .flow-step.output .flow-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
   color: var(--apple-text-primary) !important;
 }
 
-.flow-step.output.valid .flow-value {
+.schematic-flow .flow-step.output.valid .flow-value {
   color: var(--apple-accent-success-text) !important;
 }
 
-.flow-step.output.quarantine .flow-value {
+.schematic-flow .flow-step.output.quarantine .flow-value {
   color: var(--apple-accent-warning-text) !important;
 }
 

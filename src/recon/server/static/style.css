@@ -4653,132 +4653,180 @@ button:active:not(:disabled),
   transition: all var(--transition);
 }
 
-/* Schematic Layout */
+/* Schematic Layout — Precision Horizontal Pipeline Conduit */
 .schematic-flow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 48px;
-  border-bottom: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08));
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding-bottom: 48px !important;
+  border-bottom: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  position: relative !important;
+  box-sizing: border-box !important;
 }
 
-.flow-step {
-  display: flex;
-  flex-direction: column;
+/* Stage 06 Input Column (Anchored Left) */
+.apple-flow-inflow,
+.schematic-flow .flow-step:not(.output) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  min-width: 110px !important;
+  flex-shrink: 0 !important;
+  position: static !important;
 }
 
-.flow-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--apple-text-secondary, #86868B);
+.apple-flow-inflow .flow-label,
+.schematic-flow .flow-step:not(.output) .flow-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--apple-text-secondary, #86868B) !important;
+  text-transform: uppercase !important;
 }
 
-.flow-value {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--apple-text-primary, #F5F5F7);
-  margin: 4px 0 2px 0;
-  font-family: var(--font-mono);
+.apple-flow-inflow .flow-value,
+.schematic-flow .flow-step:not(.output) .flow-value {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+  margin: 4px 0 2px 0 !important;
+  font-family: var(--font-mono) !important;
+  line-height: 1.15 !important;
 }
 
-.flow-sub {
-  font-size: 12px;
-  color: var(--apple-text-secondary, #86868B);
+.apple-flow-inflow .flow-sub,
+.schematic-flow .flow-step:not(.output) .flow-sub {
+  font-size: 12px !important;
+  color: var(--apple-text-secondary, #86868B) !important;
 }
 
-/* Connecting Hairlines */
-.flow-line.in {
-  flex: 1;
-  height: 1px;
-  background-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.15));
-  margin: 0 24px;
+/* Connecting Inflow Hairline */
+.apple-flow-line-in,
+.schematic-flow .flow-line.in {
+  flex: 1 1 40px !important;
+  height: 1px !important;
+  background-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.15)) !important;
+  margin: 0 24px !important;
+  min-width: 32px !important;
+  display: block !important;
+  position: static !important;
 }
 
-/* Monolithic Apple Chip */
-.flow-chip {
-  background: var(--apple-chip-gradient, linear-gradient(180deg, #242426 0%, #1A1A1B 100%));
-  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.14));
-  border-radius: 14px;
-  padding: 16px 24px;
-  box-shadow: var(--apple-chip-shadow, 0 8px 24px rgba(0, 0, 0, 0.5));
-  transition: all var(--transition);
+/* Monolithic Apple Chip Die (Pure Flow Element, Not Absolute) */
+.apple-chip-monolith,
+.apple-schematic-card .flow-chip {
+  position: relative !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  background: var(--apple-chip-gradient, linear-gradient(180deg, #242426 0%, #1A1A1B 100%)) !important;
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.14)) !important;
+  border-radius: 14px !important;
+  padding: 16px 28px !important;
+  box-shadow: var(--apple-chip-shadow, 0 8px 24px rgba(0, 0, 0, 0.5)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+  min-width: 220px !important;
+  cursor: default !important;
+  transition: all var(--transition) !important;
 }
 
-.chip-title {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--apple-text-primary, #F5F5F7);
+.apple-chip-monolith .chip-title,
+.apple-schematic-card .chip-title {
+  display: block !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
+  text-transform: uppercase !important;
 }
 
-.chip-meta {
-  display: block;
-  font-size: 11px;
-  color: var(--apple-text-secondary, #86868B);
-  margin-top: 4px;
+.apple-chip-monolith .chip-meta,
+.apple-schematic-card .chip-meta {
+  display: block !important;
+  font-size: 11px !important;
+  color: var(--apple-text-secondary, #86868B) !important;
+  margin-top: 4px !important;
+  font-family: var(--font-mono) !important;
 }
 
 /* Connector Split Line */
-.flow-split-lines {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 24px;
-  width: 48px;
-  margin: 0 16px;
+.apple-split-lines,
+.schematic-flow .flow-split-lines {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  width: 44px !important;
+  margin: 0 16px !important;
+  flex-shrink: 0 !important;
+  position: static !important;
 }
 
-.split-line {
-  height: 1px;
-  background-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.15));
-  width: 100%;
+.apple-split-lines .split-line,
+.schematic-flow .split-line {
+  height: 1px !important;
+  width: 100% !important;
 }
 
-.split-line.valid {
-  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-success));
+.apple-split-lines .split-line.valid,
+.schematic-flow .split-line.valid {
+  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-success)) !important;
 }
 
-.split-line.quarantine {
-  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-warning));
+.apple-split-lines .split-line.quarantine,
+.schematic-flow .split-line.quarantine {
+  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-warning)) !important;
 }
 
 /* Bifurcation Outputs */
-.flow-outputs {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.apple-flow-outputs,
+.schematic-flow .flow-outputs {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+  min-width: 170px !important;
+  position: static !important;
 }
 
-.flow-step.output {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  background-color: var(--apple-surface-secondary, #1F1F21);
-  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08));
-  border-radius: 10px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all var(--transition);
+.schematic-flow .flow-step.output {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background-color: var(--apple-surface-secondary, #1F1F21) !important;
+  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  transition: all var(--transition) !important;
 }
 
-.flow-step.output:hover {
-  background-color: var(--apple-surface-hover, #272729);
-  border-color: var(--apple-hairline-focus);
+.schematic-flow .flow-step.output:hover {
+  background-color: var(--apple-surface-hover, #272729) !important;
+  border-color: var(--apple-hairline-focus) !important;
 }
 
-.flow-step.output .flow-value {
-  font-size: 16px;
-  margin: 0;
+.schematic-flow .flow-step.output .flow-value {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  font-family: var(--font-mono) !important;
 }
 
-.flow-step.output .flow-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--apple-text-primary, #F5F5F7);
+.schematic-flow .flow-step.output .flow-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--apple-text-primary, #F5F5F7) !important;
 }
 
 .flow-dot {
