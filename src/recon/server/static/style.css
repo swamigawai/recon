@@ -4595,15 +4595,16 @@ button:active:not(:disabled),
 
 /* Apple Design Foundation */
 .apple-stage06 {
-  background-color: #000000;
-  color: #F5F5F7;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+  background-color: var(--apple-canvas, #000000);
+  color: var(--apple-text-primary, #F5F5F7);
+  font-family: var(--font-display);
   padding: 64px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   border-radius: 20px;
   margin-bottom: 24px;
+  transition: background-color var(--transition), color var(--transition);
 }
 
 /* Typography */
@@ -4617,7 +4618,7 @@ button:active:not(:disabled),
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: #86868B;
+  color: var(--apple-text-meta, #86868B);
   text-transform: uppercase;
   margin-bottom: 12px;
 }
@@ -4626,7 +4627,7 @@ button:active:not(:disabled),
   font-size: 44px;
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: #F5F5F7;
+  color: var(--apple-text-primary, #F5F5F7);
   line-height: 1.1;
   margin-bottom: 14px;
 }
@@ -4634,7 +4635,7 @@ button:active:not(:disabled),
 .apple-subhead {
   font-size: 17px;
   line-height: 1.45;
-  color: #86868B;
+  color: var(--apple-text-secondary, #86868B);
   font-weight: 400;
 }
 
@@ -4642,13 +4643,14 @@ button:active:not(:disabled),
 .apple-schematic-card {
   width: 100%;
   max-width: 960px;
-  background-color: #161617;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--apple-surface-primary, #161617);
+  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08));
   border-radius: 24px;
   padding: 48px 44px 36px 44px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--apple-card-shadow, 0 12px 36px rgba(0, 0, 0, 0.6));
+  transition: all var(--transition);
 }
 
 /* Schematic Layout */
@@ -4657,7 +4659,7 @@ button:active:not(:disabled),
   align-items: center;
   justify-content: space-between;
   padding-bottom: 48px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08));
 }
 
 .flow-step {
@@ -4669,38 +4671,39 @@ button:active:not(:disabled),
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: #86868B;
+  color: var(--apple-text-secondary, #86868B);
 }
 
 .flow-value {
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #F5F5F7;
+  color: var(--apple-text-primary, #F5F5F7);
   margin: 4px 0 2px 0;
-  font-family: -apple-system-monospaced, Menlo, monospace;
+  font-family: var(--font-mono);
 }
 
 .flow-sub {
   font-size: 12px;
-  color: #86868B;
+  color: var(--apple-text-secondary, #86868B);
 }
 
 /* Connecting Hairlines */
 .flow-line.in {
   flex: 1;
   height: 1px;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.15));
   margin: 0 24px;
 }
 
 /* Monolithic Apple Chip */
 .flow-chip {
-  background: linear-gradient(180deg, #242426 0%, #1A1A1B 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--apple-chip-gradient, linear-gradient(180deg, #242426 0%, #1A1A1B 100%));
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.14));
   border-radius: 14px;
   padding: 16px 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--apple-chip-shadow, 0 8px 24px rgba(0, 0, 0, 0.5));
+  transition: all var(--transition);
 }
 
 .chip-title {
@@ -4708,13 +4711,13 @@ button:active:not(:disabled),
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #F5F5F7;
+  color: var(--apple-text-primary, #F5F5F7);
 }
 
 .chip-meta {
   display: block;
   font-size: 11px;
-  color: #86868B;
+  color: var(--apple-text-secondary, #86868B);
   margin-top: 4px;
 }
 
@@ -4730,16 +4733,16 @@ button:active:not(:disabled),
 
 .split-line {
   height: 1px;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.15));
   width: 100%;
 }
 
 .split-line.valid {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), rgba(52, 199, 89, 0.5));
+  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-success));
 }
 
 .split-line.quarantine {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), rgba(255, 69, 58, 0.5));
+  background: linear-gradient(90deg, var(--apple-hairline-focus), var(--apple-accent-warning));
 }
 
 /* Bifurcation Outputs */
@@ -4754,16 +4757,17 @@ button:active:not(:disabled),
   flex-direction: row;
   align-items: center;
   gap: 12px;
-  background-color: #1F1F21;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--apple-surface-secondary, #1F1F21);
+  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08));
   border-radius: 10px;
   padding: 8px 16px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition);
 }
 
 .flow-step.output:hover {
-  background-color: #272729;
+  background-color: var(--apple-surface-hover, #272729);
+  border-color: var(--apple-hairline-focus);
 }
 
 .flow-step.output .flow-value {
@@ -4774,7 +4778,7 @@ button:active:not(:disabled),
 .flow-step.output .flow-label {
   font-size: 13px;
   font-weight: 500;
-  color: #F5F5F7;
+  color: var(--apple-text-primary, #F5F5F7);
 }
 
 .flow-dot {
@@ -4783,9 +4787,9 @@ button:active:not(:disabled),
   border-radius: 50%;
 }
 
-.flow-dot.green { background-color: #34C759; }
-.flow-dot.red { background-color: #FF453A; }
-.chevron { color: #86868B; margin-left: 4px; }
+.flow-dot.green { background-color: var(--apple-accent-success, #34C759); }
+.flow-dot.red { background-color: var(--apple-accent-warning, #FF453A); }
+.chevron { color: var(--apple-text-secondary, #86868B); margin-left: 4px; }
 
 /* 3 Apple Stats Callouts */
 .apple-stats-grid {
@@ -4804,23 +4808,23 @@ button:active:not(:disabled),
   font-size: 44px;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: #F5F5F7;
+  color: var(--apple-text-primary, #F5F5F7);
   line-height: 1;
   margin-bottom: 8px;
-  font-family: -apple-system-monospaced, Menlo, monospace;
+  font-family: var(--font-mono);
 }
 
 .stat-desc {
   font-size: 13px;
-  color: #86868B;
+  color: var(--apple-text-secondary, #86868B);
   line-height: 1.45;
 }
 
 /* Subtle Quarantine Drawer */
 .apple-quarantine-drawer {
   margin-top: 28px;
-  background-color: #1A1A1B;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--apple-surface-secondary, #1A1A1B);
+  border: 1px solid var(--apple-hairline-focus, rgba(255, 255, 255, 0.1));
   border-radius: 12px;
   padding: 20px;
   animation: fadeInApple 0.18s ease;
@@ -4836,7 +4840,7 @@ button:active:not(:disabled),
   justify-content: space-between;
   font-size: 11px;
   font-weight: 600;
-  color: #86868B;
+  color: var(--apple-text-secondary, #86868B);
   margin-bottom: 14px;
   letter-spacing: 0.05em;
 }
@@ -4844,7 +4848,7 @@ button:active:not(:disabled),
 .drawer-close {
   background: none;
   border: none;
-  color: #2997FF;
+  color: var(--apple-accent-action, #2997FF);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -4866,9 +4870,9 @@ button:active:not(:disabled),
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #E5E5EA;
+  color: var(--apple-text-primary, #E5E5EA);
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.05));
 }
 
 .q-name {
@@ -4877,8 +4881,8 @@ button:active:not(:disabled),
 }
 
 .q-count {
-  font-family: -apple-system-monospaced, Menlo, monospace;
-  color: #FF453A;
+  font-family: var(--font-mono);
+  color: var(--apple-accent-warning, #FF453A);
   font-weight: 600;
   font-size: 12px;
 }
