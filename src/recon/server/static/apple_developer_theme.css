@@ -1,0 +1,353 @@
+/* ==========================================================================
+    RECON — APPLE-GRADE MATTE MINIMALIST DESIGN SYSTEM
+   Standard: Apple Developer Showcase & Apple Silicon Keynote Architecture
+   Strict Rule: Theme Tokens & Layout Styling Only (Zero Structural Logic Alterations)
+   ========================================================================== */
+:root {
+  /* -------------------------------------------------------------------------
+     1. COLOR PALETTE (Strict Hex Tokens)
+     ------------------------------------------------------------------------- */
+  
+  /* Root Canvas */
+  --apple-canvas: #000000;                     /* Pure Matte Jet Black */
+  /* Primary Surfaces */
+  --apple-surface-primary: #161617;            /* Deep Titanium Slate (Monolithic Cards) */
+  /* Secondary Surfaces */
+  --apple-surface-secondary: #1F1F21;          /* Matte Charcoal Surface (Interactive Pods / Elevated Chips) */
+  --apple-surface-hover: #272729;              /* Hover State */
+  --apple-surface-active: #2E2E32;             /* Active Pressed State */
+  /* Hardware Chip Die Gradient */
+  --apple-chip-gradient: linear-gradient(180deg, #242426 0%, #1A1A1B 100%);
+  /* Hairline Borders & Traces */
+  --apple-hairline: rgba(255, 255, 255, 0.08); /* Subtle 1px boundary */
+  --apple-hairline-focus: rgba(255, 255, 255, 0.14); /* Active / Focus border */
+  /* Typography Colors */
+  --apple-text-primary: #F5F5F7;               /* Apple Off-White (100% Contrast) */
+  --apple-text-secondary: #86868B;             /* Muted Neutral Grey (Subheads & Body) */
+  --apple-text-meta: #64748B;                  /* Quiet Technical Slate (Eyebrows & Tags) */
+  --apple-text-disabled: #424245;              /* Disabled state */
+  /* Semantic Functional Accents (Hairlines & Status Dots Only) */
+  --apple-accent-success: #34C759;             /* Apple Emerald Green (Validated / Approved) */
+  --apple-accent-success-subtle: rgba(52, 199, 89, 0.12);
+  --apple-accent-warning: #FF453A;             /* Apple Crimson Red (Quarantine / Blocker) */
+  --apple-accent-warning-subtle: rgba(255, 69, 58, 0.12);
+  --apple-accent-action: #2997FF;              /* Cupertino Blue (Active links / Primary triggers) */
+  --apple-accent-action-subtle: rgba(41, 151, 255, 0.12);
+  /* -------------------------------------------------------------------------
+     2. TYPOGRAPHY & TEXTURE RULES
+     ------------------------------------------------------------------------- */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+  --font-mono: -apple-system-monospaced, "SF Mono", "Menlo", monospace;
+  /* Geometry & Physics */
+  --radius-card: 22px;                         /* 20px–24px Monolithic Card Radius */
+  --radius-chip: 12px;                         /* Hardware Dies / Pods */
+  --radius-pill: 8px;                          /* Micro-badges / Inputs */
+  --apple-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 120ms var(--apple-ease);
+
+  /* -------------------------------------------------------------------------
+     3. RECON ENGINE THEME MAP (Deep Apple Matte Invariant)
+     ------------------------------------------------------------------------- */
+  --recon-bg-void: var(--apple-canvas);
+  --recon-bg-canvas: var(--apple-canvas);
+  --recon-bg-root: var(--apple-canvas);
+  --recon-bg-card: var(--apple-surface-primary);
+  --recon-bg-surface: var(--apple-surface-primary);
+  --recon-bg-elevated: var(--apple-surface-secondary);
+  --recon-bg-subtle: var(--apple-surface-secondary);
+  --recon-bg-hover: var(--apple-surface-hover);
+  --recon-bg-active: var(--apple-surface-active);
+  --recon-bg-code: #0A0A0C;
+
+  --recon-border-subtle: var(--apple-hairline);
+  --recon-border-default: var(--apple-hairline);
+  --recon-border-strong: var(--apple-hairline-focus);
+  --recon-border-focus: var(--apple-accent-action);
+
+  --recon-text-primary: var(--apple-text-primary);
+  --recon-text-secondary: var(--apple-text-secondary);
+  --recon-text-muted: var(--apple-text-meta);
+  --recon-text-disabled: var(--apple-text-disabled);
+
+  --recon-primary-base: var(--apple-accent-action);
+  --recon-primary-hover: #0077ED;
+  --recon-emerald-base: var(--apple-accent-success);
+  --recon-rose-base: var(--apple-accent-warning);
+}
+
+/* Also apply to dark theme explicitly */
+[data-theme="dark"], [data-theme="light"], body {
+  --recon-bg-void: var(--apple-canvas);
+  --recon-bg-canvas: var(--apple-canvas);
+  --recon-bg-root: var(--apple-canvas);
+  --recon-bg-card: var(--apple-surface-primary);
+  --recon-bg-surface: var(--apple-surface-primary);
+  --recon-bg-elevated: var(--apple-surface-secondary);
+  --recon-bg-subtle: var(--apple-surface-secondary);
+  --recon-bg-hover: var(--apple-surface-hover);
+  --recon-bg-active: var(--apple-surface-active);
+  --recon-bg-code: #0A0A0C;
+
+  --recon-border-subtle: var(--apple-hairline);
+  --recon-border-default: var(--apple-hairline);
+  --recon-border-strong: var(--apple-hairline-focus);
+  --recon-border-focus: var(--apple-accent-action);
+
+  --recon-text-primary: var(--apple-text-primary);
+  --recon-text-secondary: var(--apple-text-secondary);
+  --recon-text-muted: var(--apple-text-meta);
+  --recon-text-disabled: var(--apple-text-disabled);
+}
+
+/* Base Document Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  background-color: var(--apple-canvas) !important;
+  color: var(--apple-text-primary);
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* Selection */
+::selection {
+  background-color: var(--apple-surface-hover);
+  color: var(--apple-text-primary);
+}
+/* ==========================================================================
+   GLOBAL HEADER & NAVIGATION (48px Compact Apple Bar)
+   ========================================================================== */
+header, .app-header, .studio-header, .hud-header, .recon-header {
+  height: 48px;
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--apple-hairline) !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand-title, .brand-name, .app-logo, .recon-brand-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  color: var(--apple-text-primary);
+}
+.session-crumb, .hud-session-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--apple-text-secondary);
+}
+/* Contract Chip Pair */
+.contract-pair-pill, .stream-bridge-pill, .contract-chip, .recon-capsule {
+  background-color: var(--apple-surface-secondary) !important;
+  border: 1px solid var(--apple-hairline) !important;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--apple-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* ==========================================================================
+   TYPOGRAPHIC HIERARCHY
+   ========================================================================== */
+.eyebrow, .apple-eyebrow, .panel-label, .card-caption {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--apple-text-meta);
+  margin-bottom: 8px;
+}
+h1, h2, .apple-headline {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--apple-text-primary);
+}
+.subhead, .apple-subhead {
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--apple-text-secondary);
+  max-width: 600px;
+}
+/* Massive Numerical Metrics (Apple Stat Callouts) */
+.metric-stat, .stat-big, .stat-number, .stat-huge {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--apple-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.metric-label, .stat-desc, .stat-label {
+  font-size: 13px;
+  color: var(--apple-text-secondary);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+/* ==========================================================================
+   SURFACES & CONTAINERS (Titanium Slate Cards)
+   ========================================================================== */
+.monolith-card, .apple-monolith-card, .studio-pane, .panel-card, .holo-card, .recon-card, .metric-card {
+  background-color: var(--apple-surface-primary) !important;
+  border: 1px solid var(--apple-hairline) !important;
+  border-radius: var(--radius-card);
+  padding: 36px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  transition: border-color var(--transition);
+}
+.monolith-card:hover, .recon-card:hover, .metric-card:hover {
+  border-color: var(--apple-hairline-focus) !important;
+}
+/* Hardware Chip Die */
+.chip-hardware, .flow-chip, .hardware-die {
+  background: var(--apple-chip-gradient);
+  border: 1px solid var(--apple-hairline-focus);
+  border-radius: var(--radius-chip);
+  padding: 16px 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+/* Secondary Interactive Pods */
+.interactive-pod, .destination-pod, .dock-port, .flow-step.output, .recon-drop-zone {
+  background-color: var(--apple-surface-secondary) !important;
+  border: 1px solid var(--apple-hairline) !important;
+  border-radius: 10px;
+  padding: 12px 18px;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.interactive-pod:hover, .destination-pod:hover, .dock-port:hover, .flow-step.output:hover, .recon-drop-zone:hover {
+  background-color: var(--apple-surface-hover) !important;
+  border-color: var(--apple-hairline-focus) !important;
+}
+/* ==========================================================================
+   FUNCTIONAL STATUS INDICATORS & TABLES
+   ========================================================================== */
+/* Status Dots */
+.status-dot, .flow-dot, .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot.success, .flow-dot.green, .dot.green {
+  background-color: var(--apple-accent-success);
+}
+.status-dot.warning, .status-dot.quarantine, .flow-dot.red, .dot.red {
+  background-color: var(--apple-accent-warning);
+}
+.status-dot.action, .status-dot.info, .dot.blue {
+  background-color: var(--apple-accent-action);
+}
+/* Tables (High-Density Tabular Views) */
+table, .dense-matrix-table, .loom-table, .matrix-table, .recon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+th {
+  background-color: var(--apple-canvas) !important;
+  border-bottom: 1px solid var(--apple-hairline) !important;
+  color: var(--apple-text-meta) !important;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  text-align: left;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--apple-hairline) !important;
+  color: var(--apple-text-primary) !important;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+/* Left Accent Status System (1px Hairlines, Not Blocky Colors) */
+tr.state-approved {
+  border-left: 2px solid var(--apple-accent-success);
+}
+tr.state-proposed {
+  border-left: 2px solid var(--apple-accent-action);
+}
+tr.state-missing-req, tr.state-quarantine {
+  border-left: 2px solid var(--apple-accent-warning);
+  background-color: var(--apple-accent-warning-subtle) !important;
+}
+/* ==========================================================================
+   CONTROLS, BUTTONS & MICRO-INTERACTIONS
+   ========================================================================== */
+button, .btn, .hud-btn, .action-btn {
+  background-color: var(--apple-surface-secondary);
+  border: 1px solid var(--apple-hairline);
+  color: var(--apple-text-primary);
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+button:hover, .btn:hover, .hud-btn:hover, .action-btn:hover {
+  background-color: var(--apple-surface-hover);
+  border-color: var(--apple-hairline-focus);
+}
+button.primary, .btn-primary, .action-btn.primary {
+  background-color: var(--apple-accent-action) !important;
+  border-color: var(--apple-accent-action) !important;
+  color: #FFFFFF !important;
+}
+button.primary:hover, .btn-primary:hover, .action-btn.primary:hover {
+  background-color: #0077ED !important;
+}
+/* Code Viewports (Xcode Pro Style) */
+pre, code, .code-viewport, .json-dump {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #E2E8F0;
+  background-color: #0A0A0C !important;
+  border: 1px solid var(--apple-hairline) !important;
+  border-radius: var(--radius-pill);
+}
+/* Global Footer */
+footer, .app-footer, .hud-footer, .studio-footer, .recon-footer {
+  height: 38px;
+  background-color: var(--apple-canvas) !important;
+  border-top: 1px solid var(--apple-hairline) !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 11px;
+  color: var(--apple-text-meta);
+}
