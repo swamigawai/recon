@@ -5253,19 +5253,12 @@ function syncAppleStage06(data) {
 
 
 // =============================================================================
-// RECON — PRIVATE PILOT ACCESS GATE (DEMO ACCESS CONTROL)
-// "Zero loss. Proved by math."
+// RECON — PRIVATE ACCESS GATE (PASSWORD PROTECTION)
+// Default Password: RECON2026
+// Strict Rule: ONLY RECON2026 is accepted. All other inputs are rejected.
 // =============================================================================
 
-const VALID_PILOT_KEYS = [
-  "FDE-PILOT",
-  "RECON-2026",
-  "PALANTIR-FDE",
-  "SWAMI-VIP",
-  "RECON-PILOT",
-  "FOUNDER",
-  "FORWARD-DEPLOYED"
-];
+const REQUIRED_ACCESS_PASSWORD = "RECON2026";
 
 function initAccessGate() {
   const gateEl = document.getElementById("recon-access-gate");
@@ -5280,11 +5273,11 @@ function initAccessGate() {
 
   if (!gateEl || !inputEl) return;
 
-  function unlockStudio(key) {
+  function unlockStudio(pwd) {
     localStorage.setItem("recon_pilot_unlocked", "true");
-    localStorage.setItem("recon_active_key", key);
+    localStorage.setItem("recon_active_key", REQUIRED_ACCESS_PASSWORD);
     if (errorEl) errorEl.classList.add("hidden");
-    
+
     // Smooth Apple-style fade-out
     if (gateEl) {
       gateEl.style.opacity = "0";
@@ -5294,15 +5287,16 @@ function initAccessGate() {
       }, 260);
     }
     if (lockStatusText) {
-      lockStatusText.textContent = "PILOT KEY";
+      lockStatusText.textContent = "AUTHENTICATED";
     }
     if (window.showToast) {
-      showToast("Access Authorized: Forward Deployed Mode Active", "success");
+      showToast("Access Granted: Recon Studio Unlocked", "success");
     }
   }
 
   function lockStudio() {
     localStorage.removeItem("recon_pilot_unlocked");
+    localStorage.removeItem("recon_active_key");
     if (gateEl) {
       gateEl.classList.remove("hidden");
       gateEl.style.opacity = "1";
@@ -5316,22 +5310,22 @@ function initAccessGate() {
     }
   }
 
-  function validateKey(keyCandidate) {
-    const key = (keyCandidate || "").trim().toUpperCase();
-    if (!key) return false;
-    
-    // Check against authorized pilot keys or custom local override
-    const isMasterKey = VALID_PILOT_KEYS.includes(key);
-    const isPrefixKey = key.startsWith("FDE-") || key.startsWith("RECON-") || key.startsWith("PALANTIR-");
-    
-    if (isMasterKey || isPrefixKey) {
-      unlockStudio(key);
+  function validateKey(candidate) {
+    const raw = (candidate || "").trim();
+    // Normalize: uppercase and strip optional dashes/spaces (e.g. RECON2026 or recon2026 or RECON-2026)
+    const normalized = raw.toUpperCase().replace(/[\s-_]/g, "");
+
+    if (normalized === REQUIRED_ACCESS_PASSWORD) {
+      unlockStudio(REQUIRED_ACCESS_PASSWORD);
       return true;
     } else {
-      if (errorEl) errorEl.classList.remove("hidden");
+      if (errorEl) {
+        errorEl.textContent = "Incorrect password. Only RECON2026 will unlock the website.";
+        errorEl.classList.remove("hidden");
+      }
       if (cardEl) {
         cardEl.classList.remove("shake");
-        void cardEl.offsetWidth; // Trigger reflow
+        void cardEl.offsetWidth; // trigger reflow
         cardEl.classList.add("shake");
       }
       inputEl.focus();
@@ -5340,22 +5334,29 @@ function initAccessGate() {
     }
   }
 
-  // Check URL query parameters for instant invite links: ?key=FDE-PILOT or ?invite=...
+  // Check URL query parameter: ?key=RECON2026 or ?password=RECON2026 or ?pwd=RECON2026
   const urlParams = new URLSearchParams(window.location.search);
-  const paramKey = urlParams.get("key") || urlParams.get("invite") || urlParams.get("access");
-  if (paramKey && validateKey(paramKey)) {
-    // Clean up address bar query parameter without page reload
-    const cleanUrl = window.location.pathname + window.location.hash;
-    window.history.replaceState({}, document.title, cleanUrl);
-    return;
+  const paramKey = urlParams.get("key") || urlParams.get("password") || urlParams.get("pwd") || urlParams.get("invite");
+  if (paramKey) {
+    if (validateKey(paramKey)) {
+      // Clean up address bar query parameter without reload
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+      return;
+    }
   }
 
-  // Check persistent unlock state
-  const isUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true";
+  // Check persistent unlock state - only allow if saved key is strictly RECON2026
+  const activeKey = (localStorage.getItem("recon_active_key") || "").trim().toUpperCase().replace(/[\s-_]/g, "");
+  const isUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true" && activeKey === REQUIRED_ACCESS_PASSWORD;
+
   if (isUnlocked) {
     gateEl.classList.add("hidden");
-    if (lockStatusText) lockStatusText.textContent = "PILOT KEY";
+    if (lockStatusText) lockStatusText.textContent = "AUTHENTICATED";
   } else {
+    // Invalidate any legacy session tokens
+    localStorage.removeItem("recon_pilot_unlocked");
+    localStorage.removeItem("recon_active_key");
     gateEl.classList.remove("hidden");
     if (lockStatusText) lockStatusText.textContent = "LOCKED";
     setTimeout(() => inputEl.focus(), 150);
@@ -5379,13 +5380,13 @@ function initAccessGate() {
   // Quick key pill 1-click test fill
   if (quickKey1) {
     quickKey1.addEventListener("click", () => {
-      inputEl.value = quickKey1.textContent.trim();
+      inputEl.value = REQUIRED_ACCESS_PASSWORD;
       validateKey(inputEl.value);
     });
   }
   if (quickKey2) {
     quickKey2.addEventListener("click", () => {
-      inputEl.value = quickKey2.textContent.trim();
+      inputEl.value = REQUIRED_ACCESS_PASSWORD;
       validateKey(inputEl.value);
     });
   }
@@ -5395,11 +5396,7 @@ function initAccessGate() {
     lockBtn.addEventListener("click", () => {
       const currentlyUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true";
       if (currentlyUnlocked) {
-        // Toggle lock gate back open
-        gateEl.classList.remove("hidden");
-        gateEl.style.opacity = "1";
-        inputEl.value = localStorage.getItem("recon_active_key") || "FDE-PILOT";
-        inputEl.focus();
+        lockStudio();
       } else {
         gateEl.classList.remove("hidden");
         gateEl.style.opacity = "1";
@@ -5408,3 +5405,4 @@ function initAccessGate() {
     });
   }
 }
+

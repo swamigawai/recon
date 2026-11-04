@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=8.6">
-  <link rel="stylesheet" href="apple_developer_theme.css?v=8.6">
+  <link rel="stylesheet" href="style.css?v=8.7">
+  <link rel="stylesheet" href="apple_developer_theme.css?v=8.7">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -1374,7 +1374,7 @@ div>
       </div>
     </div>
   </div>
-  <script src="app.js?v=8.6"></script>
+  <script src="app.js?v=8.7"></script>
 
     <!-- ====================================================================
          Private Pilot Verification Gate (Demo Protection Overlay)
@@ -1394,8 +1394,8 @@ div>
             <rect class="circuit-hub" x="49" y="24" width="22" height="24" rx="5"/>
             <path class="circuit-hub-check" d="M 54 36.5 L 58.5 41 L 66 31.5" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <p class="apple-eyebrow" style="margin-top: 16px; margin-bottom: 6px;">RESTRICTED PILOT EVALUATION</p>
-          <h2 class="apple-access-title">Forward Deployed Engineering Access</h2>
+          <p class="apple-eyebrow" style="margin-top: 16px; margin-bottom: 6px;">RESTRICTED ACCESS // AUTHORIZED ONLY</p>
+          <h2 class="apple-access-title">Recon Integration Studio</h2>
           <p class="apple-access-desc">
             Recon is in private evaluation for Forward Deployed Engineers and Integration Architects. Enter your access key to enter the studio.
           </p>
@@ -1407,12 +1407,12 @@ div>
               type="text"
               id="recon-access-key-input"
               class="apple-access-input"
-              placeholder="ENTER ACCESS KEY (e.g. FDE-PILOT)"
+              placeholder="ENTER PASSWORD (RECON2026)"
               autocomplete="off"
               spellcheck="false"
               autocapitalize="characters"
             />
-            <div id="access-error-msg" class="apple-access-error hidden">Invalid authorization key. Contact Swami for evaluation access.</div>
+            <div id="access-error-msg" class="apple-access-error hidden">Invalid password. Only RECON2026 will unlock the website.</div>
           </div>
           <button type="submit" id="btn-submit-access" class="btn btn-primary" style="width: 100%; height: 42px; font-size: 13px; font-weight: 600; border-radius: 980px;">
             Unlock Studio
@@ -1425,7 +1425,7 @@ div>
             <span class="badge badge-muted">ZERO CLOUD EGRESS</span>
           </div>
           <p class="apple-access-hint">
-            Demo evaluation keys: <code class="apple-key-pill" id="btn-quick-key-1">FDE-PILOT</code> &middot; <code class="apple-key-pill" id="btn-quick-key-2">RECON-2026</code>
+            Default Password: <code class="apple-key-pill" id="btn-quick-key-1">RECON2026</code>
           </p>
         </div>
       </div>
