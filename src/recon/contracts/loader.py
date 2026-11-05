@@ -323,8 +323,8 @@ def load_target_contract(
         contract_stem = path.stem
         suffix = path.suffix.lower()
 
-        # Handle CSV / TSV / tabular target contracts
-        if suffix in (".csv", ".tsv"):
+        # Handle CSV / TSV / Excel tabular target contracts
+        if suffix in (".csv", ".tsv", ".xlsx", ".xlsm"):
             return load_csv_contract(path)
 
         # Handle JSON / OpenAPI contracts (with rigorous BOM stripping)

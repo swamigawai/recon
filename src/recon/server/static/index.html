@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=8.8">
-  <link rel="stylesheet" href="apple_developer_theme.css?v=8.8">
+  <link rel="stylesheet" href="style.css?v=8.9">
+  <link rel="stylesheet" href="apple_developer_theme.css?v=8.9">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -139,8 +139,8 @@
               <div class="port-dropzone" id="source-dropzone" role="button" tabindex="0" aria-label="Drop raw source dataset or click to browse">
                 <div class="port-dropzone-icon">↑</div>
                 <div style="font-weight: 600; margin-bottom: 4px;">Drop raw source dataset or click to browse</div>
-                <div class="text-muted" style="font-size: 11px;">Supported: .csv, .tsv, .txt, .json, .jsonl (Max 100MB)</div>
-                <input type="file" id="source-file-input" accept=".csv,.tsv,.txt,.json,.jsonl" class="hidden">
+                <div class="text-muted" style="font-size: 11px;">Supported: .csv, .tsv, .txt, .json, .jsonl, .xlsx (Max 100MB)</div>
+                <input type="file" id="source-file-input" accept=".csv,.tsv,.txt,.json,.jsonl,.xlsx,.xlsm" class="hidden">
               </div>
 
               <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
@@ -180,9 +180,9 @@
               <div id="ctab-content-upload" class="hidden">
                 <div class="port-dropzone" id="contract-dropzone" role="button" tabindex="0" aria-label="Drop target contract schema, sample CSV, or click to browse">
                   <div class="port-dropzone-icon">↑</div>
-                  <div style="font-weight: 600; margin-bottom: 4px;">Drop target contract schema or sample CSV (.json, .csv, .tsv)</div>
-                  <div class="text-muted" style="font-size: 11px;">Supported: JSON Schema, OpenAPI 3.x, Target Data/Template CSV, Native Recon</div>
-                  <input type="file" id="contract-file-input" accept=".json,.csv,.tsv,.txt" class="hidden">
+                  <div style="font-weight: 600; margin-bottom: 4px;">Drop target contract schema or sample CSV/Excel (.json, .csv, .tsv, .xlsx)</div>
+                  <div class="text-muted" style="font-size: 11px;">Supported: JSON Schema, OpenAPI 3.x, Target Data/Template CSV/Excel, Native Recon</div>
+                  <input type="file" id="contract-file-input" accept=".json,.csv,.tsv,.txt,.xlsx,.xlsm" class="hidden">
                 </div>
               </div>
 
@@ -1374,7 +1374,7 @@ div>
       </div>
     </div>
   </div>
-  <script src="app.js?v=8.8"></script>
+  <script src="app.js?v=8.9"></script>
 
     <!-- ====================================================================
          Private Pilot Verification Gate (Demo Protection Overlay)

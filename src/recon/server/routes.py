@@ -58,8 +58,8 @@ def _prune_old_sessions() -> None:
 
 MAX_SOURCE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
 MAX_CONTRACT_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB (allow large CSV target contracts)
-ALLOWED_SOURCE_EXTENSIONS = {".csv", ".tsv", ".txt", ".json", ".jsonl"}
-ALLOWED_CONTRACT_EXTENSIONS = {".json", ".csv", ".tsv"}
+ALLOWED_SOURCE_EXTENSIONS = {".csv", ".tsv", ".txt", ".json", ".jsonl", ".xlsx", ".xlsm"}
+ALLOWED_CONTRACT_EXTENSIONS = {".json", ".csv", ".tsv", ".xlsx", ".xlsm"}
 IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
