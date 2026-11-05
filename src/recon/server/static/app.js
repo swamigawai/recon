@@ -5253,12 +5253,12 @@ function syncAppleStage06(data) {
 
 
 // =============================================================================
-// RECON — PRIVATE ACCESS GATE (PASSWORD PROTECTION)
-// Default Password: RECON2026
-// Strict Rule: ONLY RECON2026 is accepted. All other inputs are rejected.
+// RECON — PRIVATE ACCESS GATE (SECRET PASSWORD PROTECTION)
+// Strict Rule: ONLY RECON-2026 is accepted. All other inputs are rejected.
+// Password is NEVER revealed on the UI.
 // =============================================================================
 
-const REQUIRED_ACCESS_PASSWORD = "RECON2026";
+const REQUIRED_ACCESS_PASSWORD = "RECON-2026";
 
 function initAccessGate() {
   const gateEl = document.getElementById("recon-access-gate");
@@ -5268,12 +5268,10 @@ function initAccessGate() {
   const errorEl = document.getElementById("access-error-msg");
   const lockBtn = document.getElementById("btn-lock-toggle");
   const lockStatusText = document.getElementById("lock-status-text");
-  const quickKey1 = document.getElementById("btn-quick-key-1");
-  const quickKey2 = document.getElementById("btn-quick-key-2");
 
   if (!gateEl || !inputEl) return;
 
-  function unlockStudio(pwd) {
+  function unlockStudio() {
     localStorage.setItem("recon_pilot_unlocked", "true");
     localStorage.setItem("recon_active_key", REQUIRED_ACCESS_PASSWORD);
     if (errorEl) errorEl.classList.add("hidden");
@@ -5290,7 +5288,7 @@ function initAccessGate() {
       lockStatusText.textContent = "AUTHENTICATED";
     }
     if (window.showToast) {
-      showToast("Access Granted: Recon Studio Unlocked", "success");
+      showToast("Access Granted: Studio Unlocked", "success");
     }
   }
 
@@ -5312,15 +5310,16 @@ function initAccessGate() {
 
   function validateKey(candidate) {
     const raw = (candidate || "").trim();
-    // Normalize: uppercase and strip optional dashes/spaces (e.g. RECON2026 or recon2026 or RECON-2026)
-    const normalized = raw.toUpperCase().replace(/[\s-_]/g, "");
+    // Accept RECON-2026 (or RECON2026 without dash)
+    const upper = raw.toUpperCase();
+    const compact = upper.replace(/[\s-_]/g, "");
 
-    if (normalized === REQUIRED_ACCESS_PASSWORD) {
-      unlockStudio(REQUIRED_ACCESS_PASSWORD);
+    if (upper === REQUIRED_ACCESS_PASSWORD || compact === "RECON2026") {
+      unlockStudio();
       return true;
     } else {
       if (errorEl) {
-        errorEl.textContent = "Incorrect password. Only RECON2026 will unlock the website.";
+        errorEl.textContent = "Incorrect password. Access denied.";
         errorEl.classList.remove("hidden");
       }
       if (cardEl) {
@@ -5334,7 +5333,7 @@ function initAccessGate() {
     }
   }
 
-  // Check URL query parameter: ?key=RECON2026 or ?password=RECON2026 or ?pwd=RECON2026
+  // Check URL query parameter: ?key=RECON-2026 or ?password=RECON-2026
   const urlParams = new URLSearchParams(window.location.search);
   const paramKey = urlParams.get("key") || urlParams.get("password") || urlParams.get("pwd") || urlParams.get("invite");
   if (paramKey) {
@@ -5346,9 +5345,9 @@ function initAccessGate() {
     }
   }
 
-  // Check persistent unlock state - only allow if saved key is strictly RECON2026
-  const activeKey = (localStorage.getItem("recon_active_key") || "").trim().toUpperCase().replace(/[\s-_]/g, "");
-  const isUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true" && activeKey === REQUIRED_ACCESS_PASSWORD;
+  // Check persistent unlock state - only allow if saved key matches RECON-2026
+  const activeKey = (localStorage.getItem("recon_active_key") || "").trim().toUpperCase();
+  const isUnlocked = localStorage.getItem("recon_pilot_unlocked") === "true" && (activeKey === REQUIRED_ACCESS_PASSWORD || activeKey === "RECON2026");
 
   if (isUnlocked) {
     gateEl.classList.add("hidden");
@@ -5373,20 +5372,6 @@ function initAccessGate() {
   const submitBtn = document.getElementById("btn-submit-access");
   if (submitBtn) {
     submitBtn.addEventListener("click", () => {
-      validateKey(inputEl.value);
-    });
-  }
-
-  // Quick key pill 1-click test fill
-  if (quickKey1) {
-    quickKey1.addEventListener("click", () => {
-      inputEl.value = REQUIRED_ACCESS_PASSWORD;
-      validateKey(inputEl.value);
-    });
-  }
-  if (quickKey2) {
-    quickKey2.addEventListener("click", () => {
-      inputEl.value = REQUIRED_ACCESS_PASSWORD;
       validateKey(inputEl.value);
     });
   }

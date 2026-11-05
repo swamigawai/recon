@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recon — The Integration Readiness Engine</title>
-  <link rel="stylesheet" href="style.css?v=8.7">
-  <link rel="stylesheet" href="apple_developer_theme.css?v=8.7">
+  <link rel="stylesheet" href="style.css?v=8.8">
+  <link rel="stylesheet" href="apple_developer_theme.css?v=8.8">
 </head>
 <body>
   <div class="recon-app-shell">
@@ -1374,7 +1374,7 @@ div>
       </div>
     </div>
   </div>
-  <script src="app.js?v=8.7"></script>
+  <script src="app.js?v=8.8"></script>
 
     <!-- ====================================================================
          Private Pilot Verification Gate (Demo Protection Overlay)
@@ -1404,15 +1404,14 @@ div>
         <form id="recon-access-form" class="apple-access-form" onsubmit="return false;">
           <div class="apple-access-input-wrap">
             <input
-              type="text"
+              type="password"
               id="recon-access-key-input"
               class="apple-access-input"
-              placeholder="ENTER PASSWORD (RECON2026)"
-              autocomplete="off"
+              placeholder="Enter Access Password"
+              autocomplete="current-password"
               spellcheck="false"
-              autocapitalize="characters"
             />
-            <div id="access-error-msg" class="apple-access-error hidden">Invalid password. Only RECON2026 will unlock the website.</div>
+            <div id="access-error-msg" class="apple-access-error hidden">Incorrect password. Access denied.</div>
           </div>
           <button type="submit" id="btn-submit-access" class="btn btn-primary" style="width: 100%; height: 42px; font-size: 13px; font-weight: 600; border-radius: 980px;">
             Unlock Studio
@@ -1424,9 +1423,7 @@ div>
             <span class="badge badge-indigo">AIR-GAPPED SANDBOX</span>
             <span class="badge badge-muted">ZERO CLOUD EGRESS</span>
           </div>
-          <p class="apple-access-hint">
-            Default Password: <code class="apple-key-pill" id="btn-quick-key-1">RECON2026</code>
-          </p>
+          
         </div>
       </div>
     </div>
