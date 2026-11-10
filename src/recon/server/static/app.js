@@ -107,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAuthGate();
   initAccessGate();
   initAppleStage06();
+  initContractSuggestionEngine();
 
   // Hash-based direct step navigation (e.g. #step-6 or #validate)
   const initialHash = (window.location.hash || "").toLowerCase();
@@ -1305,6 +1306,7 @@ function bindDropZones() {
       document.getElementById("source-status-meta").textContent = `Format: ${ds.format.toUpperCase()} | Ready`;
       document.getElementById("source-format-pill").textContent = ds.format.toUpperCase();
       updatePreflightStatus();
+      if (ds && ds.file_name) runContractSuggestion({ name: ds.file_name });
     }
   });
 
@@ -1389,6 +1391,7 @@ function handleSourceFileStaged(file) {
   document.getElementById("source-status-meta").textContent = `${sizeMb} MB | ${ext}`;
   document.getElementById("source-format-pill").textContent = ext;
   updatePreflightStatus();
+  runContractSuggestion(file);
 }
 
 function handleContractFileStaged(file) {
@@ -5391,3 +5394,166 @@ function initAccessGate() {
   }
 }
 
+// =============================================================================
+// RECON — SMART CONTRACT SUGGESTION ENGINE (Port 2 Zero-Schema Mode)
+// When Port 1 is staged and Port 2 is empty, analyse column headers and
+// surface the top matching preloaded contract as a one-click suggestion.
+// =============================================================================
+
+let suggestDismissed = false;
+
+async function fetchContractSuggestions(headersList) {
+  if (!headersList || headersList.length === 0) return [];
+  try {
+    const params = new URLSearchParams({ headers: headersList.join(',') });
+    const res = await fetch(`/api/contracts/suggest?${params}`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.warn('Contract suggestion fetch failed:', err);
+    return [];
+  }
+}
+
+function extractHeadersFromFile(file) {
+  return new Promise((resolve) => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'xlsx' || ext === 'xlsm') {
+      // For Excel: resolve with filename tokens as a fallback signal
+      const nameTokens = file.name.replace(/\.[^.]+$/, '').replace(/[_\-]/g, ' ');
+      resolve([nameTokens]);
+      return;
+    }
+    // For CSV/TSV/TXT: read first line to get headers
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const firstLine = e.target.result.split(/\r?\n/)[0] || '';
+        const sep = firstLine.includes('\t') ? '\t' : ',';
+        const headers = firstLine.split(sep).map(h => h.trim().replace(/^["']|["']$/g, ''));
+        resolve(headers.filter(h => h.length > 0));
+      } catch (_) {
+        resolve([]);
+      }
+    };
+    reader.onerror = () => resolve([]);
+    // Read only first 2KB — enough for the header row
+    reader.readAsText(file.slice(0, 2048));
+  });
+}
+
+async function runContractSuggestion(file) {
+  if (suggestDismissed) return;
+
+  // Only show banner if Port 2 (sample contract) is currently empty
+  const contractSelect = document.getElementById('sample-contract-select');
+  const stagedContract = window.stagedContractFile;
+  const contractText = document.getElementById('contract-text-area');
+  const port2HasContent = (contractSelect && contractSelect.value) ||
+                          stagedContract ||
+                          (contractText && contractText.value.trim().length > 0);
+  if (port2HasContent) return;
+
+  const banner = document.getElementById('contract-suggest-banner');
+  const primaryText = document.getElementById('suggest-primary-text');
+  const secondaryText = document.getElementById('suggest-secondary-text');
+  const buttonsEl = document.getElementById('suggest-buttons');
+  if (!banner) return;
+
+  // Show banner in loading state
+  banner.classList.remove('hidden');
+  primaryText.textContent = 'Analysing your columns…';
+  secondaryText.textContent = '';
+  buttonsEl.innerHTML = '';
+
+  const headers = await extractHeadersFromFile(file);
+  if (!headers || headers.length === 0) {
+    banner.classList.add('hidden');
+    return;
+  }
+
+  const suggestions = await fetchContractSuggestions(headers);
+
+  if (!suggestions || suggestions.length === 0) {
+    primaryText.textContent = 'No close match found in our schema library.';
+    secondaryText.textContent = 'Upload your own contract in Port 2, or paste a JSON schema.';
+    buttonsEl.innerHTML = '';
+    return;
+  }
+
+  const top = suggestions[0];
+  const confidence = top.match_pct;
+
+  // Build confidence label
+  const confidenceLabel = confidence >= 20 ? 'Strong match' :
+                          confidence >= 10 ? 'Possible match' : 'Weak signal';
+
+  primaryText.textContent = `${confidenceLabel}: "${top.contract_name}" — ${confidence}% column overlap`;
+  secondaryText.textContent =
+    `${top.fields_count} governing fields | ${top.description || 'Preloaded enterprise schema'}`;
+
+  // Build action buttons for top 3 suggestions
+  buttonsEl.innerHTML = '';
+  suggestions.forEach((s, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = idx === 0 ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+    btn.style.cssText = 'font-size: 11px; padding: 4px 10px;';
+    btn.textContent = idx === 0
+      ? `✓ Apply — ${s.contract_name} (${s.match_pct}%)`
+      : `${s.contract_name} (${s.match_pct}%)`;
+
+    btn.addEventListener('click', () => {
+      applySuggestedContract(s);
+    });
+    buttonsEl.appendChild(btn);
+  });
+}
+
+function applySuggestedContract(suggestion) {
+  // Switch Port 2 to 'Preloaded Sample' tab
+  const sampleTabBtn = document.getElementById('ctab-btn-sample');
+  if (sampleTabBtn) sampleTabBtn.click();
+
+  // Set the select dropdown to the matching contract
+  const contractSelect = document.getElementById('sample-contract-select');
+  if (contractSelect) {
+    contractSelect.value = suggestion.id;
+    contractSelect.dispatchEvent(new Event('change'));
+  }
+
+  // Update status box
+  const statusText = document.getElementById('contract-status-text');
+  const statusMeta = document.getElementById('contract-status-meta');
+  if (statusText) statusText.textContent = `Smart Match: ${suggestion.contract_name}`;
+  if (statusMeta) statusMeta.textContent = `${suggestion.fields_count} fields | ${suggestion.match_pct}% column match`;
+
+  // Hide the banner gracefully
+  const banner = document.getElementById('contract-suggest-banner');
+  if (banner) {
+    banner.style.transition = 'opacity 0.3s ease';
+    banner.style.opacity = '0';
+    setTimeout(() => banner.classList.add('hidden'), 300);
+  }
+
+  // Trigger pre-flight update
+  if (typeof updatePreflightStatus === 'function') updatePreflightStatus();
+  if (typeof renderPreflightContractPeek === 'function') renderPreflightContractPeek();
+}
+
+function initContractSuggestionEngine() {
+  // Dismiss button
+  const dismissBtn = document.getElementById('suggest-dismiss');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', () => {
+      suggestDismissed = true;
+      const banner = document.getElementById('contract-suggest-banner');
+      if (banner) banner.classList.add('hidden');
+    });
+  }
+
+  // Reset dismissed state when user resets the whole form (navigates back to step 1)
+  document.addEventListener('recon:reset', () => {
+    suggestDismissed = false;
+  });
+}

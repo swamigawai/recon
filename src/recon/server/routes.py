@@ -123,6 +123,62 @@ def verify_access_key(body: KeyVerificationRequest) -> dict[str, Any]:
 
 
 
+
+
+@router.get("/contracts/suggest")
+def suggest_contracts(headers: str = "") -> list[dict[str, Any]]:
+    """Given a comma-separated list of column headers from Port 1,
+    scores all preloaded contracts by Jaccard token overlap and returns
+    the top 3 ranked suggestions with confidence scores."""
+    import re as _re
+
+    def tokenise(s: str) -> set:
+        return set(
+            t for t in _re.sub(r"[^a-z0-9]+", " ", s.lower()).split()
+            if len(t) > 1
+        )
+
+    source_tokens = tokenise(headers)
+    if not source_tokens:
+        return []
+
+    fixtures = _find_fixtures_dir()
+    suggestions: list[dict[str, Any]] = []
+
+    for file in sorted(fixtures.glob("target_contract_*.json")):
+        try:
+            with open(file, "r", encoding="utf-8-sig") as f:
+                data = json.load(f)
+            field_names = list(data.get("fields", {}).keys())
+            contract_tokens: set = set()
+            for name in field_names:
+                contract_tokens |= tokenise(name)
+            contract_tokens |= tokenise(data.get("contract_name", ""))
+
+            if not contract_tokens:
+                continue
+
+            intersection = len(source_tokens & contract_tokens)
+            union = len(source_tokens | contract_tokens)
+            score = round(intersection / union, 4) if union else 0.0
+
+            if score > 0:
+                suggestions.append({
+                    "id": file.stem,
+                    "contract_name": data.get("contract_name", file.stem),
+                    "version": data.get("version", "1.0.0"),
+                    "description": data.get("description", ""),
+                    "fields_count": len(field_names),
+                    "score": score,
+                    "match_pct": round(score * 100),
+                    "content": json.dumps(data, indent=2),
+                })
+        except Exception:
+            continue
+
+    suggestions.sort(key=lambda x: x["score"], reverse=True)
+    return suggestions[:3]
+
 @router.get("/sample-contracts")
 def list_sample_contracts() -> list[dict[str, Any]]:
     """Returns list of pre-configured sample target contracts for quick developer testing."""

@@ -163,6 +163,20 @@
                 <span class="badge badge-indigo">Governing Standard</span>
               </div>
 
+                            <!-- Smart Contract Suggestion Banner (shown after Port 1 staged, Port 2 empty) -->
+              <div id="contract-suggest-banner" class="hidden" style="margin-bottom: 10px; padding: 10px 14px; background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(0,0,0,0.03) 100%); border: 1px solid rgba(99,102,241,0.25); border-radius: var(--radius-sm, 8px);">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                  <span style="font-size: 16px; flex-shrink: 0; margin-top: 1px;">&#128161;</span>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--recon-indigo-text, #6366F1); text-transform: uppercase; margin-bottom: 4px;">Smart Match &mdash; Based on Your File</div>
+                    <div id="suggest-primary-text" style="font-size: 12px; font-weight: 600; color: var(--recon-text-primary); margin-bottom: 2px;">Analysing your columns&hellip;</div>
+                    <div id="suggest-secondary-text" style="font-size: 11px; color: var(--recon-text-muted);"></div>
+                    <div id="suggest-buttons" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;"></div>
+                  </div>
+                  <button id="suggest-dismiss" title="Dismiss" style="background: none; border: none; cursor: pointer; color: var(--recon-text-muted); font-size: 16px; padding: 0; line-height: 1; flex-shrink: 0;">&times;</button>
+                </div>
+              </div>
+
               <!-- Contract Tabs -->
               <div style="display: flex; gap: 6px; margin-bottom: 10px;">
                 <button type="button" class="filter-btn active" data-ctab="sample" id="ctab-btn-sample">Preloaded Sample</button>
