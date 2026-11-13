@@ -138,6 +138,24 @@ def generate_adapter(
             block.append(f"            errors.append(f\"Cannot parse boolean for '{safe_tgt}' from '{{raw_val_{var_name}}}'\")")
             block.append(f"            output['{safe_tgt}'] = None")
 
+        elif tgt_type == ContractType.DATE:
+            fmt = "%Y-%m-%d"
+            if "parse_date('" in trans_rule or "parse_datetime('" in trans_rule:
+                match = re.search(r"parse_(?:date|datetime)\('([^']+)'\)", trans_rule)
+                if match:
+                    fmt = match.group(1)
+            safe_fmt = fmt.replace("\\", "\\\\").replace("'", "\\'")
+            block.append("        try:")
+            block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_fmt}')")
+            block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%d')")
+            block.append("        except (ValueError, TypeError):")
+            block.append(f"            errors.append(f\"Cannot parse date for '{safe_tgt}' using format '{safe_fmt}' from '{{val_{var_name}}}'\")")
+            block.append(f"            output['{safe_tgt}'] = None")
+
+        else:
+            # Fallback for any other type / generic string coercion
+            block.append(f"        output['{safe_tgt}'] = val_{var_name}")
+
         field_code_blocks.append("\n".join(block))
 
     body = "\n\n".join(field_code_blocks)
