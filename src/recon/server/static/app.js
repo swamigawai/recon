@@ -5475,9 +5475,21 @@ async function runContractSuggestion(file) {
   const suggestions = await fetchContractSuggestions(headers);
 
   if (!suggestions || suggestions.length === 0) {
-    primaryText.textContent = 'No close match found in our schema library.';
-    secondaryText.textContent = 'Upload your own contract in Port 2, or paste a JSON schema.';
+    primaryText.textContent = 'No preloaded schema match found for your columns.';
+    secondaryText.textContent = 'Recon can inspect your file and auto-generate a custom target contract instantly.';
     buttonsEl.innerHTML = '';
+
+    const autoBtn = document.createElement('button');
+    autoBtn.type = 'button';
+    autoBtn.className = 'btn btn-primary btn-sm';
+    autoBtn.style.cssText = 'font-size: 11px; padding: 4px 12px; font-weight: 600;';
+    autoBtn.innerHTML = '✨ Auto-Generate Contract from File';
+    autoBtn.addEventListener('click', async () => {
+      autoBtn.disabled = true;
+      autoBtn.textContent = 'Generating Schema…';
+      await generateContractFromSource(file);
+    });
+    buttonsEl.appendChild(autoBtn);
     return;
   }
 
@@ -5508,6 +5520,71 @@ async function runContractSuggestion(file) {
     });
     buttonsEl.appendChild(btn);
   });
+}
+
+
+async function generateContractFromSource(file) {
+  try {
+    const formData = new FormData();
+    if (file instanceof File) {
+      formData.append("source_file", file);
+    } else if (file && file.name) {
+      // It might be a preloaded sample dataset
+      const sampleSelect = document.getElementById("sample-dataset-select");
+      if (sampleSelect && sampleSelect.value) {
+        formData.append("sample_dataset_id", sampleSelect.value);
+      } else {
+        formData.append("source_file", stagedSourceFile);
+      }
+    } else if (stagedSourceFile) {
+      formData.append("source_file", stagedSourceFile);
+    }
+
+    const res = await fetch("/api/contracts/infer-from-source", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Inference failed" }));
+      alert("Failed to auto-generate contract: " + (err.detail || res.statusText));
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.success || !data.contract_json) return;
+
+    // Switch Port 2 to 'Paste Contract' tab
+    const pasteTabBtn = document.getElementById("ctab-btn-paste");
+    if (pasteTabBtn) pasteTabBtn.click();
+
+    // Populate the contract-text-area
+    const contractTextArea = document.getElementById("contract-text-area");
+    if (contractTextArea) {
+      contractTextArea.value = data.contract_json;
+      contractTextArea.dispatchEvent(new Event("input"));
+    }
+
+    // Update contract status
+    const statusText = document.getElementById("contract-status-text");
+    const statusMeta = document.getElementById("contract-status-meta");
+    if (statusText) statusText.textContent = `Auto-Generated: ${data.contract_name}`;
+    if (statusMeta) statusMeta.textContent = `${data.fields_count} fields inferred from source data`;
+
+    // Hide the suggestion banner gracefully
+    const banner = document.getElementById("contract-suggest-banner");
+    if (banner) {
+      banner.style.transition = "opacity 0.3s ease";
+      banner.style.opacity = "0";
+      setTimeout(() => banner.classList.add("hidden"), 300);
+    }
+
+    if (typeof updatePreflightStatus === "function") updatePreflightStatus();
+    if (typeof renderPreflightContractPeek === "function") renderPreflightContractPeek();
+  } catch (err) {
+    console.error("Auto-generate contract failed:", err);
+    alert("Error auto-generating contract: " + err.message);
+  }
 }
 
 function applySuggestedContract(suggestion) {

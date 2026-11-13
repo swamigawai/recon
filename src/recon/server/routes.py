@@ -179,6 +179,106 @@ def suggest_contracts(headers: str = "") -> list[dict[str, Any]]:
     suggestions.sort(key=lambda x: x["score"], reverse=True)
     return suggestions[:3]
 
+
+@router.post("/contracts/infer-from-source")
+async def infer_contract_from_source(
+    request: Request,
+    source_file: UploadFile | None = File(None),
+    sample_dataset_id: str | None = Form(None),
+) -> dict[str, Any]:
+    """Generates an auto-inferred target contract from an uploaded or sample source dataset."""
+    _check_access(request)
+    fixtures = _find_fixtures_dir()
+    temp_dir = tempfile.TemporaryDirectory()
+
+    try:
+        if source_file and source_file.filename:
+            safe_source_name = Path(source_file.filename).name.strip()
+            if not safe_source_name or safe_source_name in (".", ".."):
+                raise HTTPException(status_code=400, detail="Invalid source file name.")
+            suffix = Path(safe_source_name).suffix.lower()
+            if suffix not in ALLOWED_SOURCE_EXTENSIONS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unsupported format '{suffix}'. Supported: {', '.join(sorted(ALLOWED_SOURCE_EXTENSIONS))}",
+                )
+            source_path = Path(temp_dir.name) / safe_source_name
+            file_bytes = await source_file.read(MAX_SOURCE_SIZE_BYTES + 1)
+            if len(file_bytes) > MAX_SOURCE_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"File exceeds maximum size of {MAX_SOURCE_SIZE_BYTES // (1024 * 1024)} MB.",
+                )
+            with open(source_path, "wb") as f:
+                f.write(file_bytes)
+        elif sample_dataset_id:
+            if not IDENTIFIER_PATTERN.match(sample_dataset_id):
+                raise HTTPException(status_code=400, detail="Invalid sample_dataset_id format.")
+            matching = list(fixtures.glob(f"{sample_dataset_id}.*"))
+            if not matching:
+                raise HTTPException(status_code=400, detail=f"Sample dataset '{sample_dataset_id}' not found.")
+            source_path = matching[0]
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either 'source_file' or 'sample_dataset_id'.")
+
+        dataset = load_dataset(source_path)
+        if not dataset.headers:
+            raise HTTPException(status_code=400, detail="Source dataset contains no valid header columns.")
+
+        profile = profile_dataset(dataset)
+        contract_name = f"{Path(dataset.file_name).stem}_inferred_contract"
+        fields: dict[str, Any] = {}
+
+        for col in dataset.headers:
+            col_prof = profile.columns.get(col)
+            if col_prof:
+                target_type = col_prof.inferred_type.value
+                required = (col_prof.null_count == 0)
+                nullable = (col_prof.null_count > 0)
+                allowed = None
+                if 0 < col_prof.distinct_count <= 8 and profile.total_rows >= 10:
+                    allowed = sorted([str(s) for s in col_prof.sample_values if s is not None and str(s).strip()])
+                
+                f_dict: dict[str, Any] = {
+                    "name": col,
+                    "target_type": target_type,
+                    "required": required,
+                    "nullable": nullable,
+                    "description": f"Auto-inferred target field for '{col}' ({target_type})",
+                }
+                if allowed:
+                    f_dict["allowed_values"] = allowed
+                fields[col] = f_dict
+            else:
+                fields[col] = {
+                    "name": col,
+                    "target_type": "string",
+                    "required": True,
+                    "nullable": False,
+                    "description": f"Target field '{col}'",
+                }
+
+        contract_payload = {
+            "contract_name": contract_name,
+            "version": "1.0.0",
+            "description": f"Auto-inferred target contract generated from '{dataset.file_name}' ({len(fields)} fields, {profile.total_rows} sampled rows)",
+            "fields": fields,
+        }
+
+        return {
+            "success": True,
+            "contract_name": contract_name,
+            "fields_count": len(fields),
+            "contract_json": json.dumps(contract_payload, indent=2),
+            "contract_dict": contract_payload,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to infer target contract: {exc}") from exc
+    finally:
+        temp_dir.cleanup()
+
 @router.get("/sample-contracts")
 def list_sample_contracts() -> list[dict[str, Any]]:
     """Returns list of pre-configured sample target contracts for quick developer testing."""
