@@ -1,3 +1,4 @@
+import ast
 """Generates explicit, reviewable Python transformation adapters from approved mapping plans."""
 
 import json
@@ -239,6 +240,20 @@ def transform_dataset(records: List[Dict[str, str]]) -> Tuple[List[Dict[str, Any
 
     return valid, quarantined
 '''
+
+    # Preflight verification: Guarantee generated code is 100% syntactically valid Python
+    try:
+        ast.parse(adapter_code, f"<{contract.contract_name}_adapter>")
+    except SyntaxError as syn_err:
+        raise AdapterError(
+            f"Generated adapter code contains a syntax error on line {syn_err.lineno}: {syn_err.msg}",
+            actionable_suggestion="Review field configurations, custom transformation rules, or special characters.",
+            context={
+                "contract_name": contract.contract_name,
+                "lineno": syn_err.lineno,
+                "syntax_error": str(syn_err),
+            },
+        ) from syn_err
 
     adapter = GeneratedAdapter(
         adapter_name=f"{contract.contract_name}_adapter",

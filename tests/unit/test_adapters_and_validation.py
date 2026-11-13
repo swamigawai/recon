@@ -1,3 +1,7 @@
+from recon.validation.executor import compile_adapter_sandbox
+from recon.mapping.models import ApprovedMappingPlan, FieldMappingProposal, MappingStatus, MappingType
+from recon.contracts.models import TargetContract, TargetField, ContractType
+from recon.contracts.models import ContractType
 """Unit tests for adapter generation, isolated execution, and contract validation."""
 
 from pathlib import Path
@@ -336,3 +340,47 @@ def test_adapter_handles_dotted_and_hyphenated_field_names():
     assert valid[0]["payload.amount"] == 123.45
 
 
+
+
+def test_all_contract_types_generate_valid_compilable_code():
+    """Permanent regression test: Verifies that every single ContractType enum produces 100% syntactically valid code."""
+    for ctype in ContractType:
+        contract = TargetContract(
+            contract_name=f"test_type_{ctype.value}",
+            version="1.0.0",
+            description=f"Regression test for {ctype.value}",
+            fields={
+                "target_col": TargetField(
+                    name="target_col",
+                    target_type=ctype,
+                    required=True,
+                    nullable=False,
+                )
+            },
+        )
+        plan = ApprovedMappingPlan(
+            contract_name=contract.contract_name,
+            source_name="raw.csv",
+            approved_by="qa_suite",
+            source_fingerprint="test_fp",
+            approved_mappings={
+                "target_col": FieldMappingProposal(
+                    target_field="target_col",
+                    target_type=ctype,
+                    target_required=True,
+                    target_nullable=False,
+                    source_field="raw_col",
+                    mapping_type=MappingType.DIRECT,
+                    status=MappingStatus.APPROVED,
+                    confidence=1.0,
+                )
+            },
+        )
+        # 1. generate_adapter verifies AST syntax internally
+        adapter = generate_adapter(plan, contract)
+        assert adapter.python_code is not None
+
+        # 2. compile_adapter_sandbox compiles and enforces sandbox visitor rules
+        sandbox = compile_adapter_sandbox(adapter.python_code)
+        assert "transform_record" in sandbox
+        assert "transform_dataset" in sandbox
