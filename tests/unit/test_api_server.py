@@ -905,3 +905,52 @@ def test_auth_modal_assets_present(client: TestClient) -> None:
     assert res_js.status_code == 200
     assert "initAuthGate" in res_js.text
     assert "X-Recon-Key" in res_js.text
+
+
+def test_quarantine_error_grouping_and_interactive_records_endpoint(client: TestClient) -> None:
+    """Verifies smart root-cause error grouping and interactive quarantine data grid query endpoint."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "corrupted_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
+    sid = res_assess.json()["session_id"]
+
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={"session_id": sid, "reviewer": "test_lead"},
+    )
+    assert res_approve.status_code == 200
+    app_data = res_approve.json()
+    assert "validation" in app_data
+    assert "quarantine_error_groups" in app_data["validation"]
+    groups = app_data["validation"]["quarantine_error_groups"]
+    assert len(groups) > 0
+    assert "field" in groups[0]
+    assert "category" in groups[0]
+    assert "count" in groups[0]
+    assert "percentage" in groups[0]
+
+    # Test GET /api/quarantine/records/{sid}
+    res_q = client.get(f"/api/quarantine/records/{sid}?limit=10&offset=0")
+    assert res_q.status_code == 200
+    q_data = res_q.json()
+    assert q_data["total_quarantined"] > 0
+    assert q_data["total_matching"] == q_data["total_quarantined"]
+    assert len(q_data["records"]) <= 10
+
+    # Test sorting desc by row_index
+    res_desc = client.get(f"/api/quarantine/records/{sid}?sort_by=row_index&sort_dir=desc")
+    assert res_desc.status_code == 200
+    desc_recs = res_desc.json()["records"]
+    if len(desc_recs) >= 2:
+        assert desc_recs[0]["row_index"] >= desc_recs[1]["row_index"]
+
+    # Test search filtering
+    res_search = client.get(f"/api/quarantine/records/{sid}?search=missing")
+    assert res_search.status_code == 200
+    assert "records" in res_search.json()
+

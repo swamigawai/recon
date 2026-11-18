@@ -236,8 +236,10 @@ async def infer_contract_from_source(
                 required = (col_prof.null_count == 0)
                 nullable = (col_prof.null_count > 0)
                 allowed = None
-                if 0 < col_prof.distinct_count <= 8 and profile.total_rows >= 10:
-                    allowed = sorted([str(s) for s in col_prof.sample_values if s is not None and str(s).strip()])
+                # Accurately discover all distinct enum values from dataset rows rather than truncating at 5 samples
+                col_values = {str(r.get(col, "")).strip() for r in dataset.rows if r.get(col) is not None and str(r.get(col, "")).strip()}
+                if 0 < len(col_values) <= 15 and profile.total_rows >= 10:
+                    allowed = sorted(list(col_values))
                 
                 f_dict: dict[str, Any] = {
                     "name": col,
@@ -556,6 +558,74 @@ async def assess_integration(
     }
 
 
+def _aggregate_quarantine_errors(quarantined_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Groups quarantine errors by rule/field root causes, counting affected records and percentages."""
+    if not quarantined_records:
+        return []
+
+    total_quarantined = len(quarantined_records)
+    groups: dict[str, dict[str, Any]] = {}
+
+    for rec in quarantined_records:
+        rec_idx = rec.get("record_index") or rec.get("row_index", 0)
+        errors = rec.get("errors") or rec.get("failure_reasons") or ["Schema violation"]
+        for err in errors:
+            field = "General"
+            match = re.search(r"for '([^']+)'|field '([^']+)'|'([^']+)' is missing|'([^']+)' does not match", err, re.IGNORECASE)
+            if match:
+                for g in match.groups():
+                    if g:
+                        field = g
+                        break
+            else:
+                m2 = re.search(r"'([^']+)'", err)
+                if m2:
+                    field = m2.group(1)
+
+            err_lower = err.lower()
+            if "not in allowed values" in err_lower or "enum" in err_lower:
+                category = "Allowed Values"
+            elif "required" in err_lower or "missing" in err_lower or "cannot be empty" in err_lower:
+                category = "Missing Required"
+            elif "datetime" in err_lower or "iso-8601" in err_lower or "date" in err_lower:
+                category = "Date / Time"
+            elif "does not match pattern" in err_lower or "pattern" in err_lower:
+                category = "Pattern Mismatch"
+            elif "type" in err_lower or "cannot convert" in err_lower:
+                category = "Type Mismatch"
+            else:
+                category = "Contract Violation"
+
+            group_key = f"{field}::{category}"
+            if group_key not in groups:
+                groups[group_key] = {
+                    "field": field,
+                    "category": category,
+                    "sample_error": err,
+                    "count": 0,
+                    "row_indices": [],
+                }
+            groups[group_key]["count"] += 1
+            if len(groups[group_key]["row_indices"]) < 50:
+                groups[group_key]["row_indices"].append(rec_idx)
+
+    result = []
+    for g in groups.values():
+        cnt = g["count"]
+        pct = round((cnt / total_quarantined) * 100.0, 1) if total_quarantined > 0 else 0.0
+        result.append({
+            "field": g["field"],
+            "category": g["category"],
+            "sample_error": g["sample_error"],
+            "count": cnt,
+            "percentage": pct,
+            "row_indices": g["row_indices"][:10],
+        })
+
+    result.sort(key=lambda x: x["count"], reverse=True)
+    return result
+
+
 @router.post("/approve-and-generate")
 def approve_and_generate(http_req: Request, request: ApprovalRequest) -> dict[str, Any]:
     _check_access(http_req)
@@ -684,10 +754,96 @@ def approve_and_generate(http_req: Request, request: ApprovalRequest) -> dict[st
                     "errors": qr.get("errors", []),
                     "raw_record": qr.get("raw_record", {}),
                 }
-                for qr in validation.sample_quarantined_records
+                for qr in (validation.all_quarantined_records[:100] if getattr(validation, "all_quarantined_records", None) else validation.sample_quarantined_records)
             ],
+            "quarantine_error_groups": _aggregate_quarantine_errors(
+                validation.all_quarantined_records if getattr(validation, "all_quarantined_records", None) else validation.sample_quarantined_records
+            ),
         },
         "report_markdown": report_md,
+    }
+
+
+@router.get("/quarantine/records/{session_id}")
+def get_quarantine_records(
+    session_id: str,
+    search: str | None = None,
+    field: str | None = None,
+    category: str | None = None,
+    sort_by: str = "row_index",
+    sort_dir: str = "asc",
+    offset: int = 0,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Provides interactive search, filtering, and sorting over quarantined records."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    session = SESSIONS.get(session_id)
+    if not session or "validation" not in session:
+        raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
+
+    val = session["validation"]
+    records = val.all_quarantined_records if getattr(val, "all_quarantined_records", None) else val.sample_quarantined_records
+
+    filtered = []
+    for idx, r in enumerate(records):
+        rec_index = r.get("record_index", r.get("row_index", idx + 1))
+        errs = r.get("errors", r.get("failure_reasons", []))
+        raw = r.get("raw_record", {})
+        err_str = " ".join(errs).lower()
+
+        # Filter by field
+        if field and field.strip() and field.lower() != "all":
+            f_clean = field.strip().lower()
+            if f"'{f_clean}'" not in err_str and f_clean not in err_str:
+                continue
+
+        # Filter by category
+        if category and category.strip() and category.lower() != "all":
+            cat_clean = category.strip().lower()
+            if cat_clean == "allowed values" and not ("not in allowed" in err_str or "enum" in err_str):
+                continue
+            elif cat_clean == "missing required" and not ("required" in err_str or "missing" in err_str):
+                continue
+            elif cat_clean == "date / time" and not ("datetime" in err_str or "date" in err_str):
+                continue
+            elif cat_clean == "pattern mismatch" and not ("pattern" in err_str):
+                continue
+
+        # Search across row index, errors, and values
+        if search and search.strip():
+            s_clean = search.strip().lower()
+            row_token = f"row #{rec_index} {rec_index}".lower()
+            vals_token = " ".join(str(v) for v in raw.values()).lower()
+            if s_clean not in err_str and s_clean not in row_token and s_clean not in vals_token:
+                continue
+
+        filtered.append({
+            "row_index": rec_index,
+            "record_index": rec_index,
+            "failure_reasons": errs,
+            "errors": errs,
+            "raw_record": raw,
+        })
+
+    # Sorting
+    reverse = (sort_dir.lower() == "desc")
+    if sort_by == "row_index":
+        filtered.sort(key=lambda x: int(x["row_index"]), reverse=reverse)
+    elif sort_by in ("rule", "field", "error"):
+        filtered.sort(key=lambda x: (x["errors"][0] if x["errors"] else ""), reverse=reverse)
+
+    total_matching = len(filtered)
+    paged = filtered[offset : offset + limit]
+
+    return {
+        "session_id": session_id,
+        "total_quarantined": len(records),
+        "total_matching": total_matching,
+        "offset": offset,
+        "limit": limit,
+        "records": paged,
+        "error_groups": _aggregate_quarantine_errors(records),
     }
 
 

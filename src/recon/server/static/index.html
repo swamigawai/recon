@@ -775,22 +775,60 @@ div>
             </div>
           </div>
 
-          <!-- Quarantine Diagnostic Ledger -->
-          <div class="recon-card">
-            <div class="recon-card-header">
-              <div>
-                <span style="font-weight: 600;">Quarantine Diagnostic Ledger</span>
-                <span class="badge badge-rose" id="quarantine-count-badge" style="margin-left: 8px;">0 Quarantined</span>
+          <!-- Quarantine Diagnostic Ledger & Interactive Data Grid -->
+          <div class="recon-card" style="margin-bottom: 24px;">
+            <div class="recon-card-header" style="flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600;">Quarantine Forensic Data Grid</span>
+                <span class="badge badge-rose" id="quarantine-count-badge">0 Quarantined</span>
               </div>
-              <span class="text-muted" style="font-size: 11px;">Click row to inspect forensic payload</span>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="text-muted" style="font-size: 11px;">Click row for payload inspection · Click column headers to sort</span>
+              </div>
             </div>
+
+            <!-- Smart Root-Cause Error Triaging -->
+            <div id="quarantine-grouping-section" style="padding: 14px 18px; border-bottom: 1px solid var(--apple-hairline); background: rgba(255, 69, 58, 0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--apple-accent-warning-text); display: flex; align-items: center; gap: 6px;">
+                  <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--apple-accent-warning); box-shadow: 0 0 8px rgba(255, 69, 58, 0.6);"></span>
+                  ROOT-CAUSE ERROR TRIAGING (SORTED BY FREQUENCY)
+                </div>
+                <span class="text-muted" style="font-size: 11px;" id="quarantine-group-count">0 Root Causes</span>
+              </div>
+              <div id="quarantine-error-chips" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            </div>
+
+            <!-- Interactive Toolbar: Live Search, Filter & Pagination -->
+            <div style="padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid var(--apple-hairline); background: var(--apple-surface-secondary); flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px;">
+                <input type="text" id="quarantine-search-box" class="form-input" style="padding: 6px 12px; font-size: 12px; border-radius: 6px;" placeholder="🔍 Live search row #, column, reason, or original data value...">
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <select id="quarantine-field-select" class="form-select" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; width: auto; max-width: 180px;">
+                  <option value="all">All Fields</option>
+                </select>
+                <span id="quarantine-pagination-label" class="text-muted" style="font-size: 11px; white-space: nowrap;">Showing 0 records</span>
+                <div style="display: flex; gap: 4px;">
+                  <button id="quarantine-btn-prev" class="btn btn-secondary btn-sm" style="padding: 4px 10px;" disabled title="Previous 50 Records">‹</button>
+                  <button id="quarantine-btn-next" class="btn btn-secondary btn-sm" style="padding: 4px 10px;" disabled title="Next 50 Records">›</button>
+                </div>
+              </div>
+            </div>
+
             <div class="table-container" style="border: none; border-radius: 0;">
               <table class="recon-table">
                 <thead>
                   <tr>
-                    <th style="width: 12%;">Row Index</th>
-                    <th style="width: 38%;">Failed Target Rule / Contract</th>
-                    <th style="width: 50%;">Error Reason &amp; Diagnostic</th>
+                    <th id="th-sort-row" style="width: 14%; cursor: pointer; user-select: none;" title="Click to sort by Row Index">
+                      Row Index <span id="sort-icon-row" class="text-muted" style="font-size: 10px; margin-left: 4px;">▲</span>
+                    </th>
+                    <th id="th-sort-field" style="width: 36%; cursor: pointer; user-select: none;" title="Click to sort by Target Rule / Field">
+                      Failed Target Rule / Field <span id="sort-icon-field" class="text-muted" style="font-size: 10px; margin-left: 4px;">↕</span>
+                    </th>
+                    <th id="th-sort-diag" style="width: 50%; cursor: pointer; user-select: none;" title="Click to sort by Diagnostic">
+                      Error Reason &amp; Diagnostic <span id="sort-icon-diag" class="text-muted" style="font-size: 10px; margin-left: 4px;">↕</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody id="quarantine-tbody"></tbody>

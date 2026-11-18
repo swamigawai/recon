@@ -3541,40 +3541,395 @@ function renderValidationLab(data) {
     testContainer.appendChild(item);
   });
 
-  // Quarantine Diagnostic Ledger
-  const qTbody = document.getElementById("quarantine-tbody");
-  const qBadge = document.getElementById("quarantine-count-badge");
-  qTbody.innerHTML = "";
-
-  if (quarantined > 0) {
-    qBadge.textContent = `${quarantined} Quarantined`;
-    qBadge.className = "badge badge-rose";
-
-    (val.sample_quarantined_records || []).forEach((qr, index) => {
-      const tr = document.createElement("tr");
-      tr.dataset.index = index;
-      tr.style.cursor = "pointer";
-
-      const reasons = qr.failure_reasons || qr.errors || ["Schema violation"];
-      tr.innerHTML = `
-        <td class="font-mono text-muted">Row #${qr.row_index || qr.record_index || index}</td>
-        <td class="font-mono text-rose" style="font-weight:600;">${escapeHtml(reasons[0])}</td>
-        <td class="text-secondary">${escapeHtml(reasons.join("; "))}</td>
-      `;
-
-      tr.addEventListener("click", () => {
-        selectQuarantineRow(index, qr);
-      });
-
-      qTbody.appendChild(tr);
-    });
-  } else {
-    qBadge.textContent = "0 Quarantined";
-    qBadge.className = "badge badge-emerald";
-    qTbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:16px;">Zero records quarantined. 100% of input rows satisfied target contract schema.</td></tr>`;
-  }
+  // Initialize Interactive Quarantine Data Grid & Smart Root-Cause Triaging
+  initQuarantineDataGrid(data);
 
   updateDynamicIsland();
+}
+
+// =============================================================================
+// Interactive Quarantine Forensic Data Grid & Smart Root-Cause Triaging
+// =============================================================================
+
+let quarantineGridState = {
+  sessionId: "",
+  allRecords: [],
+  errorGroups: [],
+  currentField: "all",
+  searchQuery: "",
+  sortBy: "row_index", // "row_index", "field", "error"
+  sortDir: "asc",      // "asc", "desc"
+  offset: 0,
+  limit: 50,
+  totalMatching: 0,
+  totalQuarantined: 0,
+};
+
+let searchDebounceTimer = null;
+
+function initQuarantineDataGrid(data) {
+  const val = data.validation;
+  quarantineGridState.sessionId = data.session_id || "";
+  quarantineGridState.totalQuarantined = val.quarantined_records_count || 0;
+  quarantineGridState.allRecords = val.sample_quarantined_records || [];
+  quarantineGridState.errorGroups = data.quarantine_error_groups || val.quarantine_error_groups || [];
+  quarantineGridState.currentField = "all";
+  quarantineGridState.searchQuery = "";
+  quarantineGridState.sortBy = "row_index";
+  quarantineGridState.sortDir = "asc";
+  quarantineGridState.offset = 0;
+
+  // Render Root-Cause Error Chips
+  renderQuarantineErrorChips();
+
+  // Populate Field Select Dropdown
+  const fieldSelect = document.getElementById("quarantine-field-select");
+  if (fieldSelect) {
+    fieldSelect.innerHTML = '<option value="all">All Fields</option>';
+    const fields = new Set();
+    quarantineGridState.errorGroups.forEach(g => {
+      if (g.field && g.field !== "General") fields.add(g.field);
+    });
+    fields.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f;
+      opt.textContent = f;
+      fieldSelect.appendChild(opt);
+    });
+    fieldSelect.value = "all";
+    fieldSelect.onchange = (e) => {
+      quarantineGridState.currentField = e.target.value;
+      quarantineGridState.offset = 0;
+      updateActiveErrorChip();
+      fetchOrRenderQuarantineRows();
+    };
+  }
+
+  // Hook up Search Input
+  const searchBox = document.getElementById("quarantine-search-box");
+  if (searchBox) {
+    searchBox.value = "";
+    searchBox.oninput = (e) => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        quarantineGridState.searchQuery = e.target.value.trim();
+        quarantineGridState.offset = 0;
+        fetchOrRenderQuarantineRows();
+      }, 200);
+    };
+  }
+
+  // Hook up Sort Headers
+  const thRow = document.getElementById("th-sort-row");
+  const thField = document.getElementById("th-sort-field");
+  const thDiag = document.getElementById("th-sort-diag");
+
+  if (thRow) {
+    thRow.onclick = () => toggleQuarantineSort("row_index");
+  }
+  if (thField) {
+    thField.onclick = () => toggleQuarantineSort("field");
+  }
+  if (thDiag) {
+    thDiag.onclick = () => toggleQuarantineSort("error");
+  }
+
+  // Hook up Pagination Buttons
+  const btnPrev = document.getElementById("quarantine-btn-prev");
+  const btnNext = document.getElementById("quarantine-btn-next");
+
+  if (btnPrev) {
+    btnPrev.onclick = () => {
+      if (quarantineGridState.offset >= quarantineGridState.limit) {
+        quarantineGridState.offset -= quarantineGridState.limit;
+        fetchOrRenderQuarantineRows();
+      }
+    };
+  }
+  if (btnNext) {
+    btnNext.onclick = () => {
+      if (quarantineGridState.offset + quarantineGridState.limit < quarantineGridState.totalMatching) {
+        quarantineGridState.offset += quarantineGridState.limit;
+        fetchOrRenderQuarantineRows();
+      }
+    };
+  }
+
+  fetchOrRenderQuarantineRows();
+}
+
+function toggleQuarantineSort(column) {
+  if (quarantineGridState.sortBy === column) {
+    quarantineGridState.sortDir = quarantineGridState.sortDir === "asc" ? "desc" : "asc";
+  } else {
+    quarantineGridState.sortBy = column;
+    quarantineGridState.sortDir = "asc";
+  }
+  quarantineGridState.offset = 0;
+  fetchOrRenderQuarantineRows();
+}
+
+function updateSortIcons() {
+  const iconRow = document.getElementById("sort-icon-row");
+  const iconField = document.getElementById("sort-icon-field");
+  const iconDiag = document.getElementById("sort-icon-diag");
+
+  const getArrow = (col) => {
+    if (quarantineGridState.sortBy !== col) return "↕";
+    return quarantineGridState.sortDir === "asc" ? "▲" : "▼";
+  };
+
+  if (iconRow) {
+    iconRow.textContent = getArrow("row_index");
+    iconRow.style.color = quarantineGridState.sortBy === "row_index" ? "var(--apple-accent-action)" : "inherit";
+  }
+  if (iconField) {
+    iconField.textContent = getArrow("field");
+    iconField.style.color = quarantineGridState.sortBy === "field" ? "var(--apple-accent-action)" : "inherit";
+  }
+  if (iconDiag) {
+    iconDiag.textContent = getArrow("error");
+    iconDiag.style.color = quarantineGridState.sortBy === "error" ? "var(--apple-accent-action)" : "inherit";
+  }
+}
+
+function renderQuarantineErrorChips() {
+  const container = document.getElementById("quarantine-error-chips");
+  const countEl = document.getElementById("quarantine-group-count");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const groups = quarantineGridState.errorGroups || [];
+
+  if (countEl) {
+    countEl.textContent = `${groups.length} Root Cause${groups.length !== 1 ? "s" : ""} Identified`;
+  }
+
+  if (groups.length === 0) {
+    container.innerHTML = `<span class="text-muted" style="font-size:12px;">No aggregated failure groups detected.</span>`;
+    return;
+  }
+
+  // "All Errors" chip
+  const allChip = document.createElement("button");
+  allChip.type = "button";
+  allChip.className = "btn btn-secondary btn-sm";
+  allChip.style.fontSize = "11px";
+  allChip.style.padding = "4px 10px";
+  allChip.style.borderRadius = "20px";
+  allChip.dataset.field = "all";
+  allChip.innerHTML = `<strong>All Failures</strong> (${quarantineGridState.totalQuarantined.toLocaleString()})`;
+  allChip.onclick = () => {
+    filterQuarantineByField("all");
+  };
+  container.appendChild(allChip);
+
+  groups.forEach(g => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "btn btn-secondary btn-sm";
+    chip.style.fontSize = "11px";
+    chip.style.padding = "4px 10px";
+    chip.style.borderRadius = "20px";
+    chip.dataset.field = g.field;
+    chip.innerHTML = `
+      <span style="color:var(--apple-accent-warning-text); font-weight:700;">● ${escapeHtml(g.field)}</span> 
+      <span class="text-muted" style="margin-left:4px;">${escapeHtml(g.category)}</span>
+      <span class="badge badge-rose" style="margin-left:6px; font-size:10px; padding:2px 6px;">${Number(g.count).toLocaleString()} (${g.percentage}%)</span>
+    `;
+    chip.onclick = () => {
+      filterQuarantineByField(g.field);
+    };
+    container.appendChild(chip);
+  });
+
+  updateActiveErrorChip();
+}
+
+function updateActiveErrorChip() {
+  const chips = document.querySelectorAll("#quarantine-error-chips button");
+  chips.forEach(c => {
+    const isAct = c.dataset.field === quarantineGridState.currentField;
+    if (isAct) {
+      c.style.borderColor = "var(--apple-accent-warning)";
+      c.style.background = "rgba(255, 69, 58, 0.15)";
+    } else {
+      c.style.borderColor = "";
+      c.style.background = "";
+    }
+  });
+
+  const fieldSelect = document.getElementById("quarantine-field-select");
+  if (fieldSelect && fieldSelect.value !== quarantineGridState.currentField) {
+    fieldSelect.value = quarantineGridState.currentField;
+  }
+}
+
+function filterQuarantineByField(field) {
+  quarantineGridState.currentField = field;
+  quarantineGridState.offset = 0;
+  updateActiveErrorChip();
+  fetchOrRenderQuarantineRows();
+
+  const section = document.getElementById("quarantine-tbody");
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+}
+
+async function fetchOrRenderQuarantineRows() {
+  const qTbody = document.getElementById("quarantine-tbody");
+  const qBadge = document.getElementById("quarantine-count-badge");
+  const paginationLabel = document.getElementById("quarantine-pagination-label");
+  const btnPrev = document.getElementById("quarantine-btn-prev");
+  const btnNext = document.getElementById("quarantine-btn-next");
+
+  updateSortIcons();
+
+  if (quarantineGridState.totalQuarantined === 0) {
+    if (qBadge) {
+      qBadge.textContent = "0 Quarantined";
+      qBadge.className = "badge badge-emerald";
+    }
+    if (qTbody) {
+      qTbody.innerHTML = `<tr><td colspan="3" class="text-muted" style="text-align:center; padding:16px;">Zero records quarantined. 100% of input rows satisfied target contract schema.</td></tr>`;
+    }
+    if (paginationLabel) paginationLabel.textContent = "Showing 0 records";
+    if (btnPrev) btnPrev.disabled = true;
+    if (btnNext) btnNext.disabled = true;
+    return;
+  }
+
+  // Try fetching from server endpoint
+  let records = [];
+  let totalMatching = 0;
+
+  if (quarantineGridState.sessionId) {
+    try {
+      const params = new URLSearchParams({
+        sort_by: quarantineGridState.sortBy,
+        sort_dir: quarantineGridState.sortDir,
+        offset: quarantineGridState.offset,
+        limit: quarantineGridState.limit,
+      });
+      if (quarantineGridState.currentField !== "all") {
+        params.append("field", quarantineGridState.currentField);
+      }
+      if (quarantineGridState.searchQuery) {
+        params.append("search", quarantineGridState.searchQuery);
+      }
+
+      const res = await fetch(`/api/quarantine/records/${quarantineGridState.sessionId}?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        records = data.records || [];
+        totalMatching = data.total_matching || 0;
+      }
+    } catch (err) {
+      console.warn("Server quarantine query failed, falling back to client-side filtering:", err);
+    }
+  }
+
+  // Fallback to client-side filtering & sorting if server fetch returned nothing
+  if (records.length === 0 && quarantineGridState.allRecords.length > 0) {
+    let clientFiltered = [...quarantineGridState.allRecords];
+    if (quarantineGridState.currentField !== "all") {
+      const fClean = quarantineGridState.currentField.toLowerCase();
+      clientFiltered = clientFiltered.filter(r => {
+        const errs = (r.failure_reasons || r.errors || []).join(" ").toLowerCase();
+        return errs.includes(`'${fClean}'`) || errs.includes(fClean);
+      });
+    }
+    if (quarantineGridState.searchQuery) {
+      const q = quarantineGridState.searchQuery.toLowerCase();
+      clientFiltered = clientFiltered.filter(r => {
+        const errs = (r.failure_reasons || r.errors || []).join(" ").toLowerCase();
+        const rowStr = `row #${r.row_index || r.record_index || ""}`.toLowerCase();
+        const vals = Object.values(r.raw_record || {}).join(" ").toLowerCase();
+        return errs.includes(q) || rowStr.includes(q) || vals.includes(q);
+      });
+    }
+
+    const rev = quarantineGridState.sortDir === "desc";
+    if (quarantineGridState.sortBy === "row_index") {
+      clientFiltered.sort((a, b) => rev ? (b.row_index || 0) - (a.row_index || 0) : (a.row_index || 0) - (b.row_index || 0));
+    } else {
+      clientFiltered.sort((a, b) => {
+        const ea = (a.failure_reasons || a.errors || [""])[0];
+        const eb = (b.failure_reasons || b.errors || [""])[0];
+        return rev ? eb.localeCompare(ea) : ea.localeCompare(eb);
+      });
+    }
+
+    totalMatching = clientFiltered.length;
+    records = clientFiltered.slice(quarantineGridState.offset, quarantineGridState.offset + quarantineGridState.limit);
+  }
+
+  quarantineGridState.totalMatching = totalMatching;
+
+  if (qBadge) {
+    qBadge.textContent = `${quarantineGridState.totalQuarantined.toLocaleString()} Quarantined`;
+    qBadge.className = "badge badge-rose";
+  }
+
+  // Update Pagination Controls
+  const startNum = totalMatching > 0 ? quarantineGridState.offset + 1 : 0;
+  const endNum = Math.min(quarantineGridState.offset + records.length, totalMatching);
+  if (paginationLabel) {
+    paginationLabel.textContent = `Showing ${startNum.toLocaleString()}–${endNum.toLocaleString()} of ${totalMatching.toLocaleString()}`;
+  }
+  if (btnPrev) {
+    btnPrev.disabled = quarantineGridState.offset === 0;
+  }
+  if (btnNext) {
+    btnNext.disabled = endNum >= totalMatching;
+  }
+
+  // Render Table Rows
+  if (!qTbody) return;
+  qTbody.innerHTML = "";
+
+  if (records.length === 0) {
+    qTbody.innerHTML = `
+      <tr>
+        <td colspan="3" class="text-muted" style="text-align:center; padding:24px;">
+          No quarantined records match the current filter "${escapeHtml(quarantineGridState.searchQuery || quarantineGridState.currentField)}".
+          <br><button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="quarantineGridState.searchQuery=''; quarantineGridState.currentField='all'; document.getElementById('quarantine-search-box').value=''; updateActiveErrorChip(); fetchOrRenderQuarantineRows();">Clear Filters</button>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  records.forEach((qr, index) => {
+    const tr = document.createElement("tr");
+    tr.dataset.index = index;
+    tr.style.cursor = "pointer";
+
+    const reasons = qr.failure_reasons || qr.errors || ["Schema violation"];
+    const rowId = qr.row_index || qr.record_index || (quarantineGridState.offset + index + 1);
+
+    // Extract target rule/field name
+    const m = reasons[0].match(/for '([^']+)'|field '([^']+)'|'([^']+)' is missing/i);
+    const fieldTag = m ? (m[1] || m[2] || m[3]) : "Schema Rule";
+
+    tr.innerHTML = `
+      <td class="font-mono text-muted" style="font-weight:600;">Row #${rowId}</td>
+      <td class="font-mono" style="font-weight:600;">
+        <span class="badge badge-rose" style="font-size:10.5px; padding:2px 8px;">${escapeHtml(fieldTag)}</span>
+      </td>
+      <td class="text-secondary" style="font-size:12px; line-height:1.4;">${escapeHtml(reasons.join("; "))}</td>
+    `;
+
+    tr.addEventListener("click", () => {
+      selectedQuarantineIndex = index;
+      const rows = document.querySelectorAll("#quarantine-tbody tr");
+      rows.forEach((r, idx) => r.classList.toggle("is-selected", idx === index));
+      openDrawerForQuarantine(qr);
+    });
+
+    qTbody.appendChild(tr);
+  });
 }
 
 function selectQuarantineRow(index, qr) {
@@ -5237,20 +5592,37 @@ function syncAppleStage06(data) {
   if (parityEl) parityEl.textContent = (total === valid + quar) ? "100%" : "FAIL";
   if (drawerHeading) drawerHeading.textContent = `QUARANTINE AUDIT TRAIL (${quar.toLocaleString()} RECORDS)`;
 
-  // Dynamically populate actual quarantine failure reasons if available
+  // Dynamically populate actual root-cause failure breakdown
   const listEl = document.getElementById("apple-quarantine-list");
-  if (listEl && val.sample_quarantined_records && val.sample_quarantined_records.length > 0) {
-    const reasons = {};
-    val.sample_quarantined_records.forEach(r => {
-      const reason = r.reason || r.error || "Contract Invariant Violation";
-      reasons[reason] = (reasons[reason] || 0) + 1;
-    });
-    listEl.innerHTML = Object.entries(reasons).map(([reason, count]) => `
-      <div class="q-item">
-        <span class="q-name">${escapeHtml(reason)}</span>
-        <span class="q-count">${count} record${count > 1 ? "s" : ""}</span>
-      </div>
-    `).join("");
+  if (listEl) {
+    const errorGroups = data.quarantine_error_groups || val.quarantine_error_groups;
+    if (errorGroups && errorGroups.length > 0) {
+      listEl.innerHTML = errorGroups.map(g => `
+        <div class="q-item" style="cursor: pointer;" onclick="filterQuarantineByField('${escapeHtml(g.field)}'); document.getElementById('btn-close-quarantine').click();">
+          <span class="q-name">
+            <strong style="color:var(--apple-text-primary); font-size:13px;">${escapeHtml(g.field)}</strong>
+            <span class="badge badge-rose" style="margin-left:6px; font-size:10px; padding:2px 6px;">${escapeHtml(g.category)}</span>
+            <br><small style="color:var(--apple-text-secondary); font-size:11px;">${escapeHtml(g.sample_error)}</small>
+          </span>
+          <span class="q-count" style="text-align: right; min-width: 90px;">
+            <strong style="color:var(--apple-accent-warning-text); font-size:14px;">${Number(g.count).toLocaleString()}</strong> rows
+            <br><small style="color:var(--apple-text-secondary);">${g.percentage}% of failures</small>
+          </span>
+        </div>
+      `).join("");
+    } else if (val.sample_quarantined_records && val.sample_quarantined_records.length > 0) {
+      const reasons = {};
+      val.sample_quarantined_records.forEach(r => {
+        const reason = (r.failure_reasons || r.errors || ["Contract Invariant Violation"])[0];
+        reasons[reason] = (reasons[reason] || 0) + 1;
+      });
+      listEl.innerHTML = Object.entries(reasons).map(([reason, count]) => `
+        <div class="q-item">
+          <span class="q-name">${escapeHtml(reason)}</span>
+          <span class="q-count">${count} record${count > 1 ? "s" : ""}</span>
+        </div>
+      `).join("");
+    }
   }
 }
 
