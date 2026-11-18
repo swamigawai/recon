@@ -16,6 +16,10 @@ except ImportError:
 from recon.exceptions import IngestionError
 from recon.ingestion.csv_loader import calculate_file_hash
 from recon.ingestion.models import IngestionConfig, RawDataset
+from recon.ingestion.table_detector import (
+    evaluate_sheet_tabular_structure,
+    is_report_footer_row,
+)
 from recon.logging import log_safe_event
 
 
@@ -132,39 +136,82 @@ def load_excel(file_path: str | Path, config: IngestionConfig | None = None) -> 
             )
 
         active_sheet = wb.active or wb[sheet_names[0]]
-        if len(sheet_names) > 1:
+
+        # Intelligent tabular structure detection & sheet selection
+        candidates = []
+        for name in sheet_names:
+            ws = wb[name]
+            sample = [list(r) for i, r in enumerate(ws.iter_rows(values_only=True)) if i < 100]
+            meta = evaluate_sheet_tabular_structure(name, sample, is_active=(name == active_sheet.title))
+            if meta:
+                candidates.append((ws, meta))
+
+        selected_sheet = active_sheet
+        target_meta = None
+
+        if candidates:
+            # Sort by tabular structure score descending
+            candidates.sort(key=lambda c: c[1]["score"], reverse=True)
+            best_ws, best_meta = candidates[0]
+            selected_sheet = best_ws
+            target_meta = best_meta
+
+            if len(sheet_names) > 1:
+                if best_ws.title != active_sheet.title:
+                    warnings.append(
+                        f"Multiple sheets detected in {path.name} ({len(sheet_names)} total: {sheet_names}). "
+                        f"Automatically selected primary tabular sheet '{best_ws.title}'."
+                    )
+                else:
+                    warnings.append(
+                        f"Multiple sheets detected in {path.name} ({len(sheet_names)} total: {sheet_names}). "
+                        f"Ingested active sheet '{active_sheet.title}'."
+                    )
+        elif len(sheet_names) > 1:
             warnings.append(
                 f"Multiple sheets detected in {path.name} ({len(sheet_names)} total: {sheet_names}). "
                 f"Ingested active sheet '{active_sheet.title}'."
             )
 
-        # 3. Read rows from worksheet
-        raw_rows_iter = active_sheet.iter_rows(values_only=True)
-
+        # 3. Read rows from selected worksheet
+        raw_rows_iter = selected_sheet.iter_rows(values_only=True)
         raw_headers = None
-        for r in raw_rows_iter:
-            # Skip completely blank leading rows
-            if r is not None and any(c is not None and str(c).strip() != "" for c in r):
-                raw_headers = list(r)
-                break
+        header_offset = 0
 
-        if raw_headers is None:
-            raise IngestionError(
-                f"Excel worksheet contains no data rows or headers: {path.name}",
-                actionable_suggestion="Check that the Excel worksheet contains a valid header row.",
-                context={"file_path": str(path), "sheet_name": active_sheet.title},
-            )
+        if target_meta is not None:
+            header_offset = target_meta["offset"]
+            raw_headers = list(target_meta["headers"])
+            if target_meta.get("is_offset"):
+                warnings.append(
+                    f"Visual report layout detected in sheet '{selected_sheet.title}': "
+                    f"skipped {header_offset} leading non-tabular row(s). "
+                    f"Table header found at row {header_offset + 1} with {len(raw_headers)} columns."
+                )
+        else:
+            # Fallback to standard row iteration from active_sheet (will raise standard IngestionError if invalid)
+            for r in raw_rows_iter:
+                # Skip completely blank leading rows
+                if r is not None and any(c is not None and str(c).strip() != "" for c in r):
+                    raw_headers = list(r)
+                    break
 
-        # Trim trailing None/empty column headers
-        while raw_headers and (raw_headers[-1] is None or str(raw_headers[-1]).strip() == ""):
-            raw_headers.pop()
+            if raw_headers is None:
+                raise IngestionError(
+                    f"Excel worksheet contains no data rows or headers: {path.name}",
+                    actionable_suggestion="Check that the Excel worksheet contains a valid header row.",
+                    context={"file_path": str(path), "sheet_name": active_sheet.title},
+                )
 
-        if not raw_headers:
-            raise IngestionError(
-                f"Excel header row is empty in {path.name}",
-                actionable_suggestion="Provide an Excel file with non-empty column names in the first data row.",
-                context={"file_path": str(path), "sheet_name": active_sheet.title},
-            )
+            # Trim trailing None/empty column headers
+            while raw_headers and (raw_headers[-1] is None or str(raw_headers[-1]).strip() == ""):
+                raw_headers.pop()
+
+            if not raw_headers:
+                raise IngestionError(
+                    f"Excel header row is empty in {path.name}",
+                    actionable_suggestion="Provide an Excel file with non-empty column names in the first data row.",
+                    context={"file_path": str(path), "sheet_name": active_sheet.title},
+                )
 
         headers: list[str] = []
         for idx, h in enumerate(raw_headers, start=1):
@@ -172,7 +219,7 @@ def load_excel(file_path: str | Path, config: IngestionConfig | None = None) -> 
                 raise IngestionError(
                     f"Empty or blank column header found at column {idx} in {path.name}",
                     actionable_suggestion="Ensure all columns in the header row have meaningful, non-empty names.",
-                    context={"column_index": idx, "file_path": str(path), "sheet_name": active_sheet.title},
+                    context={"column_index": idx, "file_path": str(path), "sheet_name": selected_sheet.title},
                 )
             headers.append(str(h).strip())
 
@@ -183,15 +230,18 @@ def load_excel(file_path: str | Path, config: IngestionConfig | None = None) -> 
             raise IngestionError(
                 f"Duplicate column headers detected in {path.name}: {duplicates}",
                 actionable_suggestion="Rename duplicate columns in the source spreadsheet so every header is unique.",
-                context={"duplicate_headers": duplicates, "file_path": str(path), "sheet_name": active_sheet.title},
+                context={"duplicate_headers": duplicates, "file_path": str(path), "sheet_name": selected_sheet.title},
             )
 
         expected_cols = len(headers)
         rows: list[dict[str, Any]] = []
-        line_num = 1
+        line_num = 0
 
-        for raw_row in raw_rows_iter:
+        for idx, raw_row in enumerate(raw_rows_iter):
             line_num += 1
+            if target_meta is not None and idx <= header_offset:
+                continue
+
             if raw_row is None:
                 continue
 
@@ -201,6 +251,11 @@ def load_excel(file_path: str | Path, config: IngestionConfig | None = None) -> 
             # Check if row is completely empty
             if all(v is None or str(v).strip() == "" for v in row_vals):
                 continue
+
+            # Check if row is report footer commentary / narrative summary
+            if is_report_footer_row(row_vals, expected_cols):
+                warnings.append(f"Ignored report summary/footer commentary starting at line {line_num}.")
+                break
 
             # Handle column width mismatch
             if len(row_vals) < expected_cols:

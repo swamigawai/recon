@@ -153,3 +153,32 @@ def test_max_rows_truncation(tmp_path: Path):
 
     assert dataset.row_count == 5
     assert any("truncated at 5 rows" in w for w in dataset.warnings)
+
+
+def test_csv_visual_report_offset_and_footer(tmp_path: Path):
+    """Verifies that a CSV file containing leading visual banners/questions auto-detects table offset and ignores footers."""
+    csv_file = tmp_path / "dashboard_export.csv"
+    lines = [
+        'Q1) Which age group spends the most on average per purchase?,,,,,,,,',
+        ',,,,,,,,',
+        'Age groups,Avg Purchase Amount,,,,,,,',
+        '18-25,60.65,,,,,,,',
+        '26-35,59.76,,,,,,,',
+        ',,,,,,,,',
+        'CustomerID,Age,Gender,ItemPurchased,Category,Amount',
+        '1,55,Male,Blouse,Clothing,53',
+        '2,19,Male,Sweater,Clothing,64',
+        '3,50,Male,Jeans,Clothing,73',
+        '4,21,Male,Sandals,Footwear,90',
+        '5,45,Female,Shirt,Clothing,45',
+        'Average purchases of Males across all categories stays consistent',
+        'Notes: End of export summary report',
+    ]
+    csv_file.write_text("\n".join(lines), encoding="utf-8")
+
+    dataset = load_csv(csv_file)
+    assert dataset.row_count == 5
+    assert dataset.headers == ["CustomerID", "Age", "Gender", "ItemPurchased", "Category", "Amount"]
+    assert any("Visual report layout detected" in w for w in dataset.warnings)
+    assert any("Ignored report summary/footer commentary" in w for w in dataset.warnings)
+

@@ -161,6 +161,66 @@ def test_xlsx_as_target_contract(sample_xlsx_path: Path):
     assert "total_amount" in contract.fields
 
 
+def test_xlsx_visual_report_multi_sheet_auto_select(tmp_path: Path):
+    """Verifies that a visual workbook with a dashboard active sheet seamlessly selects the raw data sheet."""
+    report_file = tmp_path / "executive_report.xlsx"
+    wb = openpyxl.Workbook()
+    
+    # Active sheet: Dashboard with sparse charts and questions
+    ws_dash = wb.active
+    ws_dash.title = "Executive_Dashboard"
+    ws_dash.append(["Q1) Which category performs best?", "", "", ""])
+    ws_dash.append(["", "", "", ""])
+    ws_dash.append(["Category", "Total", "", ""])
+    ws_dash.append(["Electronics", 50000, "", ""])
+
+    # Data sheet: Continuous rectangular table
+    ws_data = wb.create_sheet(title="Raw Data")
+    ws_data.append(["CustomerID", "Category", "Amount", "Country"])
+    for i in range(1, 11):
+        ws_data.append([i, "Electronics", 100 * i, "US"])
+
+    wb.save(report_file)
+
+    dataset = load_dataset(report_file)
+    assert dataset.row_count == 10
+    assert dataset.headers == ["CustomerID", "Category", "Amount", "Country"]
+    assert any("Automatically selected primary tabular sheet 'Raw Data'" in w for w in dataset.warnings)
+
+
+def test_xlsx_visual_report_offset_table(tmp_path: Path):
+    """Verifies that a single sheet with visual banners and questions auto-detects the offset table and ignores footers."""
+    offset_file = tmp_path / "offset_report.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Report"
+
+    # Leading visual banners and question headers
+    ws.append(["Q1) What is the average spend across regions?", "", "", ""])
+    ws.append(["", "", "", ""])
+    ws.append(["Region", "Average", "", ""])
+    ws.append(["North", 450, "", ""])
+    ws.append(["South", 520, "", ""])
+    ws.append(["", "", "", ""])
+
+    # Real data table starting at row 7
+    ws.append(["OrderID", "Customer", "Region", "Amount", "Status"])
+    for i in range(1, 8):
+        ws.append([i, f"Cust_{i}", "North", 100 * i, "Completed"])
+
+    # Trailing summary / commentary footer
+    ws.append(["Average purchases across all regions show consistent growth."])
+    ws.append(["Notes: Data finalized on 2026-11-18."])
+
+    wb.save(offset_file)
+
+    dataset = load_dataset(offset_file)
+    assert dataset.row_count == 7
+    assert dataset.headers == ["OrderID", "Customer", "Region", "Amount", "Status"]
+    assert any("Visual report layout detected" in w for w in dataset.warnings)
+    assert any("Ignored report summary/footer commentary" in w for w in dataset.warnings)
+
+
 def test_api_assess_endpoint_with_xlsx(sample_xlsx_path: Path):
     """End-to-end integration test: Verifies POST /api/assess succeeds with an uploaded .xlsx source file."""
     client = TestClient(app)

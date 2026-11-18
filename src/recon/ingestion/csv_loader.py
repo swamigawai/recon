@@ -2,11 +2,17 @@
 
 import csv
 import hashlib
+import itertools
 from collections import Counter
 from pathlib import Path
 
 from recon.exceptions import IngestionError
 from recon.ingestion.models import IngestionConfig, RawDataset
+from recon.ingestion.table_detector import (
+    _is_probable_header_row,
+    detect_tabular_header_offset,
+    is_report_footer_row,
+)
 from recon.logging import log_safe_event
 
 
@@ -106,14 +112,38 @@ def load_csv(file_path: str | Path, config: IngestionConfig | None = None) -> Ra
         with open(path, "r", encoding=encoding, newline="") as f:
             reader = csv.reader(f)
 
-            try:
-                raw_headers = next(reader)
-            except StopIteration:
+            # Sample first rows to detect visual reports / table offsets
+            sample_rows: list[list[str]] = []
+            for _ in range(150):
+                try:
+                    sample_rows.append(next(reader))
+                except StopIteration:
+                    break
+
+            if not sample_rows:
                 raise IngestionError(
                     f"File contains no data rows or headers: {path.name}",
                     actionable_suggestion="Check that the CSV file contains a valid header row.",
                     context={"file_path": str(path)},
                 )
+
+            raw_headers = list(sample_rows[0])
+            while raw_headers and not raw_headers[-1].strip():
+                raw_headers.pop()
+
+            header_offset = 0
+            # If row 0 is empty, has blank intermediate headers, or doesn't look like a standard header,
+            # attempt smart table offset detection
+            has_blank_intermediate = not raw_headers or any(not h.strip() for h in raw_headers)
+            if has_blank_intermediate or not _is_probable_header_row(raw_headers):
+                detected = detect_tabular_header_offset(sample_rows)
+                if detected:
+                    header_offset, detected_headers = detected
+                    raw_headers = detected_headers
+                    warnings.append(
+                        f"Visual report layout detected: skipped {header_offset} leading non-tabular row(s). "
+                        f"Table header found at line {header_offset + 1} with {len(raw_headers)} columns."
+                    )
 
             # Validate header presence and whitespace
             if not raw_headers or all(not h.strip() for h in raw_headers):
@@ -149,16 +179,27 @@ def load_csv(file_path: str | Path, config: IngestionConfig | None = None) -> Ra
                     f"Headers with leading/trailing whitespace detected: {whitespace_headers}"
                 )
 
-            headers = raw_headers
+            headers = [h.strip() for h in raw_headers]
             expected_col_count = len(headers)
 
             # Read rows and check row width consistency
-            line_num = 1
-            for row in reader:
+            row_stream = itertools.chain(sample_rows[header_offset + 1 :], reader)
+            line_num = header_offset + 1
+
+            for row in row_stream:
                 line_num += 1
-                if not row:
+                if not row or (header_offset > 0 and all(not str(c).strip() for c in row)):
                     # Skip completely empty lines
                     continue
+
+                # Stop if report footer / commentary notes are encountered
+                if is_report_footer_row(row, expected_col_count):
+                    warnings.append(f"Ignored report summary/footer commentary starting at line {line_num}.")
+                    break
+
+                # If report had extra trailing blank columns beyond expected_col_count, trim them
+                if len(row) > expected_col_count and all(not str(c).strip() for c in row[expected_col_count:]):
+                    row = row[:expected_col_count]
 
                 if len(row) != expected_col_count:
                     if cfg.strict_row_counts:
