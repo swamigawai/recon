@@ -756,7 +756,8 @@ function navigateToStep(stepNumber) {
   SoundEngine.playClick();
 
   // If navigating to certified dossier with passing state, fire confetti & celebration
-  if (stepNumber === 7 && currentResults && String(currentResults.readiness_state).toLowerCase() === "pass") {
+  const isPassState = currentResults && (String(currentResults.readiness_state).toLowerCase() === "pass" || String(currentResults.readiness_state).toLowerCase() === "ready");
+  if (stepNumber === 7 && isPassState) {
     setTimeout(() => {
       triggerConfettiCelebration();
       SoundEngine.playCelebration();
@@ -3954,7 +3955,7 @@ function renderReadinessDossier(data) {
 
   const seal = document.getElementById("dossier-holographic-seal");
 
-  if (state === "pass") {
+  if (state === "pass" || state === "ready") {
     banner.className = "radar-status-card ready";
     heading.textContent = `READINESS: PASS (${data.validation.contract_pass_rate}% Yield)`;
     badge.className = "badge badge-emerald holographic-pill";
