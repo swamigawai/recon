@@ -56,3 +56,7 @@ adapters/generated/
 temp/
 scratch/
 screenshot*.png
+.recon/
+*.db
+*.db-wal
+*.db-shm

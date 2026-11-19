@@ -108,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAccessGate();
   initAppleStage06();
   initContractSuggestionEngine();
+  initRecentSessionsModal();
 
   // Hash-based direct step navigation (e.g. #step-6 or #validate)
   const initialHash = (window.location.hash || "").toLowerCase();
@@ -976,8 +977,48 @@ const SoundEngine = {
         osc.stop(startTime + dur);
       });
     } catch (_) {}
+  },
+
+  playSave: () => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const notes = [659.25, 880.00]; // E5 -> A5 crisp persistence chime
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = now + idx * 0.045;
+        const dur = 0.18;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.04, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + dur);
+      });
+    } catch (_) {}
   }
 };
+
+function triggerHapticPulse(intensity = "medium") {
+  try {
+    if (navigator.vibrate) {
+      if (intensity === "light") navigator.vibrate(10);
+      else if (intensity === "heavy") navigator.vibrate([16, 32, 16]);
+      else navigator.vibrate([12, 24, 12]);
+    }
+  } catch (_) {}
+
+  const badge = document.getElementById("persistence-badge");
+  if (badge) {
+    badge.classList.remove("haptic-pulse");
+    void badge.offsetWidth; // trigger reflow
+    badge.classList.add("haptic-pulse");
+  }
+}
 
 function updateSoundButtonUI() {
   const btn = document.getElementById("btn-sound-toggle");
@@ -1801,8 +1842,9 @@ async function handleAssessIntegration() {
     renderMappingStudio(data);
     renderRiskRadar(data);
 
-    // Audio success feedback
+    // Audio success feedback & tactile pulse
     SoundEngine.playSuccess();
+    triggerHapticPulse("medium");
 
     // Navigate to Profile Matrix (Step 02)
     navigateToStep(2);
@@ -3293,8 +3335,9 @@ async function handleApproveAndGenerate() {
     renderValidationLab(data);
     renderReadinessDossier(data);
 
-    // Audio success feedback
+    // Audio success feedback & tactile pulse
     SoundEngine.playSuccess();
+    triggerHapticPulse("heavy");
 
     // Navigate to Step 05 Adapter
     navigateToStep(5);
@@ -4107,6 +4150,198 @@ function showSessionLostModal() {
 }
 
 // =============================================================================
+// SQLite WAL Persistence & Recent Runs Engine
+// =============================================================================
+
+function initRecentSessionsModal() {
+  const btnRecent = document.getElementById("btn-recent-sessions");
+  const badgePersistence = document.getElementById("persistence-badge");
+  const modal = document.getElementById("modal-recent-sessions");
+  const btnClose = document.getElementById("btn-close-recent-sessions");
+  const btnRefresh = document.getElementById("btn-refresh-recent-sessions");
+
+  if (!modal) return;
+
+  const openRecentModal = () => {
+    modal.classList.remove("hidden");
+    SoundEngine.playClick();
+    triggerHapticPulse("light");
+    loadRecentSessions();
+  };
+
+  const closeRecentModal = () => {
+    modal.classList.add("hidden");
+  };
+
+  if (btnRecent) btnRecent.addEventListener("click", openRecentModal);
+  if (badgePersistence) badgePersistence.addEventListener("click", openRecentModal);
+  if (btnClose) btnClose.addEventListener("click", closeRecentModal);
+  if (btnRefresh) {
+    btnRefresh.addEventListener("click", () => {
+      SoundEngine.playClick();
+      loadRecentSessions();
+    });
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeRecentModal();
+  });
+}
+
+async function loadRecentSessions() {
+  const listEl = document.getElementById("recent-sessions-list");
+  const statusEl = document.getElementById("recent-storage-status-text");
+  if (!listEl) return;
+
+  listEl.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--recon-text-muted); font-size: 12px;">Scanning SQLite storage...</div>`;
+
+  try {
+    const [resSessions, resStats] = await Promise.all([
+      fetch("/api/sessions/recent"),
+      fetch("/api/storage/status").catch(() => null),
+    ]);
+
+    if (!resSessions.ok) throw new Error("Could not load recent runs");
+    const data = await resSessions.json();
+    const sessions = data.sessions || [];
+
+    if (resStats && resStats.ok) {
+      const statsData = await resStats.json();
+      if (statusEl && statsData.storage) {
+        statusEl.textContent = `SQLite WAL Active · ${statsData.storage.total_sessions} sessions saved (${statsData.storage.db_size_kb} KB)`;
+      }
+    }
+
+    if (sessions.length === 0) {
+      listEl.innerHTML = `
+        <div style="padding: 32px; text-align: center; color: var(--recon-text-muted); font-size: 13px;">
+          No previous sessions found in SQLite store.<br>
+          <span style="font-size: 11px; margin-top: 6px; display: inline-block;">Stage a dataset and click "Inspect & Profile" to persist your first run!</span>
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = "";
+    sessions.forEach((sess) => {
+      const card = document.createElement("div");
+      card.className = "recent-run-card";
+
+      const stateLower = (sess.readiness_state || "").toLowerCase();
+      const isReady = stateLower === "ready" || stateLower === "pass";
+      const isBlocked = stateLower === "blocked";
+      const badgeClass = isReady ? "badge-emerald" : isBlocked ? "badge-rose" : "badge-amber";
+      const badgeText = isReady
+        ? `CERTIFIED READY (${sess.pass_rate}% Yield)`
+        : sess.is_compiled
+        ? `${sess.readiness_state} (${sess.pass_rate}% Yield)`
+        : "INSPECTED";
+
+      const dateStr = sess.updated_at ? new Date(sess.updated_at).toLocaleString() : "";
+
+      card.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 3px; max-width: 72%;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="run-title">${escapeHtml(sess.source_filename)}</span>
+            <span class="badge ${badgeClass}" style="font-size: 10px; padding: 2px 7px;">${badgeText}</span>
+          </div>
+          <div class="run-meta">
+            Target: <code>${escapeHtml(sess.contract_name)}</code> · ${sess.total_input_records.toLocaleString()} rows · ${dateStr}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button class="btn btn-primary btn-sm btn-restore-run" style="font-size: 11px; padding: 5px 12px;" data-id="${sess.session_id}">
+            Restore Run →
+          </button>
+        </div>
+      `;
+
+      card.querySelector(".btn-restore-run").addEventListener("click", (e) => {
+        e.stopPropagation();
+        restoreSessionFromStore(sess.session_id);
+      });
+
+      card.addEventListener("click", () => {
+        restoreSessionFromStore(sess.session_id);
+      });
+
+      listEl.appendChild(card);
+    });
+  } catch (err) {
+    listEl.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--recon-rose-text); font-size: 12px;">Failed to load sessions: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function restoreSessionFromStore(sessionId) {
+  const modal = document.getElementById("modal-recent-sessions");
+  if (modal) modal.classList.add("hidden");
+
+  try {
+    const res = await fetch(`/api/session/${sessionId}/restore`);
+    if (!res.ok) throw new Error("Unable to restore session from persistent store.");
+    const data = await res.json();
+
+    currentSessionId = data.session_id;
+    currentAssessment = data.assessment;
+    currentResults = data.results;
+
+    // Update Header Capsule
+    const headerPulse = document.getElementById("header-pulse");
+    if (headerPulse) headerPulse.classList.add("active");
+    const sessionDisplay = document.getElementById("session-id-display");
+    if (sessionDisplay) sessionDisplay.textContent = currentSessionId.slice(0, 12);
+    const contractCapsule = document.getElementById("contract-capsule");
+    if (contractCapsule) contractCapsule.classList.remove("hidden");
+    const contractNameDisplay = document.getElementById("contract-name-display");
+    if (contractNameDisplay && currentAssessment && currentAssessment.contract) {
+      contractNameDisplay.textContent = currentAssessment.contract.contract_name;
+    }
+
+    // Render downstream screens
+    if (currentAssessment) {
+      renderProfileMatrix(currentAssessment);
+      renderMappingStudio(currentAssessment);
+      renderRiskRadar(currentAssessment);
+    }
+
+    if (currentResults) {
+      renderAdapterWorkbench(currentResults);
+      renderValidationLab(currentResults);
+      renderReadinessDossier(currentResults);
+    }
+
+    // Audio & haptic delight
+    SoundEngine.playSave();
+    triggerHapticPulse("heavy");
+
+    // Navigate to highest unlocked step
+    if (currentResults) {
+      navigateToStep(7); // Dossier
+    } else {
+      navigateToStep(2); // Profile
+    }
+
+    // Reassurance banner
+    const banner = document.getElementById("global-error-bar");
+    if (banner) {
+      const bannerTitle = document.getElementById("global-error-title");
+      const bannerMsg = document.getElementById("global-error-msg");
+      if (bannerTitle && bannerMsg) {
+        banner.style.backgroundColor = "var(--recon-emerald-surface, rgba(16, 185, 129, 0.12))";
+        banner.style.borderColor = "var(--recon-emerald-border, rgba(16, 185, 129, 0.3))";
+        banner.style.color = "var(--recon-emerald-text, #34d399)";
+        bannerTitle.textContent = "⚡ RESTORED FROM WAL STORE:";
+        bannerMsg.textContent = `Session '${sessionId.slice(0, 8)}...' restored successfully with zero data loss.`;
+        banner.classList.remove("hidden");
+        setTimeout(() => banner.classList.add("hidden"), 5000);
+      }
+    }
+  } catch (err) {
+    showGlobalError("RESTORE FAILED", err.message);
+  }
+}
+
+// =============================================================================
 // Contextual Inspector Drawer Rendering
 // =============================================================================
 
@@ -4594,6 +4829,8 @@ function bindKeyboardNavigation() {
         if (modalShortcuts) modalShortcuts.classList.add("hidden");
         const modalReset = document.getElementById("modal-reset-session");
         if (modalReset) modalReset.classList.add("hidden");
+        const modalRecent = document.getElementById("modal-recent-sessions");
+        if (modalRecent) modalRecent.classList.add("hidden");
         closeGuide();
         closeTour();
         const island = document.getElementById("recon-dynamic-island");
@@ -4609,6 +4846,23 @@ function bindKeyboardNavigation() {
       if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         toggleShortcutsModal();
+        return;
+      }
+
+      // Recent Runs (R / r)
+      if ((e.key === "r" || e.key === "R") && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const modal = document.getElementById("modal-recent-sessions");
+        if (modal) {
+          if (modal.classList.contains("hidden")) {
+            modal.classList.remove("hidden");
+            SoundEngine.playClick();
+            triggerHapticPulse("light");
+            loadRecentSessions();
+          } else {
+            modal.classList.add("hidden");
+          }
+        }
         return;
       }
 
@@ -4917,6 +5171,24 @@ function renderPaletteResults(query) {
   };
 
   // 1. Actions
+  allItems.push({
+    id: "browse-recent-runs",
+    category: "Quick Actions",
+    icon: svgIcons.action,
+    title: "Browse Recent Inspection Runs (SQLite WAL)",
+    sub: "Restore previous sessions with zero data loss",
+    shortcut: "R",
+    action: () => {
+      const modal = document.getElementById("modal-recent-sessions");
+      if (modal) {
+        modal.classList.remove("hidden");
+        SoundEngine.playClick();
+        triggerHapticPulse("light");
+        loadRecentSessions();
+      }
+    }
+  });
+
   allItems.push({
     id: "load-b2b",
     category: "Quick Actions",

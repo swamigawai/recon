@@ -995,3 +995,66 @@ def test_infer_contract_smart_enum_and_open_field_rules(client: TestClient, tmp_
     assert sorted(fields["FoodPreference"]["allowed_values"]) == ["Non-Veg", "Veg"]
 
 
+def test_sqlite_persistence_status_and_restore(client: TestClient) -> None:
+    """Verifies that storage status, recent sessions, and session restore function across memory clears."""
+    from recon.server.routes import SESSIONS
+
+    # 1. Check storage status endpoint
+    res_status = client.get("/api/storage/status")
+    assert res_status.status_code == 200
+    status_data = res_status.json()
+    assert status_data["success"] is True
+    assert status_data["storage"]["engine"] == "SQLite WAL"
+    assert status_data["storage"]["wal_active"] is True
+
+    # 2. Create a session via assessment and approval
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
+    session_id = res_assess.json()["session_id"]
+
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={"session_id": session_id, "reviewer": "storage_tester", "overrides": {}},
+    )
+    assert res_approve.status_code == 200
+
+    # 3. List recent sessions
+    res_recent = client.get("/api/sessions/recent")
+    assert res_recent.status_code == 200
+    recent_data = res_recent.json()
+    assert recent_data["success"] is True
+    assert recent_data["total"] > 0
+    matching_sess = next((s for s in recent_data["sessions"] if s["session_id"] == session_id), None)
+    assert matching_sess is not None
+    assert matching_sess["is_compiled"] is True
+
+    # 4. SIMULATE RESTART: Wipe memory cache completely!
+    SESSIONS.clear()
+    assert session_id not in SESSIONS
+
+    # 5. Restore session from SQLite store
+    res_restore = client.get(f"/api/session/{session_id}/restore")
+    assert res_restore.status_code == 200
+    restored = res_restore.json()
+    assert restored["success"] is True
+    assert restored["session_id"] == session_id
+    assert restored["readiness_state"] in ("READY", "NEEDS_REVIEW", "PASS")
+    assert "source" in restored["assessment"]
+
+    # 6. Verify downloads work directly from SQLite even though memory was wiped!
+    res_adapter = client.get(f"/api/download/adapter/{session_id}")
+    assert res_adapter.status_code == 200
+    assert "def transform_record(" in res_adapter.text
+
+    res_report = client.get(f"/api/download/report/{session_id}")
+    assert res_report.status_code == 200
+    assert "# Recon Integration Readiness Report" in res_report.text
+
+
+

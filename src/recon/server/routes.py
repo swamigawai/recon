@@ -32,12 +32,15 @@ from recon.reporting.generator import build_readiness_report, render_markdown_re
 from recon.reporting.models import ReadinessReport
 from recon.risks.evaluator import evaluate_risks
 from recon.risks.models import RiskAssessment
+from recon.logging import log_safe_event
+from recon.storage.store import ReconStore, get_default_store
 from recon.validation.executor import validate_adapter
 from recon.validation.models import ValidationResult
 
 router = APIRouter(prefix="/api")
 
-# Session storage for in-flight evaluations
+# Persistent zero-config SQLite WAL store & in-memory cache
+store: ReconStore = get_default_store()
 SESSIONS: dict[str, dict[str, Any]] = {}
 TEMP_DIRS: dict[str, tempfile.TemporaryDirectory] = {}
 MAX_SESSIONS = 50
@@ -54,6 +57,10 @@ def _prune_old_sessions() -> None:
                 old_temp.cleanup()
             except Exception:
                 pass
+    try:
+        store.prune_sessions(keep_latest=MAX_SESSIONS)
+    except Exception:
+        pass
 
 
 MAX_SOURCE_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
@@ -573,7 +580,7 @@ async def assess_integration(
         for f in risks.findings
     ]
 
-    return {
+    assessment_response = {
         "session_id": session_id,
         "source": {
             "file_name": dataset.file_name,
@@ -609,6 +616,20 @@ async def assess_integration(
         "critical_risks_count": len(risks.critical_findings),
         "high_risks_count": len(risks.high_findings),
     }
+
+    # Persist session to SQLite WAL store
+    try:
+        store.save_assessment(
+            session_id=session_id,
+            assessment_data=assessment_response,
+            source_path=source_path,
+            contract_path=contract_path,
+        )
+    except Exception as exc:
+        log_safe_event("session_storage_warning", {"error": str(exc), "session_id": session_id})
+
+    SESSIONS[session_id]["assessment_response"] = assessment_response
+    return assessment_response
 
 
 def _aggregate_quarantine_errors(quarantined_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -769,7 +790,7 @@ def approve_and_generate(http_req: Request, request: ApprovalRequest) -> dict[st
     session["report_md"] = report_md
     session["report_json"] = report_json
 
-    return {
+    results_response = {
         "session_id": request.session_id,
         "readiness_state": report.readiness_state.value,
         "readiness_rationale": report.readiness_rationale,
@@ -815,6 +836,24 @@ def approve_and_generate(http_req: Request, request: ApprovalRequest) -> dict[st
         },
         "report_markdown": report_md,
     }
+
+    # Persist compilation results & quarantine index in SQLite WAL store
+    try:
+        quar_recs = validation.all_quarantined_records if getattr(validation, "all_quarantined_records", None) else validation.sample_quarantined_records
+        store.save_results(
+            session_id=request.session_id,
+            results_data=results_response,
+            adapter_code=adapter.python_code,
+            report_md=report_md,
+            report_json=report_json,
+            mapping_spec_json=session.get("mapping_spec_json", ""),
+            quarantine_records=quar_recs,
+        )
+    except Exception as exc:
+        log_safe_event("session_results_storage_warning", {"error": str(exc), "session_id": request.session_id})
+
+    session["results_response"] = results_response
+    return results_response
 
 
 @router.get("/quarantine/records/{session_id}")
@@ -906,12 +945,22 @@ def download_report(session_id: str, format: str = "md") -> Response:
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
-    if not session or "report_md" not in session:
+    report_md = session.get("report_md") if session else None
+    report_json = session.get("report_json") if session else None
+
+    # Fall back to persistent SQLite store
+    if not report_md or not report_json:
+        stored = store.get_session(session_id)
+        if stored:
+            report_md = report_md or stored.get("report_md")
+            report_json = report_json or stored.get("report_json")
+
+    if not report_md:
         raise HTTPException(status_code=404, detail="Readiness report not found. Run approval and validation first.")
 
     safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
     if format == "json":
-        content = json.dumps(session["report_json"], indent=2)
+        content = json.dumps(report_json, indent=2) if isinstance(report_json, dict) else str(report_json)
         return Response(
             content=content,
             media_type="application/json",
@@ -919,7 +968,7 @@ def download_report(session_id: str, format: str = "md") -> Response:
         )
 
     return PlainTextResponse(
-        content=session["report_md"],
+        content=report_md,
         media_type="text/markdown",
         headers={"Content-Disposition": f'attachment; filename="readiness_report_{safe_id}.md"'}
     )
@@ -931,13 +980,23 @@ def download_adapter(session_id: str) -> Response:
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
-    if not session or "adapter" not in session:
+    adapter = session.get("adapter") if session else None
+    python_code = adapter.python_code if adapter else None
+    adapter_name = adapter.adapter_name if adapter else None
+
+    # Fall back to persistent SQLite store
+    if not python_code:
+        stored = store.get_session(session_id)
+        if stored and stored.get("adapter_code"):
+            python_code = stored["adapter_code"]
+            adapter_name = f"{stored.get('contract_name', 'integration')}_adapter"
+
+    if not python_code:
         raise HTTPException(status_code=404, detail="Adapter code not generated yet.")
 
-    adapter = session["adapter"]
-    safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", adapter.adapter_name)
+    safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", adapter_name or "adapter")
     return PlainTextResponse(
-        content=adapter.python_code,
+        content=python_code,
         media_type="text/x-python",
         headers={"Content-Disposition": f'attachment; filename="{safe_name}.py"'}
     )
@@ -1106,18 +1165,65 @@ async def upload_mapping_spec(
     }
 
 
+@router.get("/sessions/recent")
+def list_recent_sessions(limit: int = 20) -> dict[str, Any]:
+    """Returns list of recent inspection sessions saved in SQLite WAL store."""
+    sessions = store.list_recent_sessions(limit=limit)
+    return {"success": True, "sessions": sessions, "total": len(sessions)}
+
+
+@router.get("/session/{session_id}/restore")
+def restore_session(session_id: str) -> dict[str, Any]:
+    """Restores full session state (assessment + results) across server reboots or tab switches."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    stored = store.get_session(session_id)
+    if not stored or not stored.get("assessment"):
+        raise HTTPException(status_code=404, detail="Session not found in persistent store.")
+
+    # Cache in memory
+    SESSIONS[session_id] = {
+        "assessment_response": stored["assessment"],
+        "results_response": stored.get("results"),
+        "report_md": stored.get("report_md"),
+        "report_json": stored.get("report_json"),
+        "adapter_code": stored.get("adapter_code"),
+        "source_path": stored.get("source_path"),
+        "contract_path": stored.get("contract_path"),
+    }
+
+    return {
+        "success": True,
+        "session_id": session_id,
+        "assessment": stored["assessment"],
+        "results": stored.get("results"),
+        "readiness_state": stored.get("readiness_state"),
+        "pass_rate": stored.get("pass_rate"),
+        "adapter_code": stored.get("adapter_code"),
+        "created_at": stored.get("created_at"),
+        "updated_at": stored.get("updated_at"),
+    }
+
+
+@router.get("/storage/status")
+def get_storage_status() -> dict[str, Any]:
+    """Returns SQLite WAL storage health, persistence status, and session counts."""
+    return {"success": True, "storage": store.get_storage_stats()}
+
+
 @router.delete("/session/{session_id}")
 def delete_session(session_id: str) -> dict[str, str]:
-    """Explicitly terminates a session and cleans up its temporary directory and artifacts."""
+    """Explicitly terminates a session and cleans up its temporary directory, memory, and database records."""
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.pop(session_id, None)
     temp_dir = TEMP_DIRS.pop(session_id, None)
+    store_deleted = store.delete_session(session_id)
     if temp_dir:
         try:
             temp_dir.cleanup()
         except Exception:
             pass
-    if not session and not temp_dir:
+    if not session and not temp_dir and not store_deleted:
         raise HTTPException(status_code=404, detail="Session not found.")
     return {"status": "cleaned", "session_id": session_id}

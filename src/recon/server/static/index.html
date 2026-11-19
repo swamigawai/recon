@@ -37,7 +37,7 @@
           <span class="status-dot" id="header-pulse" style="width: 7px; height: 7px;"></span>
           <span class="recon-capsule-tag">Session</span>
           <span id="session-id-display">sess_empty</span>
-          <span class="recon-capsule-tag">In-Memory</span>
+          <span class="recon-capsule-tag" id="persistence-badge" style="cursor: pointer; color: var(--apple-accent-action); font-weight: 600;" title="Backed by local SQLite WAL Store (0 RAM Loss on restart)">⚡ SQLite WAL</span>
         </div>
         <div class="recon-capsule hidden" id="contract-capsule">
           <span class="recon-capsule-tag">Target</span>
@@ -47,6 +47,9 @@
       </div>
 
       <div class="recon-header-right">
+        <button id="btn-recent-sessions" class="btn btn-ghost btn-sm" title="Browse and restore previous inspection runs [R]" aria-label="Recent Runs">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-action);"><circle cx="8" cy="8" r="7"/><polyline points="8,4 8,8 11,9.5"/></svg> <span>Recent Runs</span>
+        </button>
         <button id="btn-command-palette" class="btn btn-ghost btn-sm" title="Command Palette [⌘K / Ctrl+K]" aria-label="Open Command Palette">
           <span style="font-size: 13px;">⌘</span> <span>Command</span> <kbd>⌘K</kbd>
         </button>
@@ -1313,6 +1316,37 @@ div>
       </table>
       <div class="recon-modal-footer">
         <button class="btn btn-primary" id="btn-close-shortcuts">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Sessions Modal (SQLite WAL Store) -->
+  <div class="recon-modal-backdrop hidden" id="modal-recent-sessions" role="dialog" aria-modal="true" aria-labelledby="recent-sessions-title">
+    <div class="recon-modal" style="max-width: 680px; width: 92%; max-height: 85vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--recon-border-subtle); padding-bottom: 12px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px; color: var(--apple-accent-action);">⚡</span>
+          <div>
+            <h3 class="recon-modal-title" id="recent-sessions-title" style="margin: 0; font-size: 15px;">Recent Inspection Runs</h3>
+            <p class="text-secondary" style="font-size: 11px; margin: 2px 0 0 0;">
+              Persisted safely in local SQLite WAL Store. Click any run to instantly restore.
+            </p>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-close-recent-sessions" style="padding: 4px 8px; font-size: 14px;">✕</button>
+      </div>
+
+      <div id="recent-sessions-list" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; min-height: 180px;">
+        <div style="padding: 32px; text-align: center; color: var(--recon-text-muted); font-size: 12px;">
+          Scanning SQLite storage...
+        </div>
+      </div>
+
+      <div class="recon-modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--recon-border-subtle);">
+        <span style="font-size: 11px; font-family: var(--font-mono); color: var(--recon-text-muted);" id="recent-storage-status-text">
+          Engine: SQLite WAL · Zero RAM Loss
+        </span>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh-recent-sessions">Refresh</button>
       </div>
     </div>
   </div>
