@@ -5432,3 +5432,187 @@ button:active:not(:disabled),
   border-color: rgba(0, 0, 0, 0.18) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
 }
+
+/* ====================================================================
+   1-Click Smart Remediation Engine Styling
+   ==================================================================== */
+
+.rem-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: var(--radius-md, 10px);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.06);
+  animation: remBannerGlow 3s infinite alternate ease-in-out;
+  transition: all 0.2s ease;
+}
+
+.rem-banner:hover {
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.12);
+}
+
+@keyframes remBannerGlow {
+  0% { border-color: rgba(16, 185, 129, 0.3); }
+  100% { border-color: rgba(99, 102, 241, 0.45); }
+}
+
+.rem-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rem-banner-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--recon-emerald-text, #10b981);
+  flex-shrink: 0;
+}
+
+.rem-banner-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--recon-text-primary, #f3f4f6);
+}
+
+.rem-banner-sub {
+  font-size: 12px;
+  color: var(--recon-text-secondary, #9ca3af);
+  margin: 2px 0 0 0;
+  line-height: 1.4;
+}
+
+.rem-modal-container {
+  max-width: 740px !important;
+  width: 92% !important;
+  max-height: 86vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.rem-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--recon-border-subtle, rgba(255, 255, 255, 0.08));
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.rem-modal-lightning {
+  font-size: 18px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.rem-candidates-scroll {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+  min-height: 200px;
+}
+
+.rem-candidate-card {
+  background: var(--recon-bg-subtle, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--recon-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.15s ease;
+}
+
+.rem-candidate-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.rem-candidate-card.selected {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.03);
+}
+
+.rem-candidate-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rem-diff-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--recon-border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  flex-wrap: wrap;
+}
+
+.rem-diff-pill-raw {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.rem-diff-pill-arrow {
+  color: var(--recon-text-muted, #6b7280);
+  font-weight: bold;
+}
+
+.rem-diff-pill-clean {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.rem-ast-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a5b4fc;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.rem-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--recon-border-subtle, rgba(255, 255, 255, 0.08));
+}

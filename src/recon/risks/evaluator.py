@@ -67,7 +67,7 @@ def evaluate_risks(
         # -------------------------------------------------------------
         # Example: Target expects integer or float, but source is string and cannot be parsed
         if target_field.target_type in (ContractType.INTEGER, ContractType.FLOAT):
-            if src_col.inferred_type == InferredType.STRING:
+            if src_col.inferred_type == InferredType.STRING and not proposal.transformation_rule:
                 findings.append(
                     RiskFinding(
                         rule_id="R002_INCOMPATIBLE_TYPES",

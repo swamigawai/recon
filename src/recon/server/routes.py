@@ -33,6 +33,9 @@ from recon.reporting.models import ReadinessReport
 from recon.risks.evaluator import evaluate_risks
 from recon.risks.models import RiskAssessment
 from recon.logging import log_safe_event
+from recon.remediation.applier import apply_remediations
+from recon.remediation.detector import detect_remediations
+from recon.remediation.models import ApplyRemediationRequest, RemediationPlan
 from recon.storage.store import ReconStore, get_default_store
 from recon.validation.executor import validate_adapter
 from recon.validation.models import ValidationResult
@@ -522,6 +525,7 @@ async def assess_integration(
 
     # Store in session and evict oldest if limit exceeded
     SESSIONS[session_id] = {
+        "session_id": session_id,
         "dataset": dataset,
         "profile": profile,
         "contract": contract,
@@ -937,6 +941,87 @@ def get_quarantine_records(
         "records": paged,
         "error_groups": _aggregate_quarantine_errors(records),
     }
+
+
+def _ensure_session_objects(session_id: str) -> dict[str, Any] | None:
+    """Hydrates core data structures (dataset, profile, contract, plan) if session was reloaded from SQLite."""
+    session = SESSIONS.get(session_id)
+    if session and "contract" in session and "dataset" in session:
+        return session
+
+    stored = store.get_session(session_id)
+    if not stored:
+        return None
+
+    src_path = stored.get("source_path")
+    ctr_path = stored.get("contract_path")
+    if not src_path or not ctr_path or not Path(src_path).is_file() or not Path(ctr_path).is_file():
+        return session
+
+    try:
+        dataset = load_dataset(src_path)
+        profile = profile_dataset(dataset)
+        contract = load_target_contract(ctr_path)
+        plan = propose_mappings(profile, contract)
+        risks = evaluate_risks(profile, contract, plan)
+
+        if session is None:
+            session = {}
+            SESSIONS[session_id] = session
+
+        session["session_id"] = session_id
+        session["dataset"] = dataset
+        session["profile"] = profile
+        session["contract"] = contract
+        session["plan"] = plan
+        session["risks"] = risks
+        return session
+    except Exception as exc:
+        log_safe_event("session_hydration_warning", {"error": str(exc), "session_id": session_id})
+        return session
+
+
+@router.get("/remediation/candidates/{session_id}")
+def get_remediation_candidates(http_req: Request, session_id: str) -> dict[str, Any]:
+    """Returns detected 1-click remediation candidates with AST snippets, before/after diffs, and projected yield."""
+    _check_access(http_req)
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    session = _ensure_session_objects(session_id)
+    if not session or "contract" not in session or "plan" not in session:
+        raise HTTPException(status_code=404, detail="Active integration session not found. Please re-assess first.")
+
+    plan: RemediationPlan = detect_remediations(
+        contract=session["contract"],
+        mapping_plan=session["plan"],
+        profile=session.get("profile"),
+        validation_result=session.get("validation"),
+        session_id=session_id,
+    )
+    return plan.model_dump(mode="json")
+
+
+@router.post("/remediation/apply")
+def apply_remediation_endpoint(http_req: Request, request: ApplyRemediationRequest) -> dict[str, Any]:
+    """Applies selected remediation transformations, re-synthesizes the AST adapter, and returns updated results."""
+    _check_access(http_req)
+    session_id = request.session_id
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    session = _ensure_session_objects(session_id)
+    if not session or "contract" not in session or "dataset" not in session or "plan" not in session:
+        raise HTTPException(status_code=404, detail="Active integration session not found. Please re-assess first.")
+
+    try:
+        remediation_outcome = apply_remediations(
+            session=session,
+            selected_candidate_ids=request.selected_candidate_ids,
+            reviewer=request.reviewer,
+            store=store,
+        )
+        return remediation_outcome
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to apply remediation: {exc}")
 
 
 @router.get("/download/report/{session_id}")

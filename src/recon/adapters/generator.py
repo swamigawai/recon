@@ -78,8 +78,14 @@ def generate_adapter(
 
         # Parse / Transform non-null value
         if tgt_type == ContractType.STRING:
-            if "uppercase" in trans_rule or (allowed_vals and any(v.isupper() for v in allowed_vals)):
+            if "case_insensitive" in trans_rule and allowed_vals:
+                allowed_repr = repr(allowed_vals)
+                block.append(f"        enum_map_{var_name} = {{v.lower().strip(): v for v in {allowed_repr}}}")
+                block.append(f"        parsed_{var_name} = enum_map_{var_name}.get(val_{var_name}.lower().strip(), val_{var_name}.strip())")
+            elif "uppercase" in trans_rule or (allowed_vals and any(v.isupper() for v in allowed_vals)):
                 block.append(f"        parsed_{var_name} = val_{var_name}.upper()")
+            elif "strip" in trans_rule:
+                block.append(f"        parsed_{var_name} = val_{var_name}.strip()")
             else:
                 block.append(f"        parsed_{var_name} = val_{var_name}")
 
@@ -99,34 +105,63 @@ def generate_adapter(
 
         elif tgt_type == ContractType.INTEGER:
             block.append("        try:")
-            block.append(f"            output['{safe_tgt}'] = int(raw_val_{var_name}) if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool) else int(val_{var_name})")
+            if "clean_currency" in trans_rule or "clean_numeric" in trans_rule or "strip_currency" in trans_rule:
+                block.append(f"            if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool):")
+                block.append(f"                output['{safe_tgt}'] = int(raw_val_{var_name})")
+                block.append("            else:")
+                block.append(f"                clean_num_{var_name} = re.sub(r'[\\$,€£¥\\s]', '', val_{var_name}).replace(',', '')")
+                block.append(f"                output['{safe_tgt}'] = int(float(clean_num_{var_name}))")
+            else:
+                block.append(f"            output['{safe_tgt}'] = int(raw_val_{var_name}) if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool) else int(val_{var_name})")
             block.append("        except (ValueError, TypeError):")
             block.append(f"            errors.append(f\"Cannot parse integer for '{safe_tgt}' from '{{raw_val_{var_name}}}'\")")
             block.append(f"            output['{safe_tgt}'] = None")
 
         elif tgt_type == ContractType.FLOAT:
             block.append("        try:")
-            block.append(f"            output['{safe_tgt}'] = float(raw_val_{var_name}) if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool) else float(val_{var_name})")
+            if "clean_currency" in trans_rule or "clean_numeric" in trans_rule or "strip_currency" in trans_rule:
+                block.append(f"            if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool):")
+                block.append(f"                output['{safe_tgt}'] = float(raw_val_{var_name})")
+                block.append("            else:")
+                block.append(f"                clean_num_{var_name} = re.sub(r'[\\$,€£¥\\s]', '', val_{var_name}).replace(',', '')")
+                block.append(f"                output['{safe_tgt}'] = float(clean_num_{var_name})")
+            elif "clean_percentage" in trans_rule:
+                block.append(f"            clean_pct_{var_name} = val_{var_name}.replace('%', '').strip()")
+                block.append(f"            output['{safe_tgt}'] = float(clean_pct_{var_name})")
+            else:
+                block.append(f"            output['{safe_tgt}'] = float(raw_val_{var_name}) if isinstance(raw_val_{var_name}, (int, float)) and not isinstance(raw_val_{var_name}, bool) else float(val_{var_name})")
             block.append("        except (ValueError, TypeError):")
             block.append(f"            errors.append(f\"Cannot parse float for '{safe_tgt}' from '{{raw_val_{var_name}}}'\")")
             block.append(f"            output['{safe_tgt}'] = None")
 
         elif tgt_type == ContractType.DATETIME:
-            # Datetime parsing
-            # Default to standard ISO-8601 unless non-standard format is captured in transformation rule
-            fmt = "%Y-%m-%dT%H:%M:%SZ"
+            custom_fmt = None
             if "parse_datetime('" in trans_rule:
                 match = re.search(r"parse_datetime\('([^']+)'\)", trans_rule)
                 if match:
-                    fmt = match.group(1)
+                    custom_fmt = match.group(1)
 
-            safe_fmt = fmt.replace("\\", "\\\\").replace("'", "\\'")
-            block.append("        try:")
-            block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_fmt}')")
-            block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')")
-            block.append("        except (ValueError, TypeError):")
-            block.append(f"            errors.append(f\"Cannot parse datetime for '{safe_tgt}' using format '{safe_fmt}' from '{{val_{var_name}}}'\")")
-            block.append(f"            output['{safe_tgt}'] = None")
+            if custom_fmt:
+                safe_custom = custom_fmt.replace("\\", "\\\\").replace("'", "\\'")
+                block.append("        try:")
+                block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_custom}')")
+                block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')")
+                block.append("        except (ValueError, TypeError):")
+                block.append("            try:")
+                block.append(f"                dt = datetime.strptime(val_{var_name}, '%Y-%m-%dT%H:%M:%SZ')")
+                block.append(f"                output['{safe_tgt}'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')")
+                block.append("            except (ValueError, TypeError):")
+                block.append(f"                errors.append(f\"Cannot parse datetime for '{safe_tgt}' using format '{safe_custom}' from '{{val_{var_name}}}'\")")
+                block.append(f"                output['{safe_tgt}'] = None")
+            else:
+                fmt = "%Y-%m-%dT%H:%M:%SZ"
+                safe_fmt = fmt.replace("\\", "\\\\").replace("'", "\\'")
+                block.append("        try:")
+                block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_fmt}')")
+                block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')")
+                block.append("        except (ValueError, TypeError):")
+                block.append(f"            errors.append(f\"Cannot parse datetime for '{safe_tgt}' using format '{safe_fmt}' from '{{val_{var_name}}}'\")")
+                block.append(f"            output['{safe_tgt}'] = None")
 
         elif tgt_type == ContractType.BOOLEAN:
             block.append(f"        if isinstance(raw_val_{var_name}, bool):")
@@ -140,18 +175,33 @@ def generate_adapter(
             block.append(f"            output['{safe_tgt}'] = None")
 
         elif tgt_type == ContractType.DATE:
-            fmt = "%Y-%m-%d"
+            custom_fmt = None
             if "parse_date('" in trans_rule or "parse_datetime('" in trans_rule:
                 match = re.search(r"parse_(?:date|datetime)\('([^']+)'\)", trans_rule)
                 if match:
-                    fmt = match.group(1)
-            safe_fmt = fmt.replace("\\", "\\\\").replace("'", "\\'")
-            block.append("        try:")
-            block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_fmt}')")
-            block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%d')")
-            block.append("        except (ValueError, TypeError):")
-            block.append(f"            errors.append(f\"Cannot parse date for '{safe_tgt}' using format '{safe_fmt}' from '{{val_{var_name}}}'\")")
-            block.append(f"            output['{safe_tgt}'] = None")
+                    custom_fmt = match.group(1)
+
+            if custom_fmt:
+                safe_custom = custom_fmt.replace("\\", "\\\\").replace("'", "\\'")
+                block.append("        try:")
+                block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_custom}')")
+                block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%d')")
+                block.append("        except (ValueError, TypeError):")
+                block.append("            try:")
+                block.append(f"                dt = datetime.strptime(val_{var_name}, '%Y-%m-%d')")
+                block.append(f"                output['{safe_tgt}'] = dt.strftime('%Y-%m-%d')")
+                block.append("            except (ValueError, TypeError):")
+                block.append(f"                errors.append(f\"Cannot parse date for '{safe_tgt}' using format '{safe_custom}' from '{{val_{var_name}}}'\")")
+                block.append(f"                output['{safe_tgt}'] = None")
+            else:
+                fmt = "%Y-%m-%d"
+                safe_fmt = fmt.replace("\\", "\\\\").replace("'", "\\'")
+                block.append("        try:")
+                block.append(f"            dt = datetime.strptime(val_{var_name}, '{safe_fmt}')")
+                block.append(f"            output['{safe_tgt}'] = dt.strftime('%Y-%m-%d')")
+                block.append("        except (ValueError, TypeError):")
+                block.append(f"            errors.append(f\"Cannot parse date for '{safe_tgt}' using format '{safe_fmt}' from '{{val_{var_name}}}'\")")
+                block.append(f"            output['{safe_tgt}'] = None")
 
         else:
             # Fallback for any other type / generic string coercion

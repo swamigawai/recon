@@ -109,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAppleStage06();
   initContractSuggestionEngine();
   initRecentSessionsModal();
+  initRemediationModal();
 
   // Hash-based direct step navigation (e.g. #step-6 or #validate)
   const initialHash = (window.location.hash || "").toLowerCase();
@@ -831,6 +832,7 @@ function navigateToStep(stepNumber) {
     dossierParityEl.textContent = (total === valid + quar) ? "100%" : "FAIL";
   }
 
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
 }
 
@@ -1529,6 +1531,7 @@ function updatePreflightStatus() {
     btnAssess.disabled = !(sourceReady && contractReady);
   }
 
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
   updatePreflightPeek();
 }
@@ -2434,6 +2437,7 @@ function handleMappingChange(targetField, newSourceVal) {
   highlightFlowStream(targetField, false);
 
   // 6. Dynamic Health Island Status
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
 }
 
@@ -3268,6 +3272,7 @@ function updateApprovalGateState() {
     }
   }
 
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
 }
 
@@ -3592,7 +3597,9 @@ function renderValidationLab(data) {
 
   // Initialize Interactive Quarantine Data Grid & Smart Root-Cause Triaging
   initQuarantineDataGrid(data);
+  checkAndRenderRemediationBanners(data);
 
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
 }
 
@@ -4052,6 +4059,7 @@ function renderReadinessDossier(data) {
     artDlSpec.href = `/api/download/mapping-spec/${sessionId}`;
   }
 
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
 }
 
@@ -4339,6 +4347,332 @@ async function restoreSessionFromStore(sessionId) {
   } catch (err) {
     showGlobalError("RESTORE FAILED", err.message);
   }
+}
+
+// =============================================================================
+// 1-Click Smart Remediation Engine Controller
+// =============================================================================
+
+let currentRemediationPlan = null;
+
+async function checkAndRenderRemediationBanners(data) {
+  const bannerStep6 = document.getElementById("rem-trigger-banner-step6");
+  const bannerStep7 = document.getElementById("rem-trigger-banner-step7");
+  const tagStep6 = document.getElementById("rem-banner-yield-tag");
+  const tagStep7 = document.getElementById("dossier-rem-gain-badge");
+  const subStep6 = document.getElementById("rem-banner-sub-text");
+  const subStep7 = document.getElementById("dossier-rem-sub-text");
+
+  const activeData = data || currentResults || currentAssessment;
+  const sessionId = activeData?.session_id || currentSessionId;
+  const quarantined = activeData?.validation?.quarantined_records_count || 0;
+  const stateStr = (activeData?.readiness_state || "").toLowerCase();
+  const isBlocked = stateStr === "blocked" || stateStr === "needs_review";
+
+  if (!sessionId || (quarantined === 0 && !isBlocked)) {
+    if (bannerStep6) bannerStep6.classList.add("hidden");
+    if (bannerStep7) bannerStep7.classList.add("hidden");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/remediation/candidates/${sessionId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      if (bannerStep6) bannerStep6.classList.add("hidden");
+      if (bannerStep7) bannerStep7.classList.add("hidden");
+      return;
+    }
+    const plan = await res.json();
+    currentRemediationPlan = plan;
+
+    if (!plan.candidates || plan.candidates.length === 0) {
+      if (bannerStep6) bannerStep6.classList.add("hidden");
+      if (bannerStep7) bannerStep7.classList.add("hidden");
+      return;
+    }
+
+    const gain = Math.max(0, plan.projected_pass_rate - plan.current_pass_rate).toFixed(1);
+    const gainText = `+${gain}% Yield Gain (${plan.projected_rescued_records} Rows Rescued)`;
+    const subText = `Recon detected ${plan.candidates.length} deterministic transformation ${plan.candidates.length > 1 ? "fixes" : "fix"} that can boost yield from ${plan.current_pass_rate}% to ${plan.projected_pass_rate}%.`;
+
+    if (bannerStep6) {
+      bannerStep6.classList.remove("hidden");
+      if (tagStep6) tagStep6.textContent = gainText;
+      if (subStep6) subStep6.textContent = subText;
+    }
+    if (bannerStep7) {
+      bannerStep7.classList.remove("hidden");
+      if (tagStep7) tagStep7.textContent = gainText;
+      if (subStep7) subStep7.textContent = subText;
+    }
+  } catch (err) {
+    console.warn("Failed to check remediation candidates:", err);
+  }
+}
+
+function initRemediationModal() {
+  const modal = document.getElementById("modal-smart-remediation");
+  const btnClose = document.getElementById("btn-close-smart-remediation");
+  const btnCancel = document.getElementById("btn-cancel-remediation");
+  const btnCommit = document.getElementById("btn-apply-remediation-commit");
+
+  if (!modal) return;
+
+  const closeModal = () => {
+    modal.classList.add("hidden");
+  };
+
+  if (btnClose) btnClose.addEventListener("click", closeModal);
+  if (btnCancel) btnCancel.addEventListener("click", closeModal);
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-open-remediation");
+    if (btn) {
+      e.preventDefault();
+      openRemediationModal();
+    }
+  });
+
+  if (btnCommit) {
+    btnCommit.addEventListener("click", applySelectedRemediations);
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+async function openRemediationModal() {
+  const modal = document.getElementById("modal-smart-remediation");
+  const listEl = document.getElementById("rem-candidates-list");
+  const forecastPill = document.getElementById("rem-yield-forecast-pill");
+
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+  SoundEngine.playClick();
+  triggerHapticPulse("light");
+
+  const sessionId = currentResults?.session_id || currentAssessment?.session_id || currentSessionId;
+  if (!sessionId) {
+    listEl.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--recon-text-muted);">No active integration session found. Run an inspection first.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = `<div style="padding: 32px; text-align: center; color: var(--recon-text-muted);"><span class="recon-spin" style="display:inline-block; margin-right:8px;">⚡</span> Analyzing quarantine root causes and formulating AST fixes...</div>`;
+
+  try {
+    const res = await fetch(`/api/remediation/candidates/${sessionId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch remediation candidates (HTTP ${res.status})`);
+    }
+    const plan = await res.json();
+    currentRemediationPlan = plan;
+
+    if (forecastPill) {
+      forecastPill.textContent = `Simulated Yield: ${plan.current_pass_rate}% ➔ ${plan.projected_pass_rate}% (+${plan.projected_rescued_records} rows)`;
+    }
+
+    renderRemediationCards(plan);
+  } catch (err) {
+    listEl.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--recon-rose-text);">Error loading remediations: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderRemediationCards(plan) {
+  const listEl = document.getElementById("rem-candidates-list");
+  if (!listEl) return;
+
+  if (!plan.candidates || plan.candidates.length === 0) {
+    listEl.innerHTML = `
+      <div style="padding: 36px; text-align: center;">
+        <div style="font-size: 28px; margin-bottom: 8px;">🎉</div>
+        <div style="font-weight: 600; font-size: 14px; color: var(--recon-text-primary);">Zero Runtime Blockers Detected</div>
+        <div style="font-size: 12px; color: var(--recon-text-secondary); margin-top: 4px;">
+          All mapped fields conform directly to the contract schema without requiring transformation repair.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = plan.candidates.map(cand => {
+    const categoryBadge = cand.category === "currency_cleaning"
+      ? `<span class="badge badge-emerald" style="font-size: 10px;">CURRENCY REPAIR</span>`
+      : cand.category === "datetime_formatting"
+      ? `<span class="badge badge-indigo" style="font-size: 10px;">DATETIME PARSER</span>`
+      : cand.category === "enum_normalization"
+      ? `<span class="badge badge-cyan" style="font-size: 10px;">ENUM ALIGNMENT</span>`
+      : cand.category === "percentage_conversion"
+      ? `<span class="badge badge-amber" style="font-size: 10px;">PERCENTAGE</span>`
+      : `<span class="badge badge-muted" style="font-size: 10px;">TRANSFORMATION</span>`;
+
+    const diffRows = (cand.sample_diffs || []).slice(0, 3).map(d => `
+      <div class="rem-diff-row">
+        <span class="rem-diff-pill-raw">Raw: "${escapeHtml(String(d.raw_sample))}"</span>
+        <span class="rem-diff-pill-arrow">➔</span>
+        <span class="rem-diff-pill-clean">Cleaned: ${escapeHtml(String(d.remediated_sample))}</span>
+      </div>
+    `).join("");
+
+    return `
+      <div class="rem-candidate-card selected" id="rem-card-${escapeHtml(cand.candidate_id)}">
+        <div class="rem-candidate-header">
+          <div style="display: flex; align-items: flex-start; gap: 10px;">
+            <input type="checkbox" class="rem-check" data-id="${escapeHtml(cand.candidate_id)}" checked style="margin-top: 3px; cursor: pointer; accent-color: #10b981;" onchange="document.getElementById('rem-card-${escapeHtml(cand.candidate_id)}').classList.toggle('selected', this.checked)">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-weight: 600; font-size: 13.5px; color: var(--recon-text-primary);">${escapeHtml(cand.title)}</span>
+                ${categoryBadge}
+                <span class="badge badge-muted" style="font-size: 10px; font-family: var(--font-mono);">${escapeHtml(cand.field_name)}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--recon-text-secondary); margin-top: 4px; line-height: 1.4;">
+                ${escapeHtml(cand.diagnosis)}
+              </div>
+            </div>
+          </div>
+          <span class="badge badge-rose" style="font-size: 10px; white-space: nowrap;">
+            ${cand.affected_records_count} records affected (+${cand.projected_yield_gain_percent}%)
+          </span>
+        </div>
+
+        <!-- Before / After Morphing Diff Evidence -->
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+          ${diffRows}
+        </div>
+
+        <!-- Synthesized Python AST Code Preview -->
+        <details style="margin-top: 4px; font-size: 11px;">
+          <summary style="cursor: pointer; color: var(--apple-accent-action); font-weight: 500; user-select: none;">
+            View Synthesized Python AST Logic
+          </summary>
+          <div class="rem-ast-box" style="margin-top: 6px;">${escapeHtml(cand.proposed_ast_code)}</div>
+        </details>
+      </div>
+    `;
+  }).join("");
+}
+
+async function applySelectedRemediations() {
+  const btnCommit = document.getElementById("btn-apply-remediation-commit");
+  const modal = document.getElementById("modal-smart-remediation");
+  const selectedCheckboxes = document.querySelectorAll(".rem-check:checked");
+  const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+
+  if (selectedIds.length === 0) {
+    alert("Please select at least one remediation rule to apply.");
+    return;
+  }
+
+  const sessionId = currentResults?.session_id || currentAssessment?.session_id || currentSessionId;
+  if (!sessionId) return;
+
+  const originalText = btnCommit ? btnCommit.textContent : "";
+  if (btnCommit) {
+    btnCommit.disabled = true;
+    btnCommit.textContent = "⚡ Synthesizing AST & Re-Validating...";
+  }
+
+  try {
+    const res = await fetch("/api/remediation/apply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        session_id: sessionId,
+        selected_candidate_ids: selectedIds,
+        reviewer: "enterprise_lead",
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Server returned HTTP ${res.status}`);
+    }
+
+    const outcome = await res.json();
+    currentResults = outcome.results;
+
+    // Close modal
+    if (modal) modal.classList.add("hidden");
+
+    // Audio & haptic delight
+    SoundEngine.playSave();
+    triggerHapticPulse("heavy");
+
+    // Re-render UI screens
+    renderValidationLab(currentResults);
+    renderReadinessDossier(currentResults);
+    checkAndRenderRemediationBanners(currentResults);
+
+    // If Certified Ready: Celebratory explosion!
+    const state = (currentResults.readiness_state || "").toLowerCase();
+    if (state === "ready" || state === "pass") {
+      setTimeout(() => {
+        triggerConfettiCelebration();
+        SoundEngine.playCelebration();
+      }, 150);
+    }
+
+    // Floating dynamic status notification
+    const receipt = outcome.receipt;
+    showRemediationSuccessToast(receipt);
+
+    // If on stage 4 or earlier, jump to stage 6 to inspect rescued records
+    if (currentStep < 6) {
+      navigateToStep(6);
+    }
+  } catch (err) {
+    alert(`Remediation application failed: ${err.message}`);
+  } finally {
+    if (btnCommit) {
+      btnCommit.disabled = false;
+      btnCommit.textContent = originalText;
+    }
+  }
+}
+
+function showRemediationSuccessToast(receipt) {
+  const toast = document.createElement("div");
+  toast.className = "recon-toast rem-toast";
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #064e3b;
+    border: 1px solid #10b981;
+    color: #ecfdf5;
+    padding: 14px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 999999;
+    animation: reconHapticGlow 0.4s ease-out;
+  `;
+  toast.innerHTML = `
+    <span style="font-size: 18px;">⚡</span>
+    <div>
+      <div style="font-weight: 600;">Remediation Successfully Applied!</div>
+      <div style="font-size: 11.5px; opacity: 0.9; margin-top: 2px;">
+        Rescued <strong>${receipt.rescued_records_count}</strong> rows · Yield jumped from <strong>${receipt.prior_pass_rate}%</strong> to <strong>${receipt.new_pass_rate}%</strong>!
+      </div>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.5s ease";
+    setTimeout(() => toast.remove(), 500);
+  }, 4500);
 }
 
 // =============================================================================
@@ -4831,6 +5165,8 @@ function bindKeyboardNavigation() {
         if (modalReset) modalReset.classList.add("hidden");
         const modalRecent = document.getElementById("modal-recent-sessions");
         if (modalRecent) modalRecent.classList.add("hidden");
+        const modalRem = document.getElementById("modal-smart-remediation");
+        if (modalRem) modalRem.classList.add("hidden");
         closeGuide();
         closeTour();
         const island = document.getElementById("recon-dynamic-island");
@@ -4859,6 +5195,20 @@ function bindKeyboardNavigation() {
             SoundEngine.playClick();
             triggerHapticPulse("light");
             loadRecentSessions();
+          } else {
+            modal.classList.add("hidden");
+          }
+        }
+        return;
+      }
+
+      // 1-Click Smart Remediation (X / x)
+      if ((e.key === "x" || e.key === "X") && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const modal = document.getElementById("modal-smart-remediation");
+        if (modal) {
+          if (modal.classList.contains("hidden")) {
+            openRemediationModal();
           } else {
             modal.classList.add("hidden");
           }
@@ -5171,6 +5521,16 @@ function renderPaletteResults(query) {
   };
 
   // 1. Actions
+  allItems.push({
+    id: "open-smart-remediation",
+    category: "Quick Actions",
+    icon: svgIcons.action,
+    title: "⚡ 1-Click Smart Remediation Engine",
+    sub: "Detect & repair runtime quarantine blockers via AST",
+    shortcut: "X",
+    action: () => openRemediationModal(),
+  });
+
   allItems.push({
     id: "browse-recent-runs",
     category: "Quick Actions",
@@ -5540,6 +5900,7 @@ function initDynamicIsland() {
     }
   });
 
+  checkAndRenderRemediationBanners(data);
   updateDynamicIsland();
 }
 

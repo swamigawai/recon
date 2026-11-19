@@ -778,6 +778,25 @@ div>
             </div>
           </div>
 
+          <!-- 1-Click Smart Remediation Trigger Banner (Step 06) -->
+          <div id="rem-trigger-banner-step6" class="rem-banner hidden" style="margin-bottom: 24px;">
+            <div class="rem-banner-left">
+              <div class="rem-banner-icon">⚡</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="rem-banner-title">1-Click Smart Remediation Available</span>
+                  <span class="badge badge-emerald" id="rem-banner-yield-tag">+0% Yield Gain Forecast</span>
+                </div>
+                <p class="rem-banner-sub" id="rem-banner-sub-text">
+                  Recon detected runtime format blockers that can be repaired with deterministic AST transformations.
+                </p>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm btn-open-remediation" style="font-weight: 600; padding: 6px 14px;">
+              ⚡ Review &amp; Apply Fixes →
+            </button>
+          </div>
+
           <!-- Quarantine Diagnostic Ledger & Interactive Data Grid -->
           <div class="recon-card" style="margin-bottom: 24px;">
             <div class="recon-card-header" style="flex-wrap: wrap; gap: 10px;">
@@ -898,6 +917,25 @@ div>
                 <span class="stat-desc">Air-gapped execution. Zero external cloud dependencies.</span>
               </div>
             </div>
+          </div>
+
+          <!-- 1-Click Smart Remediation Trigger Banner (Step 07) -->
+          <div id="rem-trigger-banner-step7" class="rem-banner hidden" style="margin-bottom: 24px;">
+            <div class="rem-banner-left">
+              <div class="rem-banner-icon">⚡</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="rem-banner-title">1-Click Smart Remediation Available</span>
+                  <span class="badge badge-emerald" id="dossier-rem-gain-badge">+0% Forecast</span>
+                </div>
+                <p class="rem-banner-sub" id="dossier-rem-sub-text">
+                  Rescue quarantined records with verified AST transformations to achieve 100% Certified Yield.
+                </p>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm btn-open-remediation" style="font-weight: 600; padding: 6px 14px;">
+              ⚡ Review &amp; Apply Fixes →
+            </button>
           </div>
 
           <!-- Certified Artifacts Grid (Monolithic Apple Pods) -->
@@ -1347,6 +1385,56 @@ div>
           Engine: SQLite WAL · Zero RAM Loss
         </span>
         <button class="btn btn-secondary btn-sm" id="btn-refresh-recent-sessions">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       1-Click Smart Remediation Modal (AST Synthesis & Diff Preview)
+       ==================================================================== -->
+  <div class="recon-modal-backdrop hidden" id="modal-smart-remediation" role="dialog" aria-modal="true" aria-labelledby="rem-modal-title">
+    <div class="recon-modal rem-modal-container">
+      <!-- Modal Header -->
+      <div class="rem-modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="rem-modal-lightning">⚡</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <h3 class="recon-modal-title" id="rem-modal-title" style="margin: 0; font-size: 16px;">
+                1-Click Smart Remediation Engine
+              </h3>
+              <span class="badge badge-emerald" id="rem-yield-forecast-pill">
+                Simulated Yield: -- ➔ --
+              </span>
+            </div>
+            <p class="text-secondary" style="font-size: 11.5px; margin: 3px 0 0 0;">
+              Deterministic AST repair proposals. Every transformation is mathematical, auditable, and previewed live below.
+            </p>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-close-smart-remediation" style="padding: 4px 8px; font-size: 14px;">✕</button>
+      </div>
+
+      <!-- Candidate Cards Container -->
+      <div class="rem-candidates-scroll" id="rem-candidates-list">
+        <div style="padding: 32px; text-align: center; color: var(--recon-text-muted); font-size: 12px;">
+          Scanning quarantine records for remediation patterns...
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="rem-modal-footer">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; font-family: var(--font-mono); color: var(--recon-text-muted);">
+            Target: Pure AST compilation · Zero silent drops
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn btn-secondary btn-sm" id="btn-cancel-remediation">Cancel</button>
+          <button class="btn btn-primary btn-sm" id="btn-apply-remediation-commit" style="font-weight: 600; padding: 6px 16px;">
+            ⚡ Apply Selected Fixes &amp; Re-Compile Adapter
+          </button>
+        </div>
       </div>
     </div>
   </div>
