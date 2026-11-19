@@ -180,6 +180,59 @@ def suggest_contracts(headers: str = "") -> list[dict[str, Any]]:
     return suggestions[:3]
 
 
+def _should_infer_enum_values(col_name: str, target_type: str, distinct_vals: set[str], total_rows: int) -> bool:
+    """Determines whether a column should be restricted to a fixed categorical enum (allowed_values).
+
+    Prevents schema overfitting on open text, entity names, descriptions, and IDs while preserving
+    clean enum discovery for true business taxonomies (e.g. status, branch, tier, mode).
+    """
+    if target_type != "string":
+        return False
+
+    n_distinct = len(distinct_vals)
+    if n_distinct < 2 or n_distinct > 15:
+        return False
+
+    # Split camelCase, snake_case, kebab-case to isolate constituent words
+    split_camel = re.sub(r"([a-z])([A-Z])", r"\1 \2", col_name)
+    clean_name = split_camel.lower().replace("_", " ").replace("-", " ").strip()
+    words = set(re.findall(r"[a-z0-9]+", clean_name))
+
+    # 1. Blacklist: open-ended text, names, descriptions, and identifiers
+    blacklist_words = {
+        "name", "first", "last", "full", "student", "customer", "client", "user", "author", "vendor",
+        "owner", "assignee", "person", "patient", "doctor", "employee", "agent", "member", "contact",
+        "id", "identifier", "key", "uuid", "guid", "token", "hash", "ref", "reference", "sku", "serial",
+        "barcode", "ssn", "item", "product",
+        "desc", "description", "detail", "summary", "comment", "note", "notes", "remark", "text", "message", "memo", "info",
+        "address", "street", "city", "location", "zip", "postal", "url", "link", "path", "email", "mail", "phone", "mobile",
+        "title", "headline", "subject", "topic", "query",
+        "amount", "price", "cost", "tax", "total", "balance", "rate", "fee", "salary", "qty", "quantity", "count", "score", "cgpa", "gpa",
+        "year", "month", "day", "date", "time", "timestamp",
+    }
+
+    for w in words:
+        if w in blacklist_words:
+            return False
+        if w.endswith("name") or (w.endswith("id") and len(w) > 2):
+            return False
+
+    # 2. Whitelist: categorical keywords (high confidence business taxonomies)
+    whitelist_words = {
+        "status", "state", "stage", "category", "type", "kind", "gender", "sex", "preference", "flag", "mode", "tier", "level",
+        "frequency", "method", "priority", "severity", "segment", "group", "size", "season", "branch", "hostel", "department", "role",
+    }
+    if words.intersection(whitelist_words):
+        return True
+
+    # 3. Fallback for unclassified columns: strict cardinality and ratio
+    if n_distinct <= 6 and total_rows >= 20 and (n_distinct / total_rows) <= 0.05:
+        if all(len(v) <= 30 and not any(c in v for c in ["@", "/", "\\"]) and not re.search(r"\d{3,}", v) for v in distinct_vals):
+            return True
+
+    return False
+
+
 @router.post("/contracts/infer-from-source")
 async def infer_contract_from_source(
     request: Request,
@@ -236,9 +289,9 @@ async def infer_contract_from_source(
                 required = (col_prof.null_count == 0)
                 nullable = (col_prof.null_count > 0)
                 allowed = None
-                # Accurately discover all distinct enum values from dataset rows rather than truncating at 5 samples
+                # Discover distinct values from dataset rows
                 col_values = {str(r.get(col, "")).strip() for r in dataset.rows if r.get(col) is not None and str(r.get(col, "")).strip()}
-                if 0 < len(col_values) <= 15 and profile.total_rows >= 10:
+                if _should_infer_enum_values(col, target_type, col_values, profile.total_rows):
                     allowed = sorted(list(col_values))
                 
                 f_dict: dict[str, Any] = {

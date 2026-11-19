@@ -954,3 +954,44 @@ def test_quarantine_error_grouping_and_interactive_records_endpoint(client: Test
     assert res_search.status_code == 200
     assert "records" in res_search.json()
 
+
+def test_infer_contract_smart_enum_and_open_field_rules(client: TestClient, tmp_path: Path) -> None:
+    """Verifies that auto-generated schemas do not overfit enums on names, IDs, numbers, or free text."""
+    sample_csv = tmp_path / "students.csv"
+    sample_csv.write_text(
+        "StudentID,StudentName,AdmissionYear,Branch,FoodPreference,CGPA\n"
+        "STU001,Pooja,2023,CSE,Veg,8.5\n"
+        "STU002,Karan,2024,ME,Non-Veg,7.2\n"
+        "STU003,Megha,2023,CSE,Veg,9.1\n"
+        "STU004,Rahul,2025,ECE,Non-Veg,6.8\n"
+        "STU005,Amit,2024,ME,Veg,7.9\n",
+        encoding="utf-8",
+    )
+
+    with open(sample_csv, "rb") as f:
+        res = client.post(
+            "/api/contracts/infer-from-source",
+            files={"source_file": ("students.csv", f, "text/csv")},
+        )
+    assert res.status_code == 200
+    data = res.json()
+    contract = json.loads(data["contract_json"])
+    fields = contract["fields"]
+
+    # StudentName and StudentID must NOT be restricted to enums
+    assert "allowed_values" not in fields["StudentName"]
+    assert "allowed_values" not in fields["StudentID"]
+
+    # AdmissionYear and CGPA must be numeric without enum constraints
+    assert fields["AdmissionYear"]["target_type"] == "integer"
+    assert "allowed_values" not in fields["AdmissionYear"]
+    assert fields["CGPA"]["target_type"] == "float"
+    assert "allowed_values" not in fields["CGPA"]
+
+    # Branch and FoodPreference ARE valid categoricals
+    assert "allowed_values" in fields["Branch"]
+    assert sorted(fields["Branch"]["allowed_values"]) == ["CSE", "ECE", "ME"]
+    assert "allowed_values" in fields["FoodPreference"]
+    assert sorted(fields["FoodPreference"]["allowed_values"]) == ["Non-Veg", "Veg"]
+
+
