@@ -822,10 +822,11 @@ function navigateToStep(stepNumber) {
   // Update Dynamic Health Island for current step
   // Update Stage 07 Apple Stat Callouts
   const dossierParityEl = document.getElementById("dossier-stat-parity");
-  if (dossierParityEl && data.validation) {
-    const total = data.validation.total_input_records || 0;
-    const valid = data.validation.valid_records_count || 0;
-    const quar = data.validation.quarantined_records_count || 0;
+  const validationData = currentResults?.validation || currentAssessment?.validation;
+  if (dossierParityEl && validationData) {
+    const total = validationData.total_input_records || 0;
+    const valid = validationData.valid_records_count || 0;
+    const quar = validationData.quarantined_records_count || 0;
     dossierParityEl.textContent = (total === valid + quar) ? "100%" : "FAIL";
   }
 
@@ -1806,7 +1807,9 @@ async function handleAssessIntegration() {
     // Navigate to Profile Matrix (Step 02)
     navigateToStep(2);
   } catch (err) {
-    showGlobalError("NETWORK ERROR", err.message, btn);
+    console.error("[Recon Assessment Error]", err);
+    const title = (err instanceof TypeError && err.message && err.message.toLowerCase().includes("fetch")) ? "NETWORK ERROR" : "CLIENT ERROR";
+    showGlobalError(title, err.message, btn);
   } finally {
     btn.disabled = false;
     spinner.classList.add("hidden");
@@ -3296,7 +3299,9 @@ async function handleApproveAndGenerate() {
     // Navigate to Step 05 Adapter
     navigateToStep(5);
   } catch (err) {
-    showGlobalError("NETWORK ERROR", err.message, btn);
+    console.error("[Recon Compilation Error]", err);
+    const title = (err instanceof TypeError && err.message && err.message.toLowerCase().includes("fetch")) ? "NETWORK ERROR" : "CLIENT ERROR";
+    showGlobalError(title, err.message, btn);
     btn.disabled = false;
     btn.textContent = origText;
   }
@@ -3978,6 +3983,14 @@ function renderReadinessDossier(data) {
   }
 
   rationale.textContent = data.readiness_rationale;
+
+  const dossierParityEl = document.getElementById("dossier-stat-parity");
+  if (dossierParityEl && data.validation) {
+    const total = data.validation.total_input_records || 0;
+    const valid = data.validation.valid_records_count || 0;
+    const quar = data.validation.quarantined_records_count || 0;
+    dossierParityEl.textContent = (total === valid + quar) ? "100%" : "FAIL";
+  }
 
   // Artifact downloads
   document.getElementById("art-adapter-name").textContent = `${data.adapter.adapter_name}.py`;
