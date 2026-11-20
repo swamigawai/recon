@@ -286,11 +286,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 [data-theme="light"] .recon-app-shell {
-  background-color: var(--recon-bg-void, #F8FAFC);
+  background-color: #FFFFFF;
   background-image: 
-    radial-gradient(ellipse 65% 45% at 92% 10%, rgba(186, 230, 253, 0.45) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 40% at 8% 2%, rgba(254, 215, 170, 0.30) 0%, transparent 55%),
-    linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%);
+    radial-gradient(ellipse 75% 25% at 50% 0%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.45) 40%, transparent 70%),
+    radial-gradient(circle 420px at 0% 0%, rgba(254, 215, 170, 0.45) 0%, rgba(251, 146, 60, 0.12) 35%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 100% 0%, rgba(186, 230, 253, 0.65) 0%, rgba(56, 189, 248, 0.18) 35%, transparent 70%),
+    radial-gradient(circle 450px at 90% 75%, rgba(199, 210, 254, 0.35) 0%, transparent 65%),
+    linear-gradient(180deg, #FFFFFF 0%, #FAFAFD 35%, #F4F6FB 100%);
   background-attachment: fixed;
 }
 
@@ -1401,10 +1403,10 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme="light"] .table-container {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.07);
   border-radius: 16px;
   background-color: #FFFFFF;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 #FFFFFF;
+  box-shadow: 0 14px 40px -8px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.01), inset 0 1px 0 #FFFFFF;
   overflow: hidden;
 }
 
@@ -1417,8 +1419,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="light"] .recon-table th {
-  background-color: #F8FAFC;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: #F8FAFD;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   color: #475569;
   font-family: var(--font-sans);
   font-size: 11px;
@@ -1430,7 +1432,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="light"] .recon-table td {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   background-color: #FFFFFF;
   color: #0F172A;
   padding: 13px 18px;
@@ -1439,7 +1441,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="light"] .recon-table tr:hover td {
-  background-color: #F1F5F9;
+  background-color: #F8FAFD;
 }
 
 [data-theme="light"] .recon-table tr.is-selected td {
