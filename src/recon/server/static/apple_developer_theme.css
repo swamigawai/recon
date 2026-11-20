@@ -845,36 +845,91 @@ h1, h2, .apple-headline, .section-title {
   background-color: var(--apple-accent-action) !important;
 }
 
-/* Tables (High-Density Tabular Views) */
+/* ==========================================================================
+   ULTRA-PREMIUM OBSIDIAN BLACK TABLES (Pure Deep Black Data Engine)
+   ========================================================================== */
+.table-container,
+#screen-profile .table-container,
+#screen-map .table-container,
+#screen-validate .recon-card,
+#screen-validate .table-container {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  overflow: hidden !important;
+}
+
 table, .dense-matrix-table, .loom-table, .matrix-table, .recon-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+  background-color: #000000 !important;
 }
 
-th {
-  background-color: var(--recon-bg-subtle) !important;
-  border-bottom: 1px solid var(--apple-hairline) !important;
-  color: var(--apple-text-meta) !important;
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 600;
+thead, .recon-table thead {
+  background-color: #080C16 !important;
+}
+
+th, .recon-table th {
+  background-color: #080C16 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #94A3B8 !important;
+  font-family: var(--font-display, sans-serif);
+  font-size: 10.5px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 10px 14px;
+  padding: 13px 18px !important;
   text-align: left;
+  white-space: nowrap;
 }
 
-td {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--apple-hairline) !important;
-  color: var(--apple-text-primary) !important;
-  font-family: var(--font-mono);
+tbody, .recon-table tbody {
+  background-color: #000000 !important;
+}
+
+td, .recon-table td {
+  padding: 13px 18px !important;
+  background-color: #000000 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #F8FAFC !important;
+  font-family: var(--font-mono, monospace);
   font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+  transition: background-color 0.15s ease;
 }
 
-tr:hover td {
-  background-color: var(--apple-tr-hover) !important;
+tr:hover td, .recon-table tr:hover td {
+  background-color: #0A0F1D !important;
+}
+
+tr.is-selected td, .recon-table tr.is-selected td {
+  background-color: #0E1729 !important;
+}
+
+tr.is-selected td:first-child, .recon-table tr.is-selected td:first-child {
+  border-left: 3px solid var(--apple-accent-action, #38BDF8) !important;
+}
+
+/* Screen 06 Quarantine Table Shell & Controls */
+#screen-validate .recon-card-header {
+  background-color: #070B14 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+#screen-validate #quarantine-grouping-section {
+  background-color: #04070F !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+#screen-validate input#quarantine-search-box,
+#screen-validate select#quarantine-field-select {
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #FFFFFF !important;
 }
 
 /* Left Accent Status System (1px Hairlines, Not Blocky Colors) */
