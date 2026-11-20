@@ -8,44 +8,51 @@
    1. DARK MODE TOKENS (Default / Apple Silicon Keynote Matte Black)
    ------------------------------------------------------------------------- */
 :root, [data-theme="dark"] {
-  /* Canvas & Primary Surfaces */
-  --apple-canvas: #000000;                     /* Pure Matte Jet Black */
-  --apple-surface-primary: #161617;            /* Deep Titanium Slate (Monolithic Cards) */
-  --apple-surface-secondary: #1F1F21;          /* Matte Charcoal Surface (Interactive Pods / Chips) */
-  --apple-surface-hover: #272729;              /* Hover State */
-  --apple-surface-active: #2E2E32;             /* Active Pressed State */
-  --apple-chip-gradient: linear-gradient(180deg, #242426 0%, #1A1A1B 100%);
+  /* Canvas & Liquid Ambient Mesh (Inspired by Kuro & Premium Glass Textures) */
+  --apple-canvas: #020817;
+  --recon-liquid-bg: 
+    radial-gradient(ellipse 55% 42% at 2% 0%, rgba(249, 115, 22, 0.24) 0%, rgba(234, 88, 12, 0.08) 50%, transparent 100%),
+    radial-gradient(ellipse 70% 55% at 95% 8%, rgba(37, 99, 235, 0.52) 0%, rgba(29, 78, 216, 0.32) 45%, transparent 100%),
+    radial-gradient(ellipse 75% 60% at 50% 50%, rgba(14, 165, 233, 0.30) 0%, rgba(30, 58, 138, 0.38) 55%, transparent 100%),
+    radial-gradient(ellipse 85% 70% at 80% 92%, rgba(99, 102, 241, 0.35) 0%, rgba(15, 23, 42, 0.9) 65%, transparent 100%),
+    linear-gradient(145deg, #040e24 0%, #071c42 35%, #0c2b64 70%, #030a18 100%);
 
-  /* Hairlines & Boundaries */
-  --apple-hairline: rgba(255, 255, 255, 0.08); /* Subtle 1px boundary */
-  --apple-hairline-focus: rgba(255, 255, 255, 0.16); /* Active / Focus border */
+  --apple-surface-primary: rgba(14, 28, 58, 0.48);            /* Frosted Liquid Glass */
+  --apple-surface-secondary: rgba(22, 38, 76, 0.55);          /* Frosted Platinum Surfaces / Pods */
+  --apple-surface-hover: rgba(28, 48, 96, 0.65);              /* Hover State */
+  --apple-surface-active: rgba(35, 60, 120, 0.75);            /* Active Pressed State */
+  --apple-chip-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+
+  /* Hairlines & Boundaries (Luminous Glass Rim) */
+  --apple-hairline: rgba(255, 255, 255, 0.22); /* Luminous 1px glass rim */
+  --apple-hairline-focus: rgba(255, 255, 255, 0.40); /* Active / Focus border */
 
   /* High-Contrast Typography */
-  --apple-text-primary: #F5F5F7;               /* Apple Off-White (100% Contrast) */
-  --apple-text-secondary: #86868B;             /* Muted Neutral Grey */
-  --apple-text-meta: #64748B;                  /* Quiet Technical Slate */
-  --apple-text-disabled: #424245;
+  --apple-text-primary: #F8FAFC;               /* Crisp Off-White */
+  --apple-text-secondary: #94A3B8;             /* Muted Slate */
+  --apple-text-meta: #64748B;                  /* Technical Slate */
+  --apple-text-disabled: #475569;
 
   /* Functional Accents */
   --apple-accent-success: #34C759;             /* Apple Emerald Green */
-  --apple-accent-success-subtle: rgba(52, 199, 89, 0.14);
-  --apple-accent-success-text: #34C759;
+  --apple-accent-success-subtle: rgba(52, 199, 89, 0.18);
+  --apple-accent-success-text: #4ade80;
   --apple-accent-warning: #FF453A;             /* Apple Crimson Red */
-  --apple-accent-warning-subtle: rgba(255, 69, 58, 0.14);
-  --apple-accent-warning-text: #FF453A;
-  --apple-accent-action: #2997FF;              /* Cupertino Blue */
-  --apple-accent-action-subtle: rgba(41, 151, 255, 0.14);
-  --apple-accent-action-text: #2997FF;
+  --apple-accent-warning-subtle: rgba(255, 69, 58, 0.18);
+  --apple-accent-warning-text: #f87171;
+  --apple-accent-action: #38BDF8;              /* Electric Azure Blue */
+  --apple-accent-action-subtle: rgba(56, 189, 248, 0.18);
+  --apple-accent-action-text: #38BDF8;
 
   /* Glass Overlays & Shadows */
-  --apple-header-bg: rgba(0, 0, 0, 0.85);
-  --apple-card-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-  --apple-chip-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --apple-code-bg: #0A0A0C;
-  --apple-code-gutter: #121215;
+  --apple-header-bg: rgba(6, 18, 44, 0.65);
+  --apple-card-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.45);
+  --apple-chip-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --apple-code-bg: rgba(4, 12, 28, 0.75);
+  --apple-code-gutter: rgba(6, 16, 38, 0.90);
   --apple-code-text: #E2E8F0;
-  --apple-tr-hover: rgba(255, 255, 255, 0.02);
-  --apple-modal-backdrop: rgba(0, 0, 0, 0.75);
+  --apple-tr-hover: rgba(255, 255, 255, 0.04);
+  --apple-modal-backdrop: rgba(2, 6, 18, 0.75);
 
   /* Recon Internal System Map */
   --recon-bg-void: var(--apple-canvas);
@@ -54,7 +61,7 @@
   --recon-bg-card: var(--apple-surface-primary);
   --recon-bg-surface: var(--apple-surface-primary);
   --recon-bg-elevated: var(--apple-surface-secondary);
-  --recon-bg-subtle: #1C1C1E;
+  --recon-bg-subtle: rgba(10, 22, 48, 0.55);
   --recon-bg-hover: var(--apple-surface-hover);
   --recon-bg-active: var(--apple-surface-active);
   --recon-bg-code: var(--apple-code-bg);
@@ -171,7 +178,8 @@
 }
 
 body {
-  background-color: var(--apple-canvas) !important;
+  background: var(--recon-liquid-bg, var(--apple-canvas)) !important;
+  background-attachment: fixed !important;
   color: var(--apple-text-primary) !important;
   font-family: var(--font-text);
   font-size: 13px;
@@ -179,12 +187,24 @@ body {
   letter-spacing: -0.01em;
   min-height: 100vh;
   overflow-x: hidden;
-  transition: background-color var(--transition), color var(--transition);
+  position: relative;
 }
 
 .recon-app-shell {
-  background-color: var(--apple-canvas) !important;
-  transition: background-color var(--transition);
+  background: transparent !important;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Kuro subtle paper / film noise overlay */
+.recon-app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* ==========================================================================
@@ -366,39 +386,51 @@ h1, h2, .apple-headline, .section-title {
 }
 
 /* ==========================================================================
-   SURFACES, MONOLITH CARDS & CONTAINERS
+   SURFACES, FROSTED GLASS CARDS & CONTAINERS (Image 2 Liquid Glass Spec)
    ========================================================================== */
 .monolith-card, .apple-monolith-card, .studio-pane, .panel-card, .holo-card, .metric-card, .port-card {
-  background-color: var(--apple-surface-primary) !important;
-  border: 1px solid var(--apple-hairline) !important;
-  border-radius: var(--radius-card);
+  background: rgba(14, 28, 58, 0.48) !important;
+  backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  border-radius: 24px !important;
   padding: 24px;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--apple-card-shadow) !important;
-  transition: all var(--transition);
+  box-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.50), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 
+              inset 0 0 20px 0 rgba(255, 255, 255, 0.03) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Recon Multi-Section Cards (.recon-card has header/body/footer structure) */
 .recon-card {
-  background-color: var(--apple-surface-primary) !important;
-  border: 1px solid var(--apple-hairline) !important;
-  border-radius: var(--radius-card) !important;
+  background: rgba(14, 28, 58, 0.48) !important;
+  backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  border-radius: 24px !important;
   padding: 0 !important;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--apple-card-shadow) !important;
-  transition: all var(--transition);
+  box-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.50), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 
+              inset 0 0 20px 0 rgba(255, 255, 255, 0.03) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .recon-card:hover, .monolith-card:hover, .metric-card:hover, .port-card:hover {
-  border-color: var(--apple-hairline-focus) !important;
+  border-color: rgba(255, 255, 255, 0.42) !important;
+  box-shadow: 0 28px 70px -10px rgba(0, 12, 44, 0.65), 
+              inset 0 1px 2px 0 rgba(255, 255, 255, 0.65), 
+              inset 0 0 24px 0 rgba(255, 255, 255, 0.06) !important;
+  transform: translateY(-2px);
 }
 
 .recon-card-header {
-  padding: 14px 24px !important;
-  border-bottom: 1px solid var(--apple-hairline) !important;
-  background-color: var(--recon-bg-subtle) !important;
+  padding: 16px 24px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
   color: var(--apple-text-primary) !important;
 }
 
@@ -408,9 +440,9 @@ h1, h2, .apple-headline, .section-title {
 }
 
 .recon-card-footer {
-  padding: 14px 24px !important;
-  border-top: 1px solid var(--apple-hairline) !important;
-  background-color: var(--recon-bg-subtle) !important;
+  padding: 16px 24px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
 }
 
 /* Screen 01 Dual-Port Dropzones */
@@ -1492,22 +1524,28 @@ footer, .app-footer, .hud-footer, .studio-footer, .recon-footer {
 }
 
 .apple-stage07 .artifact-card {
-  background-color: var(--apple-surface-primary, #161617) !important;
-  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
-  border-radius: var(--radius-card, 20px) !important;
+  background: rgba(14, 28, 58, 0.48) !important;
+  backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  border-radius: 24px !important;
   padding: 24px !important;
-  box-shadow: var(--apple-card-shadow, 0 4px 20px rgba(0, 0, 0, 0.04)) !important;
+  box-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.50), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 
+              inset 0 0 20px 0 rgba(255, 255, 255, 0.03) !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
   gap: 16px !important;
-  transition: all var(--transition, 0.15s ease) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .apple-stage07 .artifact-card:hover {
-  border-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+  border-color: rgba(255, 255, 255, 0.42) !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 28px 70px -10px rgba(0, 12, 44, 0.65), 
+              inset 0 1px 2px 0 rgba(255, 255, 255, 0.65), 
+              inset 0 0 24px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 .apple-stage07 .artifact-title {
