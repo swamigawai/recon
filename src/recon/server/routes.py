@@ -15,6 +15,12 @@ from pydantic import BaseModel, Field
 from recon.adapters.generator import generate_adapter
 from recon.contracts.loader import load_target_contract
 from recon.contracts.models import TargetContract
+from recon.deploy.bundle import (
+    create_deployment_bundle_zip,
+    generate_bundle_readme,
+    generate_dockerfile,
+    generate_github_workflow,
+)
 from recon.exceptions import AdapterError, ReconError
 from recon.ingestion.loader import load_dataset
 from recon.ingestion.models import RawDataset
@@ -1151,6 +1157,123 @@ def download_mapping_spec(session_id: str) -> Response:
         media_type="application/json",
         headers={"Content-Disposition": 'attachment; filename="recon_mapping_spec.json"'},
     )
+
+
+@router.get("/download/deployment-bundle/{session_id}")
+def download_deployment_bundle(session_id: str) -> Response:
+    """Downloads the full Enterprise CI/CD Deployment Pack in a production .zip archive."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+
+    session = SESSIONS.get(session_id)
+    stored = store.get_session(session_id) if not session else None
+
+    # Retrieve adapter code
+    adapter = session.get("adapter") if session else None
+    adapter_code = adapter.python_code if adapter else None
+    if not adapter_code and stored:
+        adapter_code = stored.get("adapter_code")
+
+    # Retrieve report markdown
+    report_md = session.get("report_md") if session else None
+    if not report_md and stored:
+        report_md = stored.get("report_md")
+
+    # Retrieve contract
+    contract = session.get("contract") if session else None
+    contract_json = (
+        contract.model_dump(mode="json")
+        if contract
+        else (stored.get("assessment", {}).get("contract") if stored else {})
+    )
+    contract_name = (
+        contract.contract_name
+        if contract
+        else contract_json.get("contract_name", "integration")
+    )
+    contract_version = (
+        contract.version
+        if contract
+        else contract_json.get("version", "1.0.0")
+    )
+
+    # Retrieve mapping spec
+    mapping_spec_json = session.get("mapping_spec_json", "") if session else ""
+    if not mapping_spec_json and stored:
+        mapping_spec_json = stored.get("mapping_spec_json", "")
+    if not mapping_spec_json and session and "plan" in session and "profile" in session and "contract" in session:
+        plan_to_export = session.get("approved_plan") or session["plan"]
+        spec = export_mapping_spec(
+            contract=session["contract"],
+            profile=session["profile"],
+            plan=plan_to_export,
+            reviewer="enterprise_architect",
+        )
+        mapping_spec_json = spec.to_json()
+
+    # Retrieve pass rate and total records
+    validation = session.get("validation") if session else None
+    pass_rate = (
+        validation.contract_pass_rate
+        if validation
+        else (stored.get("pass_rate", 0.0) if stored else 0.0)
+    )
+    total_records = (
+        validation.total_input_records
+        if validation
+        else (stored.get("total_input_records", 0) if stored else 0)
+    )
+
+    if not adapter_code or not report_md:
+        raise HTTPException(
+            status_code=404,
+            detail="Deployment bundle not ready. Run approval and validation first.",
+        )
+
+    zip_bytes = create_deployment_bundle_zip(
+        session_id=session_id,
+        adapter_code=adapter_code,
+        contract_json=contract_json,
+        mapping_spec_json=mapping_spec_json or "{}",
+        report_md=report_md,
+        contract_name=contract_name,
+        version=contract_version,
+        pass_rate=pass_rate,
+        total_records=total_records,
+    )
+
+    safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
+    return Response(
+        content=zip_bytes,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="recon_deployment_bundle_{safe_id}.zip"'},
+    )
+
+
+@router.get("/deployment/dockerfile/{session_id}")
+def get_deployment_dockerfile(session_id: str) -> PlainTextResponse:
+    """Returns the generated unprivileged Dockerfile for the integration."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    session = SESSIONS.get(session_id)
+    contract_name = "integration"
+    if session and "contract" in session:
+        contract_name = session["contract"].contract_name
+    content = generate_dockerfile(adapter_name=f"{contract_name}_adapter")
+    return PlainTextResponse(content=content, media_type="text/plain")
+
+
+@router.get("/deployment/github-workflow/{session_id}")
+def get_deployment_github_workflow(session_id: str) -> PlainTextResponse:
+    """Returns the generated GitHub Actions CI/CD workflow for contract conformance."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    session = SESSIONS.get(session_id)
+    contract_name = "integration"
+    if session and "contract" in session:
+        contract_name = session["contract"].contract_name
+    content = generate_github_workflow(contract_name=contract_name)
+    return PlainTextResponse(content=content, media_type="text/yaml")
 
 
 @router.post("/upload-mapping-spec")

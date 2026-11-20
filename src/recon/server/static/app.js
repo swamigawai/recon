@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initContractSuggestionEngine();
   initRecentSessionsModal();
   initRemediationModal();
+  initCodePreviewModal();
 
   // Hash-based direct step navigation (e.g. #step-6 or #validate)
   const initialHash = (window.location.hash || "").toLowerCase();
@@ -747,9 +748,65 @@ function initShell() {
   initTransformPlayground();
 }
 
+// =============================================================================
+// Pillar 3: Formal Recon State Machine
+// STAGED ──► INSPECTED ──► MAPPED ──► AUDITED ──► COMPILED ──► READY
+// =============================================================================
+
+const ReconStateMachine = {
+  STATES: {
+    STAGED: "STAGED",         // Step 1: Input dataset and schema loaded
+    INSPECTED: "INSPECTED",   // Step 2: Source profiling complete
+    MAPPED: "MAPPED",         // Step 3: Column mappings established
+    AUDITED: "AUDITED",       // Step 4: Risk radar reviewed & approved
+    COMPILED: "COMPILED",     // Step 5: AST adapter generated
+    VALIDATED: "VALIDATED",   // Step 6: Quarantine validation completed
+    READY: "READY",           // Step 7: Certified readiness dossier issued
+  },
+
+  getCurrentState() {
+    if (currentResults && (String(currentResults.readiness_state).toLowerCase() === "pass" || String(currentResults.readiness_state).toLowerCase() === "ready")) {
+      return this.STATES.READY;
+    }
+    if (currentResults && currentResults.validation) {
+      return this.STATES.VALIDATED;
+    }
+    if (currentResults && currentResults.adapter) {
+      return this.STATES.COMPILED;
+    }
+    if (currentAssessment && currentAssessment.proposals) {
+      const hasUnresolved = currentAssessment.proposals.some(p => p.required && !(mappingOverrides[p.target_field] || p.proposed_source_field));
+      return hasUnresolved ? this.STATES.MAPPED : this.STATES.AUDITED;
+    }
+    if (currentAssessment && currentAssessment.profile) {
+      return this.STATES.INSPECTED;
+    }
+    return this.STATES.STAGED;
+  },
+
+  canNavigateTo(targetStep) {
+    // Open inspection: Users can freely inspect any unlocked step without UI deadlock
+    return true;
+  },
+
+  getPrerequisites(stepNumber) {
+    switch (stepNumber) {
+      case 2:
+      case 3:
+      case 4:
+        return currentAssessment ? [] : ["Stage input dataset and contract schema, then click Assess Integration"];
+      case 5:
+      case 6:
+      case 7:
+        return currentResults ? [] : ["Approve mapping specifications to generate adapter and execute validation"];
+      default:
+        return [];
+    }
+  }
+};
+
 function isStepAvailable(targetStep) {
-  // Allow all steps to be freely navigable for instant inspection and Apple-grade stage review
-  return true;
+  return ReconStateMachine.canNavigateTo(targetStep);
 }
 
 function navigateToStep(stepNumber) {
@@ -832,7 +889,10 @@ function navigateToStep(stepNumber) {
     dossierParityEl.textContent = (total === valid + quar) ? "100%" : "FAIL";
   }
 
-  checkAndRenderRemediationBanners(data);
+  const activeData = currentResults || currentAssessment;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
 }
 
@@ -1531,7 +1591,10 @@ function updatePreflightStatus() {
     btnAssess.disabled = !(sourceReady && contractReady);
   }
 
-  checkAndRenderRemediationBanners(data);
+  const activeData = currentResults || currentAssessment;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
   updatePreflightPeek();
 }
@@ -2437,7 +2500,10 @@ function handleMappingChange(targetField, newSourceVal) {
   highlightFlowStream(targetField, false);
 
   // 6. Dynamic Health Island Status
-  checkAndRenderRemediationBanners(data);
+  const activeData = currentResults || currentAssessment;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
 }
 
@@ -3272,7 +3338,10 @@ function updateApprovalGateState() {
     }
   }
 
-  checkAndRenderRemediationBanners(data);
+  const activeData = currentResults || currentAssessment;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
 }
 
@@ -3597,9 +3666,11 @@ function renderValidationLab(data) {
 
   // Initialize Interactive Quarantine Data Grid & Smart Root-Cause Triaging
   initQuarantineDataGrid(data);
-  checkAndRenderRemediationBanners(data);
 
-  checkAndRenderRemediationBanners(data);
+  const activeData = currentResults || currentAssessment || data;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
 }
 
@@ -4059,7 +4130,26 @@ function renderReadinessDossier(data) {
     artDlSpec.href = `/api/download/mapping-spec/${sessionId}`;
   }
 
-  checkAndRenderRemediationBanners(data);
+  // Pillar 3: Enterprise CI/CD Deploy Pack (.zip)
+  const artDlBundle = document.getElementById("art-dl-bundle");
+  if (artDlBundle) {
+    artDlBundle.href = `/api/download/deployment-bundle/${sessionId}`;
+  }
+
+  const btnPreviewDocker = document.getElementById("btn-preview-dockerfile");
+  if (btnPreviewDocker) {
+    btnPreviewDocker.onclick = () => showDockerfilePreview(sessionId);
+  }
+
+  const btnPreviewWf = document.getElementById("btn-preview-workflow");
+  if (btnPreviewWf) {
+    btnPreviewWf.onclick = () => showWorkflowPreview(sessionId);
+  }
+
+  const activeData = currentResults || currentAssessment;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
 }
 
@@ -4673,6 +4763,127 @@ function showRemediationSuccessToast(receipt) {
     toast.style.transition = "opacity 0.5s ease";
     setTimeout(() => toast.remove(), 500);
   }, 4500);
+}
+
+// =============================================================================
+// Pillar 3: Enterprise Deliverable Previews (Dockerfile / GitHub Actions)
+// =============================================================================
+
+async function showDockerfilePreview(sessionId) {
+  const sid = sessionId || currentSessionId;
+  if (!sid) {
+    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before previewing container configurations.");
+    return;
+  }
+  try {
+    const res = await fetch(`/api/deployment/dockerfile/${sid}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    openCodePreviewModal({
+      title: "Dockerfile (Air-Gapped OCI Runner)",
+      subtitle: "Unprivileged non-root execution (UID 10001) with zero cloud egress",
+      icon: "🐳",
+      content: text
+    });
+  } catch (err) {
+    console.error("[Dockerfile Preview Error]", err);
+    showGlobalError("PREVIEW ERROR", "Failed to retrieve Dockerfile template.");
+  }
+}
+
+async function showWorkflowPreview(sessionId) {
+  const sid = sessionId || currentSessionId;
+  if (!sid) {
+    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before previewing CI/CD workflows.");
+    return;
+  }
+  try {
+    const res = await fetch(`/api/deployment/github-workflow/${sid}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    openCodePreviewModal({
+      title: ".github/workflows/recon-gate.yml",
+      subtitle: "Deterministic quality gate executed on every Git Pull Request",
+      icon: "⚡",
+      content: text
+    });
+  } catch (err) {
+    console.error("[Workflow Preview Error]", err);
+    showGlobalError("PREVIEW ERROR", "Failed to retrieve GitHub Actions workflow template.");
+  }
+}
+
+function openCodePreviewModal({ title, subtitle, icon, content }) {
+  const modal = document.getElementById("modal-code-preview");
+  if (!modal) return;
+  const titleEl = document.getElementById("code-preview-title");
+  const subEl = document.getElementById("code-preview-sub");
+  const iconEl = document.getElementById("code-preview-icon");
+  const contentEl = document.getElementById("code-preview-content");
+
+  if (titleEl) titleEl.textContent = title || "Deliverable Preview";
+  if (subEl) subEl.textContent = subtitle || "Production deployment template";
+  if (iconEl) iconEl.textContent = icon || "📄";
+  if (contentEl) contentEl.textContent = content || "";
+
+  modal.classList.remove("hidden");
+  SoundEngine.playClick();
+  triggerHapticPulse("light");
+}
+
+function closeCodePreviewModal() {
+  const modal = document.getElementById("modal-code-preview");
+  if (modal) {
+    modal.classList.add("hidden");
+    SoundEngine.playClick();
+  }
+}
+
+function initCodePreviewModal() {
+  const modal = document.getElementById("modal-code-preview");
+  const btnClose = document.getElementById("btn-close-code-preview");
+  const btnCopy = document.getElementById("btn-copy-code-preview");
+
+  if (!modal) return;
+
+  if (btnClose) {
+    btnClose.addEventListener("click", closeCodePreviewModal);
+  }
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeCodePreviewModal();
+  });
+
+  if (btnCopy) {
+    btnCopy.addEventListener("click", async () => {
+      const content = document.getElementById("code-preview-content")?.textContent || "";
+      if (!content) return;
+      try {
+        await navigator.clipboard.writeText(content);
+        const originalText = btnCopy.textContent;
+        btnCopy.textContent = "✓ Copied to Clipboard!";
+        btnCopy.classList.add("btn-emerald");
+        SoundEngine.playSuccess();
+        triggerHapticPulse("medium");
+        setTimeout(() => {
+          btnCopy.textContent = originalText;
+          btnCopy.classList.remove("btn-emerald");
+        }, 2000);
+      } catch (err) {
+        console.error("[Clipboard Error]", err);
+      }
+    });
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      closeCodePreviewModal();
+    }
+  });
 }
 
 // =============================================================================
@@ -5642,6 +5853,47 @@ function renderPaletteResults(query) {
         if (btn) btn.click();
       }
     });
+
+    allItems.push({
+      id: "download-deploy-bundle",
+      category: "Quick Actions",
+      icon: svgIcons.code,
+      title: "📦 Download Enterprise CI/CD Deploy Pack (.zip)",
+      sub: "Consolidated air-gapped adapter, contract, Dockerfile & GitHub Actions gate",
+      shortcut: "Bundle",
+      action: () => {
+        const artBundle = document.getElementById("art-dl-bundle");
+        if (artBundle && artBundle.href) {
+          window.location.href = artBundle.href;
+        } else if (currentSessionId) {
+          window.location.href = `/api/download/deployment-bundle/${currentSessionId}`;
+        }
+      }
+    });
+
+    allItems.push({
+      id: "preview-dockerfile",
+      category: "Inspect Deliverables",
+      icon: svgIcons.code,
+      title: "🐳 View Air-Gapped Dockerfile",
+      sub: "Unprivileged non-root runner UID 10001",
+      shortcut: "Docker",
+      action: () => {
+        showDockerfilePreview(currentSessionId);
+      }
+    });
+
+    allItems.push({
+      id: "preview-github-workflow",
+      category: "Inspect Deliverables",
+      icon: svgIcons.action,
+      title: "⚡ View CI/CD Quality Gate (.github/workflows/recon-gate.yml)",
+      sub: "Automated GitHub Actions PR gate",
+      shortcut: "CI/CD",
+      action: () => {
+        showWorkflowPreview(currentSessionId);
+      }
+    });
   }
 
   allItems.push({
@@ -5900,7 +6152,10 @@ function initDynamicIsland() {
     }
   });
 
-  checkAndRenderRemediationBanners(data);
+  const activeData = currentResults || currentAssessment;
+  if (activeData) {
+    checkAndRenderRemediationBanners(activeData);
+  }
   updateDynamicIsland();
 }
 

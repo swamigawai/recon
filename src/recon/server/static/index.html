@@ -940,6 +940,40 @@ div>
 
           <!-- Certified Artifacts Grid (Monolithic Apple Pods) -->
           <div class="dossier-card-grid">
+            <!-- Hero Deliverable: Complete Enterprise CI/CD Deploy Pack (.zip) -->
+            <div class="artifact-card deploy-pack-hero" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.35);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">📦</span>
+                    <span style="font-weight: 700; font-size: 15px; color: var(--apple-text-primary);">Complete Enterprise CI/CD Deploy Pack (.zip)</span>
+                    <span class="badge badge-emerald" style="font-size: 10px;">ALL-IN-ONE BUNDLE</span>
+                  </div>
+                  <p class="text-secondary" style="font-size: 12px; margin-top: 6px; line-height: 1.5; max-width: 680px;">
+                    Consolidated, air-gapped production deliverables ready for immediate Git commit and containerized deployment.
+                  </p>
+                  <!-- Included files pill row -->
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
+                    <span class="bundle-file-pill">🐍 adapter.py</span>
+                    <span class="bundle-file-pill">📜 target_contract.json</span>
+                    <span class="bundle-file-pill">⚙️ recon_mapping_spec.json</span>
+                    <span class="bundle-file-pill">📊 readiness_report.md</span>
+                    <span class="bundle-file-pill">🐳 Dockerfile</span>
+                    <span class="bundle-file-pill">⚡ recon-gate.yml (CI/CD)</span>
+                    <span class="bundle-file-pill">📖 README.md</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <button class="btn btn-secondary btn-sm" id="btn-preview-dockerfile">View Dockerfile</button>
+                  <button class="btn btn-secondary btn-sm" id="btn-preview-workflow">View CI/CD Workflow</button>
+                  <a class="btn btn-primary btn-sm" id="art-dl-bundle" download style="font-weight: 600; padding: 7px 16px;">
+                    📦 Download Bundle (.zip)
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <!-- 1. Adapter -->
             <div class="artifact-card">
               <div>
@@ -1435,6 +1469,35 @@ div>
             ⚡ Apply Selected Fixes &amp; Re-Compile Adapter
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       Enterprise Code Preview Modal (Dockerfile / GitHub Actions)
+       ==================================================================== -->
+  <div class="recon-modal-backdrop hidden" id="modal-code-preview" role="dialog" aria-modal="true" aria-labelledby="code-preview-title">
+    <div class="recon-modal" style="max-width: 680px; width: 92%; max-height: 82vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--recon-border-subtle); padding-bottom: 12px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;" id="code-preview-icon">📄</span>
+          <div>
+            <h3 class="recon-modal-title" id="code-preview-title" style="margin: 0; font-size: 15px;">Deliverable Preview</h3>
+            <span class="text-secondary" style="font-size: 11px;" id="code-preview-sub">Air-gapped deployment template</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-close-code-preview" style="padding: 4px 8px; font-size: 14px;">✕</button>
+      </div>
+
+      <div style="overflow-y: auto; flex: 1; min-height: 220px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--recon-border-subtle); border-radius: 6px; padding: 12px;">
+        <pre id="code-preview-content" class="font-mono text-cyan" style="margin: 0; font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-all;"></pre>
+      </div>
+
+      <div class="recon-modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--recon-border-subtle);">
+        <span style="font-size: 11px; font-family: var(--font-mono); color: var(--recon-text-muted);">
+          Zero external network calls required
+        </span>
+        <button class="btn btn-secondary btn-sm" id="btn-copy-code-preview">Copy to Clipboard</button>
       </div>
     </div>
   </div>
