@@ -264,23 +264,37 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #030a1a;
+  background-color: #020408;
   background-image: 
-    radial-gradient(ellipse 55% 42% at 2% 0%, rgba(249, 115, 22, 0.24) 0%, rgba(234, 88, 12, 0.08) 50%, transparent 100%),
-    radial-gradient(ellipse 70% 55% at 95% 8%, rgba(37, 99, 235, 0.52) 0%, rgba(29, 78, 216, 0.32) 45%, transparent 100%),
-    radial-gradient(ellipse 75% 60% at 50% 50%, rgba(14, 165, 233, 0.30) 0%, rgba(30, 58, 138, 0.38) 55%, transparent 100%),
-    radial-gradient(ellipse 85% 70% at 80% 92%, rgba(99, 102, 241, 0.35) 0%, rgba(15, 23, 42, 0.9) 65%, transparent 100%),
-    linear-gradient(145deg, #040e24 0%, #071c42 35%, #0c2b64 70%, #030a18 100%);
+    radial-gradient(ellipse 85% 32% at 50% -2%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.015) 42%, transparent 70%),
+    radial-gradient(circle 460px at 3% 0%, rgba(251, 146, 60, 0.32) 0%, rgba(234, 88, 12, 0.16) 35%, rgba(217, 70, 239, 0.04) 65%, transparent 100%),
+    radial-gradient(ellipse 65% 50% at 94% 8%, rgba(37, 99, 235, 0.44) 0%, rgba(29, 78, 216, 0.24) 40%, rgba(14, 165, 233, 0.12) 65%, transparent 100%),
+    linear-gradient(108deg, transparent 40%, rgba(56, 189, 248, 0.05) 47%, rgba(99, 102, 241, 0.08) 51%, rgba(255, 255, 255, 0.04) 53%, transparent 60%),
+    radial-gradient(ellipse 60% 55% at 78% 52%, rgba(30, 58, 138, 0.30) 0%, rgba(14, 165, 233, 0.10) 42%, transparent 75%),
+    radial-gradient(ellipse 45% 55% at 20% 85%, rgba(79, 70, 229, 0.16) 0%, transparent 65%),
+    linear-gradient(180deg, #060913 0%, #03050a 45%, #010204 100%);
   background-attachment: fixed;
 }
 
 [data-theme="dark"] .recon-app-shell {
+  background-color: #020408;
   background-image: 
-    radial-gradient(ellipse 55% 42% at 2% 0%, rgba(249, 115, 22, 0.24) 0%, rgba(234, 88, 12, 0.08) 50%, transparent 100%),
-    radial-gradient(ellipse 70% 55% at 95% 8%, rgba(37, 99, 235, 0.52) 0%, rgba(29, 78, 216, 0.32) 45%, transparent 100%),
-    radial-gradient(ellipse 75% 60% at 50% 50%, rgba(14, 165, 233, 0.30) 0%, rgba(30, 58, 138, 0.38) 55%, transparent 100%),
-    radial-gradient(ellipse 85% 70% at 80% 92%, rgba(99, 102, 241, 0.35) 0%, rgba(15, 23, 42, 0.9) 65%, transparent 100%),
-    linear-gradient(145deg, #040e24 0%, #071c42 35%, #0c2b64 70%, #030a18 100%);
+    radial-gradient(ellipse 85% 32% at 50% -2%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.015) 42%, transparent 70%),
+    radial-gradient(circle 460px at 3% 0%, rgba(251, 146, 60, 0.32) 0%, rgba(234, 88, 12, 0.16) 35%, rgba(217, 70, 239, 0.04) 65%, transparent 100%),
+    radial-gradient(ellipse 65% 50% at 94% 8%, rgba(37, 99, 235, 0.44) 0%, rgba(29, 78, 216, 0.24) 40%, rgba(14, 165, 233, 0.12) 65%, transparent 100%),
+    linear-gradient(108deg, transparent 40%, rgba(56, 189, 248, 0.05) 47%, rgba(99, 102, 241, 0.08) 51%, rgba(255, 255, 255, 0.04) 53%, transparent 60%),
+    radial-gradient(ellipse 60% 55% at 78% 52%, rgba(30, 58, 138, 0.30) 0%, rgba(14, 165, 233, 0.10) 42%, transparent 75%),
+    radial-gradient(ellipse 45% 55% at 20% 85%, rgba(79, 70, 229, 0.16) 0%, transparent 65%),
+    linear-gradient(180deg, #060913 0%, #03050a 45%, #010204 100%);
+  background-attachment: fixed;
+}
+
+[data-theme="light"] .recon-app-shell {
+  background-color: var(--recon-bg-void, #F8FAFC);
+  background-image: 
+    radial-gradient(ellipse 65% 45% at 92% 10%, rgba(186, 230, 253, 0.45) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 8% 2%, rgba(254, 215, 170, 0.30) 0%, transparent 55%),
+    linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%);
   background-attachment: fixed;
 }
 
@@ -1327,18 +1341,21 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ==========================================================================
    Screen B: Profile Matrix & Nullity Micro-Bars (02 PROFILE)
+   Dual-Theme Engine (Obsidian Pitch Black in Dark / Crisp Porcelain in Light)
    ========================================================================== */
-.table-container {
+:root .table-container,
+[data-theme="dark"] .table-container {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   background-color: #000000;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   overflow: hidden;
 }
 
-.recon-table {
+:root .recon-table,
+[data-theme="dark"] .recon-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
@@ -1346,8 +1363,9 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #000000;
 }
 
-.recon-table th {
-  background-color: #080C16;
+:root .recon-table th,
+[data-theme="dark"] .recon-table th {
+  background-color: #050811;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   color: #94A3B8;
   font-family: var(--font-sans);
@@ -1359,7 +1377,8 @@ h1, h2, h3, h4, h5, h6 {
   white-space: nowrap;
 }
 
-.recon-table td {
+:root .recon-table td,
+[data-theme="dark"] .recon-table td {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background-color: #000000;
   color: #F8FAFC;
@@ -1368,15 +1387,70 @@ h1, h2, h3, h4, h5, h6 {
   transition: background-color 0.16s ease;
 }
 
-.recon-table tr:hover td {
+:root .recon-table tr:hover td,
+[data-theme="dark"] .recon-table tr:hover td {
   background-color: #0A0F1D;
 }
 
-.recon-table tr.is-selected td {
+:root .recon-table tr.is-selected td,
+[data-theme="dark"] .recon-table tr.is-selected td {
   background-color: #0E1729;
 }
-.recon-table tr.is-selected td:first-child {
+:root .recon-table tr.is-selected td:first-child,
+[data-theme="dark"] .recon-table tr.is-selected td:first-child {
   border-left: 3px solid #38BDF8;
+}
+
+/* Light Mode Studio Tables */
+[data-theme="light"] .table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  background-color: #FFFFFF;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 #FFFFFF;
+  overflow: hidden;
+}
+
+[data-theme="light"] .recon-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+  background-color: #FFFFFF;
+}
+
+[data-theme="light"] .recon-table th {
+  background-color: #F8FAFC;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: #475569;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 13px 18px;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .recon-table td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: #FFFFFF;
+  color: #0F172A;
+  padding: 13px 18px;
+  vertical-align: middle;
+  transition: background-color 0.16s ease;
+}
+
+[data-theme="light"] .recon-table tr:hover td {
+  background-color: #F1F5F9;
+}
+
+[data-theme="light"] .recon-table tr.is-selected td {
+  background-color: #EFF6FF;
+}
+[data-theme="light"] .recon-table tr.is-selected td:first-child {
+  border-left: 3px solid #0071E3;
 }
 
 /* Nullity Micro-Bar: 44px inline visual bar */

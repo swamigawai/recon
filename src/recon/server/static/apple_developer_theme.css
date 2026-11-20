@@ -8,24 +8,26 @@
    1. DARK MODE TOKENS (Default / Apple Silicon Keynote Matte Black)
    ------------------------------------------------------------------------- */
 :root, [data-theme="dark"] {
-  /* Canvas & Liquid Ambient Mesh (Inspired by Kuro & Premium Glass Textures) */
-  --apple-canvas: #020817;
+  /* Canvas & Liquid Ambient Mesh (Kuro Sunset + Liquid Glass + Matte Gloss Black) */
+  --apple-canvas: #020408;
   --recon-liquid-bg: 
-    radial-gradient(ellipse 55% 42% at 2% 0%, rgba(249, 115, 22, 0.24) 0%, rgba(234, 88, 12, 0.08) 50%, transparent 100%),
-    radial-gradient(ellipse 70% 55% at 95% 8%, rgba(37, 99, 235, 0.52) 0%, rgba(29, 78, 216, 0.32) 45%, transparent 100%),
-    radial-gradient(ellipse 75% 60% at 50% 50%, rgba(14, 165, 233, 0.30) 0%, rgba(30, 58, 138, 0.38) 55%, transparent 100%),
-    radial-gradient(ellipse 85% 70% at 80% 92%, rgba(99, 102, 241, 0.35) 0%, rgba(15, 23, 42, 0.9) 65%, transparent 100%),
-    linear-gradient(145deg, #040e24 0%, #071c42 35%, #0c2b64 70%, #030a18 100%);
+    radial-gradient(ellipse 85% 32% at 50% -2%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.015) 42%, transparent 70%),
+    radial-gradient(circle 460px at 3% 0%, rgba(251, 146, 60, 0.32) 0%, rgba(234, 88, 12, 0.16) 35%, rgba(217, 70, 239, 0.04) 65%, transparent 100%),
+    radial-gradient(ellipse 65% 50% at 94% 8%, rgba(37, 99, 235, 0.44) 0%, rgba(29, 78, 216, 0.24) 40%, rgba(14, 165, 233, 0.12) 65%, transparent 100%),
+    linear-gradient(108deg, transparent 40%, rgba(56, 189, 248, 0.05) 47%, rgba(99, 102, 241, 0.08) 51%, rgba(255, 255, 255, 0.04) 53%, transparent 60%),
+    radial-gradient(ellipse 60% 55% at 78% 52%, rgba(30, 58, 138, 0.30) 0%, rgba(14, 165, 233, 0.10) 42%, transparent 75%),
+    radial-gradient(ellipse 45% 55% at 20% 85%, rgba(79, 70, 229, 0.16) 0%, transparent 65%),
+    linear-gradient(180deg, #060913 0%, #03050a 45%, #010204 100%);
 
-  --apple-surface-primary: rgba(14, 28, 58, 0.48);            /* Frosted Liquid Glass */
-  --apple-surface-secondary: rgba(22, 38, 76, 0.55);          /* Frosted Platinum Surfaces / Pods */
-  --apple-surface-hover: rgba(28, 48, 96, 0.65);              /* Hover State */
-  --apple-surface-active: rgba(35, 60, 120, 0.75);            /* Active Pressed State */
-  --apple-chip-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --apple-surface-primary: rgba(6, 10, 20, 0.62);             /* Frosted Obsidian Glass */
+  --apple-surface-secondary: rgba(12, 18, 34, 0.68);          /* Frosted Platinum Surfaces / Pods */
+  --apple-surface-hover: rgba(22, 34, 64, 0.72);              /* Hover State */
+  --apple-surface-active: rgba(30, 48, 92, 0.82);             /* Active Pressed State */
+  --apple-chip-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%);
 
   /* Hairlines & Boundaries (Luminous Glass Rim) */
-  --apple-hairline: rgba(255, 255, 255, 0.22); /* Luminous 1px glass rim */
-  --apple-hairline-focus: rgba(255, 255, 255, 0.40); /* Active / Focus border */
+  --apple-hairline: rgba(255, 255, 255, 0.16); /* Luminous 1px glass rim */
+  --apple-hairline-focus: rgba(255, 255, 255, 0.35); /* Active / Focus border */
 
   /* High-Contrast Typography */
   --apple-text-primary: #F8FAFC;               /* Crisp Off-White */
@@ -45,14 +47,14 @@
   --apple-accent-action-text: #38BDF8;
 
   /* Glass Overlays & Shadows */
-  --apple-header-bg: rgba(6, 18, 44, 0.65);
-  --apple-card-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.45);
-  --apple-chip-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  --apple-code-bg: rgba(4, 12, 28, 0.75);
-  --apple-code-gutter: rgba(6, 16, 38, 0.90);
+  --apple-header-bg: rgba(4, 7, 15, 0.75);
+  --apple-card-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85), inset 0 1px 1px 0 rgba(255, 255, 255, 0.40), inset 0 0 24px 0 rgba(255, 255, 255, 0.02);
+  --apple-chip-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --apple-code-bg: rgba(3, 6, 14, 0.85);
+  --apple-code-gutter: rgba(4, 8, 18, 0.95);
   --apple-code-text: #E2E8F0;
   --apple-tr-hover: rgba(255, 255, 255, 0.04);
-  --apple-modal-backdrop: rgba(2, 6, 18, 0.75);
+  --apple-modal-backdrop: rgba(1, 3, 8, 0.82);
 
   /* Recon Internal System Map */
   --recon-bg-void: var(--apple-canvas);
@@ -61,7 +63,7 @@
   --recon-bg-card: var(--apple-surface-primary);
   --recon-bg-surface: var(--apple-surface-primary);
   --recon-bg-elevated: var(--apple-surface-secondary);
-  --recon-bg-subtle: rgba(10, 22, 48, 0.55);
+  --recon-bg-subtle: rgba(8, 14, 28, 0.65);
   --recon-bg-hover: var(--apple-surface-hover);
   --recon-bg-active: var(--apple-surface-active);
   --recon-bg-code: var(--apple-code-bg);
@@ -87,11 +89,16 @@
    ------------------------------------------------------------------------- */
 [data-theme="light"] {
   /* Canvas & Primary Surfaces */
-  --apple-canvas: #F5F5F7;                     /* Apple Silk Studio Grey */
+  --apple-canvas: #F8FAFC;                     /* Studio Minimal Silk */
+  --recon-liquid-bg: 
+    radial-gradient(ellipse 65% 45% at 92% 10%, rgba(186, 230, 253, 0.45) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 8% 2%, rgba(254, 215, 170, 0.30) 0%, transparent 55%),
+    linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%);
+
   --apple-surface-primary: #FFFFFF;            /* Pure Crisp White Monolith Cards */
-  --apple-surface-secondary: #E8E8ED;          /* Frosted Platinum Surfaces / Pods */
-  --apple-surface-hover: #DFDFE5;              /* Soft Hover State */
-  --apple-surface-active: #D2D2D9;             /* Active Pressed State */
+  --apple-surface-secondary: #F1F5F9;          /* Frosted Platinum Surfaces / Pods */
+  --apple-surface-hover: #E2E8F0;              /* Soft Hover State */
+  --apple-surface-active: #CBD5E1;             /* Active Pressed State */
   --apple-chip-gradient: linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%); /* Frosted Aluminum Die */
 
   /* Hairlines & Boundaries */
@@ -99,29 +106,29 @@
   --apple-hairline-focus: rgba(0, 0, 0, 0.16); /* Active / Focus border */
 
   /* High-Contrast Typography */
-  --apple-text-primary: #1D1D1F;               /* Apple Deep Obsidian (100% Contrast) */
-  --apple-text-secondary: #6E6E73;             /* Apple Pro Medium Slate */
-  --apple-text-meta: #86868B;                  /* Quiet Metadata */
-  --apple-text-disabled: #AEAEB2;
+  --apple-text-primary: #0F172A;               /* Deep Slate Obsidian (100% Contrast) */
+  --apple-text-secondary: #475569;             /* Pro Medium Slate */
+  --apple-text-meta: #64748B;                  /* Quiet Metadata */
+  --apple-text-disabled: #94A3B8;
 
   /* Functional Accents (Tuned for High Light-Mode Readability) */
-  --apple-accent-success: #28CD41;             /* Apple Emerald */
-  --apple-accent-success-subtle: rgba(40, 205, 65, 0.12);
-  --apple-accent-success-text: #1B7C37;        /* High-contrast accessible text green */
-  --apple-accent-warning: #FF3B30;             /* Apple Crimson */
-  --apple-accent-warning-subtle: rgba(255, 59, 48, 0.12);
-  --apple-accent-warning-text: #D70015;        /* High-contrast accessible text red */
-  --apple-accent-action: #0071E3;              /* Apple Cupertino Blue */
-  --apple-accent-action-subtle: rgba(0, 113, 227, 0.12);
-  --apple-accent-action-text: #0071E3;
+  --apple-accent-success: #16A34A;             /* Crisp Green */
+  --apple-accent-success-subtle: rgba(22, 163, 74, 0.12);
+  --apple-accent-success-text: #15803D;        /* High-contrast accessible text green */
+  --apple-accent-warning: #DC2626;             /* Crimson Red */
+  --apple-accent-warning-subtle: rgba(220, 38, 38, 0.12);
+  --apple-accent-warning-text: #B91C1C;        /* High-contrast accessible text red */
+  --apple-accent-action: #0284C7;              /* Cupertino Azure Blue */
+  --apple-accent-action-subtle: rgba(2, 132, 199, 0.12);
+  --apple-accent-action-text: #0284C7;
 
   /* Glass Overlays & Shadows */
-  --apple-header-bg: rgba(255, 255, 255, 0.82);
-  --apple-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  --apple-header-bg: rgba(255, 255, 255, 0.85);
+  --apple-card-shadow: 0 16px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 #FFFFFF;
   --apple-chip-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --apple-code-bg: #FBFBFD;
-  --apple-code-gutter: #F0F0F3;
-  --apple-code-text: #1D1D1F;
+  --apple-code-bg: #F8FAFC;
+  --apple-code-gutter: #F1F5F9;
+  --apple-code-text: #0F172A;
   --apple-tr-hover: rgba(0, 0, 0, 0.02);
   --apple-modal-backdrop: rgba(15, 23, 42, 0.35);
 
@@ -132,7 +139,7 @@
   --recon-bg-card: var(--apple-surface-primary);
   --recon-bg-surface: var(--apple-surface-primary);
   --recon-bg-elevated: #FFFFFF;
-  --recon-bg-subtle: #F8F8FA;
+  --recon-bg-subtle: #F8FAFC;
   --recon-bg-hover: var(--apple-surface-hover);
   --recon-bg-active: var(--apple-surface-active);
   --recon-bg-code: var(--apple-code-bg);
@@ -388,61 +395,99 @@ h1, h2, .apple-headline, .section-title {
 /* ==========================================================================
    SURFACES, FROSTED GLASS CARDS & CONTAINERS (Image 2 Liquid Glass Spec)
    ========================================================================== */
-.monolith-card, .apple-monolith-card, .studio-pane, .panel-card, .holo-card, .metric-card, .port-card {
-  background: rgba(14, 28, 58, 0.48) !important;
-  backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+:root .monolith-card, :root .apple-monolith-card, :root .studio-pane, :root .panel-card, :root .holo-card, :root .metric-card, :root .port-card,
+[data-theme="dark"] .monolith-card, [data-theme="dark"] .apple-monolith-card, [data-theme="dark"] .studio-pane, [data-theme="dark"] .panel-card, [data-theme="dark"] .holo-card, [data-theme="dark"] .metric-card, [data-theme="dark"] .port-card {
+  background: rgba(6, 10, 20, 0.62) !important;
+  backdrop-filter: blur(32px) saturate(200%) brightness(105%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(105%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 24px !important;
   padding: 24px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.50), 
-              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 
-              inset 0 0 20px 0 rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.40), 
+              inset 0 0 24px 0 rgba(255, 255, 255, 0.02) !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Recon Multi-Section Cards (.recon-card has header/body/footer structure) */
-.recon-card {
-  background: rgba(14, 28, 58, 0.48) !important;
-  backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+:root .recon-card, [data-theme="dark"] .recon-card {
+  background: rgba(6, 10, 20, 0.62) !important;
+  backdrop-filter: blur(32px) saturate(200%) brightness(105%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(105%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 24px !important;
   padding: 0 !important;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.50), 
-              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 
-              inset 0 0 20px 0 rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.40), 
+              inset 0 0 24px 0 rgba(255, 255, 255, 0.02) !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.recon-card:hover, .monolith-card:hover, .metric-card:hover, .port-card:hover {
-  border-color: rgba(255, 255, 255, 0.42) !important;
-  box-shadow: 0 28px 70px -10px rgba(0, 12, 44, 0.65), 
+:root .recon-card:hover, [data-theme="dark"] .recon-card:hover,
+:root .monolith-card:hover, [data-theme="dark"] .monolith-card:hover,
+:root .metric-card:hover, [data-theme="dark"] .metric-card:hover,
+:root .port-card:hover, [data-theme="dark"] .port-card:hover {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 32px 80px -10px rgba(0, 0, 0, 0.95), 
               inset 0 1px 2px 0 rgba(255, 255, 255, 0.65), 
-              inset 0 0 24px 0 rgba(255, 255, 255, 0.06) !important;
+              inset 0 0 28px 0 rgba(56, 189, 248, 0.08) !important;
   transform: translateY(-2px);
 }
 
-.recon-card-header {
+:root .recon-card-header, [data-theme="dark"] .recon-card-header {
   padding: 16px 24px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
   color: var(--apple-text-primary) !important;
 }
 
-.recon-card-body {
+:root .recon-card-body, [data-theme="dark"] .recon-card-body {
   padding: 24px 28px !important;
   color: var(--apple-text-primary) !important;
 }
 
-.recon-card-footer {
+:root .recon-card-footer, [data-theme="dark"] .recon-card-footer {
   padding: 16px 24px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Light Mode Cards */
+[data-theme="light"] .monolith-card, [data-theme="light"] .apple-monolith-card, [data-theme="light"] .studio-pane, [data-theme="light"] .panel-card, [data-theme="light"] .holo-card, [data-theme="light"] .metric-card, [data-theme="light"] .port-card, [data-theme="light"] .recon-card {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .recon-card:hover, [data-theme="light"] .monolith-card:hover, [data-theme="light"] .metric-card:hover, [data-theme="light"] .port-card:hover {
+  border-color: rgba(0, 0, 0, 0.16) !important;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.08), inset 0 1px 0 #FFFFFF !important;
+  transform: translateY(-2px);
+}
+
+[data-theme="light"] .recon-card-header {
+  padding: 16px 24px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .recon-card-body {
+  padding: 24px 28px !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .recon-card-footer {
+  padding: 16px 24px !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: rgba(0, 0, 0, 0.01) !important;
 }
 
 /* Screen 01 Dual-Port Dropzones */
@@ -847,34 +892,46 @@ h1, h2, .apple-headline, .section-title {
 
 /* ==========================================================================
    ULTRA-PREMIUM OBSIDIAN BLACK TABLES (Pure Deep Black Data Engine)
+   Strictly scoped to Dark Mode & Root Default
    ========================================================================== */
-.table-container,
-#screen-profile .table-container,
-#screen-map .table-container,
-#screen-validate .recon-card,
-#screen-validate .table-container {
+:root .table-container,
+[data-theme="dark"] .table-container,
+:root #screen-profile .table-container,
+[data-theme="dark"] #screen-profile .table-container,
+:root #screen-map .table-container,
+[data-theme="dark"] #screen-map .table-container,
+:root #screen-validate .recon-card,
+[data-theme="dark"] #screen-validate .recon-card,
+:root #screen-validate .table-container,
+[data-theme="dark"] #screen-validate .table-container {
   width: 100%;
   overflow-x: auto;
   background-color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 16px !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
   overflow: hidden !important;
 }
 
-table, .dense-matrix-table, .loom-table, .matrix-table, .recon-table {
+:root table, [data-theme="dark"] table,
+:root .dense-matrix-table, [data-theme="dark"] .dense-matrix-table,
+:root .loom-table, [data-theme="dark"] .loom-table,
+:root .matrix-table, [data-theme="dark"] .matrix-table,
+:root .recon-table, [data-theme="dark"] .recon-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
   background-color: #000000 !important;
 }
 
-thead, .recon-table thead {
-  background-color: #080C16 !important;
+:root thead, [data-theme="dark"] thead,
+:root .recon-table thead, [data-theme="dark"] .recon-table thead {
+  background-color: #050811 !important;
 }
 
-th, .recon-table th {
-  background-color: #080C16 !important;
+:root th, [data-theme="dark"] th,
+:root .recon-table th, [data-theme="dark"] .recon-table th {
+  background-color: #050811 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #94A3B8 !important;
   font-family: var(--font-display, sans-serif);
@@ -887,14 +944,16 @@ th, .recon-table th {
   white-space: nowrap;
 }
 
-tbody, .recon-table tbody {
+:root tbody, [data-theme="dark"] tbody,
+:root .recon-table tbody, [data-theme="dark"] .recon-table tbody {
   background-color: #000000 !important;
 }
 
-td, .recon-table td {
+:root td, [data-theme="dark"] td,
+:root .recon-table td, [data-theme="dark"] .recon-table td {
   padding: 13px 18px !important;
   background-color: #000000 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
   color: #F8FAFC !important;
   font-family: var(--font-mono, monospace);
   font-variant-numeric: tabular-nums;
@@ -902,34 +961,140 @@ td, .recon-table td {
   transition: background-color 0.15s ease;
 }
 
-tr:hover td, .recon-table tr:hover td {
+:root tr:hover td, [data-theme="dark"] tr:hover td,
+:root .recon-table tr:hover td, [data-theme="dark"] .recon-table tr:hover td {
   background-color: #0A0F1D !important;
 }
 
-tr.is-selected td, .recon-table tr.is-selected td {
+:root tr.is-selected td, [data-theme="dark"] tr.is-selected td,
+:root .recon-table tr.is-selected td, [data-theme="dark"] .recon-table tr.is-selected td {
   background-color: #0E1729 !important;
 }
 
-tr.is-selected td:first-child, .recon-table tr.is-selected td:first-child {
+:root tr.is-selected td:first-child, [data-theme="dark"] tr.is-selected td:first-child,
+:root .recon-table tr.is-selected td:first-child, [data-theme="dark"] .recon-table tr.is-selected td:first-child {
   border-left: 3px solid var(--apple-accent-action, #38BDF8) !important;
 }
 
-/* Screen 06 Quarantine Table Shell & Controls */
-#screen-validate .recon-card-header {
-  background-color: #070B14 !important;
+/* Screen 06 Quarantine Table Shell & Controls (Dark Mode) */
+:root #screen-validate .recon-card-header,
+[data-theme="dark"] #screen-validate .recon-card-header {
+  background-color: #050811 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-#screen-validate #quarantine-grouping-section {
-  background-color: #04070F !important;
+:root #screen-validate #quarantine-grouping-section,
+[data-theme="dark"] #screen-validate #quarantine-grouping-section {
+  background-color: #03050A !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-#screen-validate input#quarantine-search-box,
-#screen-validate select#quarantine-field-select {
+:root #screen-validate input#quarantine-search-box,
+[data-theme="dark"] #screen-validate input#quarantine-search-box,
+:root #screen-validate select#quarantine-field-select,
+[data-theme="dark"] #screen-validate select#quarantine-field-select {
   background-color: #000000 !important;
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
   color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   PRISTINE LIGHT STUDIO TABLES (Apple Keynote Light Mode)
+   High-Contrast Crisp White & Soft Platinum Matrix
+   ========================================================================== */
+[data-theme="light"] .table-container,
+[data-theme="light"] #screen-profile .table-container,
+[data-theme="light"] #screen-map .table-container,
+[data-theme="light"] #screen-validate .recon-card,
+[data-theme="light"] #screen-validate .table-container {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 #FFFFFF !important;
+  overflow: hidden !important;
+}
+
+[data-theme="light"] table,
+[data-theme="light"] .dense-matrix-table,
+[data-theme="light"] .loom-table,
+[data-theme="light"] .matrix-table,
+[data-theme="light"] .recon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background-color: #FFFFFF !important;
+}
+
+[data-theme="light"] thead,
+[data-theme="light"] .recon-table thead {
+  background-color: #F8FAFC !important;
+}
+
+[data-theme="light"] th,
+[data-theme="light"] .recon-table th {
+  background-color: #F8FAFC !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #475569 !important;
+  font-family: var(--font-display, sans-serif);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 13px 18px !important;
+  text-align: left;
+  white-space: nowrap;
+}
+
+[data-theme="light"] tbody,
+[data-theme="light"] .recon-table tbody {
+  background-color: #FFFFFF !important;
+}
+
+[data-theme="light"] td,
+[data-theme="light"] .recon-table td {
+  padding: 13px 18px !important;
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  color: #0F172A !important;
+  font-family: var(--font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+  transition: background-color 0.15s ease;
+}
+
+[data-theme="light"] tr:hover td,
+[data-theme="light"] .recon-table tr:hover td {
+  background-color: #F1F5F9 !important;
+}
+
+[data-theme="light"] tr.is-selected td,
+[data-theme="light"] .recon-table tr.is-selected td {
+  background-color: #EFF6FF !important;
+}
+
+[data-theme="light"] tr.is-selected td:first-child,
+[data-theme="light"] .recon-table tr.is-selected td:first-child {
+  border-left: 3px solid var(--apple-accent-action, #0284C7) !important;
+}
+
+/* Screen 06 Quarantine Table Shell & Controls (Light Mode) */
+[data-theme="light"] #screen-validate .recon-card-header {
+  background-color: #F8FAFC !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] #screen-validate #quarantine-grouping-section {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] #screen-validate input#quarantine-search-box,
+[data-theme="light"] #screen-validate select#quarantine-field-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  color: #0F172A !important;
 }
 
 /* Left Accent Status System (1px Hairlines, Not Blocky Colors) */
@@ -993,8 +1158,8 @@ tr.state-missing-req, tr.state-quarantine {
    CONTROLS, BUTTONS & FORM INPUTS
    ========================================================================== */
 .btn-primary, button.primary, .action-btn.primary, #btn-assess {
-  background-color: var(--apple-accent-action) !important;
-  border: none !important;
+  background: linear-gradient(180deg, #0077ED 0%, #005BBF 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   color: #FFFFFF !important;
   font-family: var(--font-text);
   font-size: 13px;
@@ -1002,13 +1167,13 @@ tr.state-missing-req, tr.state-quarantine {
   padding: 8px 20px;
   border-radius: 980px;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 113, 227, 0.3) !important;
+  box-shadow: 0 4px 18px rgba(0, 113, 227, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.38) !important;
   transition: all var(--transition);
 }
 
 .btn-primary:hover:not(:disabled), button.primary:hover:not(:disabled), #btn-assess:hover:not(:disabled) {
-  background-color: #0077ED !important;
-  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.35) !important;
+  background: linear-gradient(180deg, #0A84FF 0%, #0066D6 100%) !important;
+  box-shadow: 0 6px 24px rgba(0, 113, 227, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.50) !important;
   transform: translateY(-1px);
 }
 
@@ -1578,16 +1743,17 @@ footer, .app-footer, .hud-footer, .studio-footer, .recon-footer {
   animation: reconScreenSlide 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.apple-stage07 .artifact-card {
-  background: rgba(14, 28, 58, 0.48) !important;
-  backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+:root .apple-stage07 .artifact-card,
+[data-theme="dark"] .apple-stage07 .artifact-card {
+  background: rgba(6, 10, 20, 0.62) !important;
+  backdrop-filter: blur(32px) saturate(200%) brightness(105%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) brightness(105%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 24px !important;
   padding: 24px !important;
-  box-shadow: 0 20px 50px -10px rgba(0, 10, 36, 0.50), 
-              inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 
-              inset 0 0 20px 0 rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.40), 
+              inset 0 0 24px 0 rgba(255, 255, 255, 0.02) !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
@@ -1595,12 +1761,13 @@ footer, .app-footer, .hud-footer, .studio-footer, .recon-footer {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.apple-stage07 .artifact-card:hover {
-  border-color: rgba(255, 255, 255, 0.42) !important;
+:root .apple-stage07 .artifact-card:hover,
+[data-theme="dark"] .apple-stage07 .artifact-card:hover {
+  border-color: rgba(255, 255, 255, 0.35) !important;
   transform: translateY(-2px);
-  box-shadow: 0 28px 70px -10px rgba(0, 12, 44, 0.65), 
+  box-shadow: 0 32px 80px -10px rgba(0, 0, 0, 0.95), 
               inset 0 1px 2px 0 rgba(255, 255, 255, 0.65), 
-              inset 0 0 24px 0 rgba(255, 255, 255, 0.06) !important;
+              inset 0 0 28px 0 rgba(56, 189, 248, 0.08) !important;
 }
 
 .apple-stage07 .artifact-title {
