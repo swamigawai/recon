@@ -4772,7 +4772,30 @@ function showRemediationSuccessToast(receipt) {
 async function showDockerfilePreview(sessionId) {
   const sid = sessionId || currentSessionId;
   if (!sid) {
-    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before previewing container configurations.");
+    // Show standard enterprise template when no session is active yet
+    const defaultTemplate = `# Recon Air-Gapped OCI Runner (Template Preview)
+# Hardened non-root container runner for production pipeline execution
+FROM python:3.11-slim
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 RECON_AIRGAP=1
+
+# Security Benchmark: Unprivileged execution (UID 10001, GID 10001)
+RUN groupadd -g 10001 recon && \\
+    useradd -u 10001 -g recon -s /bin/bash -m recon && \\
+    chown -R recon:recon /app
+
+COPY --chown=recon:recon adapter.py target_contract.json recon_mapping_spec.json /app/
+
+USER recon:recon
+ENTRYPOINT ["python", "adapter.py"]`;
+
+    openCodePreviewModal({
+      title: "Dockerfile (Air-Gapped OCI Runner)",
+      subtitle: "Template Preview • Unprivileged non-root execution (UID 10001)",
+      icon: "🐳",
+      content: defaultTemplate
+    });
     return;
   }
   try {
@@ -4783,7 +4806,7 @@ async function showDockerfilePreview(sessionId) {
     const text = await res.text();
     openCodePreviewModal({
       title: "Dockerfile (Air-Gapped OCI Runner)",
-      subtitle: "Unprivileged non-root execution (UID 10001) with zero cloud egress",
+      subtitle: "Session Custom Build • Unprivileged non-root execution (UID 10001)",
       icon: "🐳",
       content: text
     });
@@ -4796,7 +4819,49 @@ async function showDockerfilePreview(sessionId) {
 async function showWorkflowPreview(sessionId) {
   const sid = sessionId || currentSessionId;
   if (!sid) {
-    showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before previewing CI/CD workflows.");
+    // Show standard GitHub Actions template when no session is active yet
+    const defaultTemplate = `name: Recon Data Conformance Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  recon-conformance-gate:
+    name: Verify Data Contract Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Recon Engine
+        run: pip install recon-engine
+
+      - name: Execute Deterministic Quality Gate
+        run: |
+          python -m recon.cli gate \\
+            --source data/incoming_feed.csv \\
+            --contract target_contract.json \\
+            --mapping-spec recon_mapping_spec.json \\
+            --quarantine-threshold 0.02 \\
+            --strict`;
+
+    openCodePreviewModal({
+      title: ".github/workflows/recon-gate.yml",
+      subtitle: "Template Preview • Deterministic quality gate for Pull Requests",
+      icon: "⚡",
+      content: defaultTemplate
+    });
     return;
   }
   try {
@@ -4807,7 +4872,7 @@ async function showWorkflowPreview(sessionId) {
     const text = await res.text();
     openCodePreviewModal({
       title: ".github/workflows/recon-gate.yml",
-      subtitle: "Deterministic quality gate executed on every Git Pull Request",
+      subtitle: "Session Custom Gate • Enforces zero silent data loss",
       icon: "⚡",
       content: text
     });
@@ -4847,11 +4912,42 @@ function initCodePreviewModal() {
   const modal = document.getElementById("modal-code-preview");
   const btnClose = document.getElementById("btn-close-code-preview");
   const btnCopy = document.getElementById("btn-copy-code-preview");
+  const btnPreviewDocker = document.getElementById("btn-preview-dockerfile");
+  const btnPreviewWf = document.getElementById("btn-preview-workflow");
+  const artDlBundle = document.getElementById("art-dl-bundle");
 
   if (!modal) return;
 
   if (btnClose) {
     btnClose.addEventListener("click", closeCodePreviewModal);
+  }
+
+  // Bind preview buttons directly on load
+  if (btnPreviewDocker) {
+    btnPreviewDocker.addEventListener("click", (e) => {
+      e.preventDefault();
+      showDockerfilePreview(currentSessionId);
+    });
+  }
+
+  if (btnPreviewWf) {
+    btnPreviewWf.addEventListener("click", (e) => {
+      e.preventDefault();
+      showWorkflowPreview(currentSessionId);
+    });
+  }
+
+  if (artDlBundle) {
+    artDlBundle.addEventListener("click", (e) => {
+      const sid = currentResults?.session_id || currentAssessment?.session_id || currentSessionId;
+      if (!sid) {
+        e.preventDefault();
+        showGlobalError("NO ACTIVE SESSION", "Please assess a dataset before downloading your deployment bundle.");
+        navigateToStep(1);
+      } else {
+        artDlBundle.href = `/api/download/deployment-bundle/${sid}`;
+      }
+    });
   }
 
   modal.addEventListener("click", (e) => {

@@ -265,6 +265,21 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   flex-direction: column;
   min-height: 100vh;
   background-color: var(--recon-bg-root);
+  background-image: 
+    radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 90% 8%, rgba(14, 165, 233, 0.08) 0px, transparent 48%),
+    radial-gradient(at 50% 55%, rgba(16, 185, 129, 0.04) 0px, transparent 52%),
+    radial-gradient(at 85% 92%, rgba(139, 92, 246, 0.07) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+[data-theme="dark"] .recon-app-shell {
+  background-image: 
+    radial-gradient(at 8% 10%, rgba(99, 102, 241, 0.16) 0px, transparent 45%),
+    radial-gradient(at 92% 12%, rgba(14, 165, 233, 0.14) 0px, transparent 50%),
+    radial-gradient(at 48% 50%, rgba(16, 185, 129, 0.07) 0px, transparent 55%),
+    radial-gradient(at 82% 88%, rgba(168, 85, 247, 0.12) 0px, transparent 48%);
+  background-attachment: fixed;
 }
 
 /* --------------------------------------------------------------------------
@@ -5394,11 +5409,13 @@ button:active:not(:disabled),
 }
 
 .apple-stage07 .artifact-card {
-  background-color: var(--apple-surface-primary, #161617) !important;
-  border: 1px solid var(--apple-hairline, rgba(255, 255, 255, 0.08)) !important;
+  background: rgba(22, 22, 24, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
   border-radius: var(--radius-card, 20px) !important;
   padding: 24px !important;
-  box-shadow: var(--apple-card-shadow, 0 4px 20px rgba(0, 0, 0, 0.04)) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
@@ -5407,9 +5424,9 @@ button:active:not(:disabled),
 }
 
 .apple-stage07 .artifact-card:hover {
-  border-color: var(--apple-hairline-focus, rgba(255, 255, 255, 0.16)) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
 }
 
 .apple-stage07 .artifact-title {
@@ -5423,9 +5440,11 @@ button:active:not(:disabled),
 }
 
 [data-theme="light"] .apple-stage07 .artifact-card {
-  background-color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border-color: rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 [data-theme="light"] .apple-stage07 .artifact-card:hover {
@@ -5624,12 +5643,16 @@ button:active:not(:disabled),
 .deploy-pack-hero {
   border-radius: var(--radius-md, 10px) !important;
   padding: 18px 22px !important;
-  transition: all 0.2s ease !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .deploy-pack-hero:hover {
   border-color: rgba(99, 102, 241, 0.6) !important;
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.12) !important;
+  box-shadow: 0 12px 36px rgba(99, 102, 241, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px);
 }
 
 .bundle-file-pill {
