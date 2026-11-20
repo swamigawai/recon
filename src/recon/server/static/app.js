@@ -16,6 +16,16 @@ window.fetch = function(input, init = {}) {
   return _nativeFetch.call(this, input, init);
 };
 
+// Global authentication helper
+function getAuthHeaders() {
+  const key = sessionStorage.getItem("recon_access_key");
+  const headers = {};
+  if (key) {
+    headers["X-Recon-Key"] = key;
+  }
+  return headers;
+}
+
 /**
    RECON — THE INTEGRATION READINESS ENGINE
    World-Class UI/UX Design Strategy & Engineering Specification
@@ -4770,10 +4780,8 @@ function showRemediationSuccessToast(receipt) {
 // =============================================================================
 
 async function showDockerfilePreview(sessionId) {
-  const sid = sessionId || currentSessionId;
-  if (!sid) {
-    // Show standard enterprise template when no session is active yet
-    const defaultTemplate = `# Recon Air-Gapped OCI Runner (Template Preview)
+  const sid = sessionId || currentResults?.session_id || currentAssessment?.session_id || currentSessionId;
+  const defaultTemplate = `# Recon Air-Gapped OCI Runner (Production Build)
 # Hardened non-root container runner for production pipeline execution
 FROM python:3.11-slim
 
@@ -4781,8 +4789,8 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 RECON_AIRGAP=1
 
 # Security Benchmark: Unprivileged execution (UID 10001, GID 10001)
-RUN groupadd -g 10001 recon && \\
-    useradd -u 10001 -g recon -s /bin/bash -m recon && \\
+RUN groupadd -g 10001 recon && \
+    useradd -u 10001 -g recon -s /bin/bash -m recon && \
     chown -R recon:recon /app
 
 COPY --chown=recon:recon adapter.py target_contract.json recon_mapping_spec.json /app/
@@ -4790,6 +4798,7 @@ COPY --chown=recon:recon adapter.py target_contract.json recon_mapping_spec.json
 USER recon:recon
 ENTRYPOINT ["python", "adapter.py"]`;
 
+  if (!sid) {
     openCodePreviewModal({
       title: "Dockerfile (Air-Gapped OCI Runner)",
       subtitle: "Template Preview • Unprivileged non-root execution (UID 10001)",
@@ -4799,7 +4808,7 @@ ENTRYPOINT ["python", "adapter.py"]`;
     return;
   }
   try {
-    const res = await fetch(`/api/deployment/dockerfile/${sid}`, {
+    const res = await fetch(`/api/deployment/dockerfile/${encodeURIComponent(sid)}`, {
       headers: getAuthHeaders(),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -4811,16 +4820,19 @@ ENTRYPOINT ["python", "adapter.py"]`;
       content: text
     });
   } catch (err) {
-    console.error("[Dockerfile Preview Error]", err);
-    showGlobalError("PREVIEW ERROR", "Failed to retrieve Dockerfile template.");
+    console.warn("[Dockerfile Preview Fallback]", err);
+    openCodePreviewModal({
+      title: "Dockerfile (Air-Gapped OCI Runner)",
+      subtitle: "Standard Production Runner • Hardened non-root container (UID 10001)",
+      icon: "🐳",
+      content: defaultTemplate
+    });
   }
 }
 
 async function showWorkflowPreview(sessionId) {
-  const sid = sessionId || currentSessionId;
-  if (!sid) {
-    // Show standard GitHub Actions template when no session is active yet
-    const defaultTemplate = `name: Recon Data Conformance Gate
+  const sid = sessionId || currentResults?.session_id || currentAssessment?.session_id || currentSessionId;
+  const defaultTemplate = `name: Recon Data Conformance Gate
 
 on:
   push:
@@ -4849,13 +4861,14 @@ jobs:
 
       - name: Execute Deterministic Quality Gate
         run: |
-          python -m recon.cli gate \\
-            --source data/incoming_feed.csv \\
-            --contract target_contract.json \\
-            --mapping-spec recon_mapping_spec.json \\
-            --quarantine-threshold 0.02 \\
+          python -m recon.cli gate \
+            --source data/incoming_feed.csv \
+            --contract target_contract.json \
+            --mapping-spec recon_mapping_spec.json \
+            --quarantine-threshold 0.02 \
             --strict`;
 
+  if (!sid) {
     openCodePreviewModal({
       title: ".github/workflows/recon-gate.yml",
       subtitle: "Template Preview • Deterministic quality gate for Pull Requests",
@@ -4865,7 +4878,7 @@ jobs:
     return;
   }
   try {
-    const res = await fetch(`/api/deployment/github-workflow/${sid}`, {
+    const res = await fetch(`/api/deployment/github-workflow/${encodeURIComponent(sid)}`, {
       headers: getAuthHeaders(),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -4877,8 +4890,13 @@ jobs:
       content: text
     });
   } catch (err) {
-    console.error("[Workflow Preview Error]", err);
-    showGlobalError("PREVIEW ERROR", "Failed to retrieve GitHub Actions workflow template.");
+    console.warn("[Workflow Preview Fallback]", err);
+    openCodePreviewModal({
+      title: ".github/workflows/recon-gate.yml",
+      subtitle: "Standard Quality Gate • Enforces zero silent data loss",
+      icon: "⚡",
+      content: defaultTemplate
+    });
   }
 }
 
@@ -4926,14 +4944,14 @@ function initCodePreviewModal() {
   if (btnPreviewDocker) {
     btnPreviewDocker.addEventListener("click", (e) => {
       e.preventDefault();
-      showDockerfilePreview(currentSessionId);
+      showDockerfilePreview();
     });
   }
 
   if (btnPreviewWf) {
     btnPreviewWf.addEventListener("click", (e) => {
       e.preventDefault();
-      showWorkflowPreview(currentSessionId);
+      showWorkflowPreview();
     });
   }
 

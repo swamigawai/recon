@@ -1255,10 +1255,17 @@ def get_deployment_dockerfile(session_id: str) -> PlainTextResponse:
     """Returns the generated unprivileged Dockerfile for the integration."""
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
-    session = SESSIONS.get(session_id)
+    session = SESSIONS.get(session_id) or _ensure_session_objects(session_id)
     contract_name = "integration"
     if session and "contract" in session:
-        contract_name = session["contract"].contract_name
+        contract = session["contract"]
+        contract_name = getattr(contract, "contract_name", str(contract))
+    elif session and "assessment" in session and isinstance(session["assessment"], dict):
+        contract_name = session["assessment"].get("contract", {}).get("contract_name", "integration")
+    elif session_id:
+        stored = store.get_session(session_id)
+        if stored and stored.get("assessment"):
+            contract_name = stored["assessment"].get("contract", {}).get("contract_name", "integration")
     content = generate_dockerfile(adapter_name=f"{contract_name}_adapter")
     return PlainTextResponse(content=content, media_type="text/plain")
 
@@ -1268,10 +1275,17 @@ def get_deployment_github_workflow(session_id: str) -> PlainTextResponse:
     """Returns the generated GitHub Actions CI/CD workflow for contract conformance."""
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
-    session = SESSIONS.get(session_id)
+    session = SESSIONS.get(session_id) or _ensure_session_objects(session_id)
     contract_name = "integration"
     if session and "contract" in session:
-        contract_name = session["contract"].contract_name
+        contract = session["contract"]
+        contract_name = getattr(contract, "contract_name", str(contract))
+    elif session and "assessment" in session and isinstance(session["assessment"], dict):
+        contract_name = session["assessment"].get("contract", {}).get("contract_name", "integration")
+    elif session_id:
+        stored = store.get_session(session_id)
+        if stored and stored.get("assessment"):
+            contract_name = stored["assessment"].get("contract", {}).get("contract_name", "integration")
     content = generate_github_workflow(contract_name=contract_name)
     return PlainTextResponse(content=content, media_type="text/yaml")
 

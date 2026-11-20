@@ -132,6 +132,15 @@ def test_api_deployment_bundle_and_preview_endpoints():
     assert "name: Recon Data Conformance Gate" in res_wf.text
     assert "python -m recon.cli gate" in res_wf.text
 
+    # 6. Resilient preview on arbitrary/unapproved or non-cached session ID
+    res_docker_fallback = client.get("/api/deployment/dockerfile/unknown_session_id")
+    assert res_docker_fallback.status_code == 200
+    assert "FROM python:" in res_docker_fallback.text
+
+    res_wf_fallback = client.get("/api/deployment/github-workflow/unknown_session_id")
+    assert res_wf_fallback.status_code == 200
+    assert "name: Recon Data Conformance Gate" in res_wf_fallback.text
+
 
 def test_deployment_bundle_frontend_assets_present():
     """Asserts that all HTML, CSS, and JS components for Enterprise Deploy Pack and code preview modal exist."""
@@ -160,6 +169,7 @@ def test_deployment_bundle_frontend_assets_present():
     res_js = client.get("/app.js")
     assert res_js.status_code == 200
     js = res_js.text
+    assert "getAuthHeaders" in js
     assert "ReconStateMachine" in js
     assert "showDockerfilePreview" in js
     assert "showWorkflowPreview" in js
