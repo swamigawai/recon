@@ -4,7 +4,7 @@ title Recon - The Integration Readiness Engine
 
 echo ======================================================================
 echo   RECON - ZERO-FRICTION LOCAL LAUNCHER
-echo   Automated Environment Verifier, Self-Healer & Web Studio
+echo   Automated Environment Verifier, Self-Healer and Web Studio
 echo ======================================================================
 echo.
 
@@ -34,11 +34,11 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: 3. Isolated Virtual Environment Setup (.venv)
+:: 3. Isolated Virtual Environment Setup
 if not exist ".venv" (
-    echo [1/3] Setting up isolated Python virtual environment (.venv)...
+    echo [1/3] Setting up isolated Python virtual environment...
     python -m venv .venv
-    if %errorlevel% neq 0 (
+    if !errorlevel! neq 0 (
         echo [WARN] Virtual environment creation was restricted. Falling back to system Python...
     )
 )
@@ -54,11 +54,11 @@ if exist ".venv\Scripts\python.exe" (
 :: 4. Verify & Self-Heal Dependencies
 echo [2/3] Verifying runtime dependencies and local package...
 %PY_BIN% -c "import recon, fastapi, uvicorn, pydantic, multipart" >nul 2>&1
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo       Installing required dependencies via pip...
     %PY_BIN% -m pip install --upgrade pip --quiet %PIP_FLAGS%
     %PY_BIN% -m pip install -e . --quiet %PIP_FLAGS%
-    if %errorlevel% neq 0 (
+    if !errorlevel! neq 0 (
         echo [WARN] Editable install failed; falling back to requirements.txt...
         %PY_BIN% -m pip install -r requirements.txt --quiet %PIP_FLAGS%
     )
@@ -69,8 +69,8 @@ echo [3/3] Launching Recon Studio...
 echo.
 %PY_BIN% scripts\fde_launcher.py %*
 
-if %errorlevel% neq 0 (
+if !errorlevel! neq 0 (
     echo.
-    echo [EXIT] Recon stopped with exit code %errorlevel%.
+    echo [EXIT] Recon stopped with exit code !errorlevel!.
     pause
 )
