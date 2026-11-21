@@ -78,7 +78,10 @@ def check_and_heal_dependencies() -> bool:
     print(f"{YELLOW}[WARN] Missing required dependencies: {', '.join(missing_pkgs)}{RESET}")
     print(f"{CYAN}       Self-healing environment: Installing package and dependencies in editable mode...{RESET}")
 
-    install_cmd = [sys.executable, "-m", "pip", "install", "-e", str(REPO_ROOT)]
+    in_venv = sys.prefix != sys.base_prefix
+    user_flag = [] if in_venv else ["--user"]
+
+    install_cmd = [sys.executable, "-m", "pip", "install"] + user_flag + ["-e", str(REPO_ROOT)]
     res = subprocess.run(install_cmd)
     if res.returncode == 0:
         print(f"{GREEN}[PASS] Dependencies and Recon package successfully installed.{RESET}")
@@ -88,7 +91,7 @@ def check_and_heal_dependencies() -> bool:
     req_file = REPO_ROOT / "requirements.txt"
     if req_file.is_file():
         print(f"{YELLOW}[WARN] Editable install had issues; falling back to requirements.txt...{RESET}")
-        res2 = subprocess.run([sys.executable, "-m", "pip", "install", "-r", str(req_file)])
+        res2 = subprocess.run([sys.executable, "-m", "pip", "install"] + user_flag + ["-r", str(req_file)])
         if res2.returncode == 0:
             print(f"{GREEN}[PASS] Dependencies installed from requirements.txt.{RESET}")
             return True

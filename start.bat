@@ -45,8 +45,10 @@ if not exist ".venv" (
 
 if exist ".venv\Scripts\python.exe" (
     set "PY_BIN=.venv\Scripts\python.exe"
+    set "PIP_FLAGS="
 ) else (
     set "PY_BIN=python"
+    set "PIP_FLAGS=--user"
 )
 
 :: 4. Verify & Self-Heal Dependencies
@@ -54,11 +56,11 @@ echo [2/3] Verifying runtime dependencies and local package...
 %PY_BIN% -c "import recon, fastapi, uvicorn, pydantic, multipart" >nul 2>&1
 if %errorlevel% neq 0 (
     echo       Installing required dependencies via pip...
-    %PY_BIN% -m pip install --upgrade pip --quiet
-    %PY_BIN% -m pip install -e . --quiet
+    %PY_BIN% -m pip install --upgrade pip --quiet %PIP_FLAGS%
+    %PY_BIN% -m pip install -e . --quiet %PIP_FLAGS%
     if %errorlevel% neq 0 (
         echo [WARN] Editable install failed; falling back to requirements.txt...
-        %PY_BIN% -m pip install -r requirements.txt --quiet
+        %PY_BIN% -m pip install -r requirements.txt --quiet %PIP_FLAGS%
     )
 )
 
