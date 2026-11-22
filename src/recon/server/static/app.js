@@ -1944,6 +1944,67 @@ function renderProfileMatrix(data) {
     `File: ${profile.file_name} | Total Records Sampled: ${Number(profile.total_rows).toLocaleString()} | Inferred Columns: ${profile.total_columns} | Duplicates: ${profile.duplicate_rows_count}`;
   document.getElementById("prof-sha-display").textContent = (profile.fingerprint || "").slice(0, 16) + "...";
 
+  // Multi-Entity Table Matchmaker Banner
+  const matchContainer = document.getElementById("table-matchmaker-container");
+  if (matchContainer) {
+    if (data.table_match) {
+      const tm = data.table_match;
+      matchContainer.style.display = "block";
+      if (tm.is_identical) {
+        matchContainer.innerHTML = `
+          <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 14px 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px;">⚠️</span>
+                <div>
+                  <strong style="color: #f59e0b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Identical Duplicate Tables Detected</strong>
+                  <p style="margin: 3px 0 0 0; font-size: 13px; color: var(--recon-text-secondary);">${escapeHtml(tm.summary_message)} (${escapeHtml(tm.identical_reason || "")})</p>
+                </div>
+              </div>
+              <span class="badge badge-warning" style="font-weight: 700; padding: 4px 10px;">REDUNDANT DUPLICATE</span>
+            </div>
+          </div>
+        `;
+      } else if (tm.compatible_for_join && tm.top_join_key) {
+        const top = tm.top_join_key;
+        matchContainer.innerHTML = `
+          <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 14px 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px;">🔗</span>
+                <div>
+                  <strong style="color: var(--apple-accent-action); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Table Matchmaker: Join Compatible</strong>
+                  <p style="margin: 3px 0 0 0; font-size: 13px; color: var(--recon-text-secondary);">${escapeHtml(tm.summary_message)}</p>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="badge badge-indigo" style="font-weight: 700;">Cardinality: ${escapeHtml(top.cardinality)}</span>
+                <span class="badge badge-success" style="font-weight: 700;">Match Confidence: ${Math.round(top.confidence * 100)}%</span>
+                <span class="badge badge-muted" style="font-weight: 700;">Recommended: ${escapeHtml(tm.recommended_join_type)} JOIN</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        matchContainer.innerHTML = `
+          <div style="background: rgba(100, 116, 139, 0.08); border: 1px solid rgba(100, 116, 139, 0.3); border-radius: 8px; padding: 14px 18px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 20px;">ℹ️</span>
+              <div>
+                <strong style="color: var(--recon-text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">Table Matchmaker</strong>
+                <p style="margin: 3px 0 0 0; font-size: 13px; color: var(--recon-text-muted);">${escapeHtml(tm.summary_message)}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    } else {
+      matchContainer.style.display = "none";
+      matchContainer.innerHTML = "";
+    }
+  }
+
+
   const tbody = document.getElementById("profile-tbody");
   tbody.innerHTML = "";
 
