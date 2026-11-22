@@ -415,11 +415,16 @@ def cmd_web(args: argparse.Namespace) -> int:
     if access_key:
         os.environ["RECON_ACCESS_KEY"] = access_key.strip()
 
+    # Automatically respect cloud container environment variables ($PORT and 0.0.0.0)
+    env_port = os.environ.get("PORT")
+    port = int(env_port) if env_port else getattr(args, "port", 8000)
+    host = "0.0.0.0" if env_port else getattr(args, "host", "127.0.0.1")
+
     app = create_app()
-    print(f"\nStarting Recon Web Interface at http://{args.host}:{args.port}")
+    print(f"\nStarting Recon Web Interface at http://{host}:{port}")
     if os.environ.get("RECON_ACCESS_KEY"):
         print("  [Gate] Access key protection ENABLED. Passkey verification required.")
-    uvicorn.run(app, host=args.host, port=args.port)
+    uvicorn.run(app, host=host, port=port)
     return 0
 
 def cmd_doctor(args: argparse.Namespace) -> int:
