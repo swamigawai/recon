@@ -2,9 +2,11 @@ services:
   - type: web
     name: recon
     runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m recon.cli serve
+    buildCommand: pip install -r requirements.txt && pip install -e .
+    startCommand: PYTHONPATH=src python -m recon.cli serve
     plan: free
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PYTHONPATH
+        value: src
