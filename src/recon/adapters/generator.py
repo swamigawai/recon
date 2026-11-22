@@ -289,6 +289,20 @@ def transform_dataset(records: List[Dict[str, str]]) -> Tuple[List[Dict[str, Any
             valid.append(transformed)
 
     return valid, quarantined
+
+
+def stream_transform_chunks(chunks_generator) -> Tuple[int, int]:
+    """Processes chunks from a generator, returning (valid_count, quarantine_count).
+    Guarantees O(1) memory usage by processing chunk-by-chunk.
+    """
+    total_valid = 0
+    total_quarantine = 0
+    for chunk in chunks_generator:
+        v, q = transform_dataset(chunk)
+        total_valid += len(v)
+        total_quarantine += len(q)
+    return total_valid, total_quarantine
+
 '''
 
     # Preflight verification: Guarantee generated code is 100% syntactically valid Python

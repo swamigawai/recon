@@ -32,6 +32,7 @@ from recon.mapping.specification import (
     load_mapping_spec,
     validate_and_apply_mapping_spec,
 )
+from recon.mapping.matcher import match_tables, TableMatchResult
 from recon.profiling.models import SourceProfile
 from recon.profiling.profiler import profile_dataset
 from recon.reporting.generator import build_readiness_report, render_markdown_report
@@ -515,6 +516,17 @@ async def assess_integration(
                 plan, _ = validate_and_apply_mapping_spec(spec, contract, profile, plan)
 
             risks: RiskAssessment = evaluate_risks(profile, contract, plan)
+
+            # If target is tabular (CSV, XLSX, etc.), run multi-entity table matching
+            table_match = None
+            if contract_path.suffix.lower() in (".csv", ".tsv", ".xlsx", ".xlsm"):
+                try:
+                    target_dataset = load_dataset(contract_path)
+                    target_profile = profile_dataset(target_dataset)
+                    table_match = match_tables(profile, target_profile).model_dump()
+                except Exception as match_err:
+                    log_safe_event("table_match_skipped", {"reason": str(match_err)})
+
         except ReconError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         except Exception as exc:
@@ -625,6 +637,7 @@ async def assess_integration(
         "is_blocked": risks.is_blocked or len(unresolved_required_fields) > 0,
         "critical_risks_count": len(risks.critical_findings),
         "high_risks_count": len(risks.high_findings),
+        "table_match": table_match,
     }
 
     # Persist session to SQLite WAL store
@@ -1449,3 +1462,54 @@ def delete_session(session_id: str) -> dict[str, str]:
     if not session and not temp_dir and not store_deleted:
         raise HTTPException(status_code=404, detail="Session not found.")
     return {"status": "cleaned", "session_id": session_id}
+
+
+@router.post("/match-tables")
+async def match_tables_endpoint(
+    request: Request,
+    table_a_file: UploadFile | None = File(None),
+    table_b_file: UploadFile | None = File(None),
+    session_id: str | None = Form(None),
+) -> dict[str, Any]:
+    """Analyzes two tables to discover candidate primary/foreign keys, cardinality (1:1, 1:N), or detect identical duplicate tables."""
+    _check_access(request)
+
+    # 1. If an active session is provided, reuse staged datasets
+    if session_id and session_id in SESSIONS:
+        sess = SESSIONS[session_id]
+        profile_a = sess.get("profile")
+        contract_path = sess.get("contract_path")
+        if profile_a and contract_path and contract_path.suffix.lower() in (".csv", ".tsv", ".xlsx", ".xlsm"):
+            target_ds = load_dataset(contract_path)
+            profile_b = profile_dataset(target_ds)
+            return match_tables(profile_a, profile_b).model_dump()
+
+    # 2. Otherwise require both table files
+    if not table_a_file or not table_b_file:
+        raise HTTPException(
+            status_code=400,
+            detail="Must provide both 'table_a_file' and 'table_b_file', or an active 'session_id'."
+        )
+
+    with tempfile.TemporaryDirectory() as td:
+        dir_p = Path(td)
+        name_a = Path(table_a_file.filename).name.strip() if table_a_file.filename else "table_a.csv"
+        name_b = Path(table_b_file.filename).name.strip() if table_b_file.filename else "table_b.csv"
+        path_a = dir_p / name_a
+        path_b = dir_p / name_b
+
+        content_a = await table_a_file.read(MAX_SOURCE_SIZE_BYTES + 1)
+        content_b = await table_b_file.read(MAX_SOURCE_SIZE_BYTES + 1)
+
+        with open(path_a, "wb") as fa:
+            fa.write(content_a)
+        with open(path_b, "wb") as fb:
+            fb.write(content_b)
+
+        ds_a = load_dataset(path_a)
+        ds_b = load_dataset(path_b)
+        prof_a = profile_dataset(ds_a)
+        prof_b = profile_dataset(ds_b)
+
+        return match_tables(prof_a, prof_b).model_dump()
+
