@@ -1102,5 +1102,40 @@ def test_download_valid_and_quarantine_records_csv_and_jsonl(client: TestClient)
     assert "application/x-jsonlines" in res_quar_jsonl.headers["content-type"]
 
 
+def test_download_valid_records_csv_when_zero_valid_emits_headers(client: TestClient) -> None:
+    """Verifies that if 0 records pass validation, the CSV download emits the target schema header row instead of being 0 bytes."""
+    from recon.server.routes import SESSIONS
+
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
+    session_id = res_assess.json()["session_id"]
+
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={"session_id": session_id, "reviewer": "qa_tester", "overrides": {}},
+    )
+    assert res_approve.status_code == 200
+
+    # Simulate scenario where 0 records passed validation (all quarantined)
+    session = SESSIONS[session_id]
+    val = session["validation"]
+    val.all_valid_records = []
+    val.sample_valid_output = []
+
+    res_valid_csv = client.get(f"/api/download/valid-records/{session_id}?format=csv")
+    assert res_valid_csv.status_code == 200
+    assert "text/csv" in res_valid_csv.headers["content-type"]
+    lines = res_valid_csv.text.strip().splitlines()
+    assert len(lines) == 1  # Contract header row emitted
+    assert "ticket_id" in lines[0]
+
+
+
 
 

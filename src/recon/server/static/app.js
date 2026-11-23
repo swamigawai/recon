@@ -4190,18 +4190,40 @@ function renderReadinessDossier(data) {
   document.getElementById("art-dl-report-md").href = `/api/download/report/${sessionId}?format=md`;
   document.getElementById("art-dl-report-json").href = `/api/download/report/${sessionId}?format=json`;
 
-  document.getElementById("art-valid-count").textContent = `${data.validation.valid_records_count} records validated`;
+  const validCount = Number(data.validation.valid_records_count || 0);
+  const quarCount = Number(data.validation.quarantined_records_count || 0);
+
+  document.getElementById("art-valid-count").textContent = `${validCount.toLocaleString()} records validated`;
   document.getElementById("art-dl-valid").href = `/api/download/valid-records/${sessionId}?format=jsonl`;
   const validCsvBtn = document.getElementById("art-dl-valid-csv");
   if (validCsvBtn) {
     validCsvBtn.href = `/api/download/valid-records/${sessionId}?format=csv`;
+    if (validCount === 0) {
+      validCsvBtn.textContent = "Clean Records (0 Passed)";
+      validCsvBtn.classList.remove("btn-primary");
+      validCsvBtn.classList.add("btn-secondary");
+      validCsvBtn.title = "0 records passed validation. Download Quarantined Records CSV to inspect errors.";
+    } else {
+      validCsvBtn.textContent = "Download CSV (.csv)";
+      validCsvBtn.classList.add("btn-primary");
+      validCsvBtn.classList.remove("btn-secondary");
+      validCsvBtn.title = "";
+    }
   }
 
-  document.getElementById("art-quarantine-count").textContent = `${data.validation.quarantined_records_count} records quarantined`;
+  document.getElementById("art-quarantine-count").textContent = `${quarCount.toLocaleString()} records quarantined`;
   document.getElementById("art-dl-quarantine").href = `/api/download/quarantine-records/${sessionId}?format=jsonl`;
   const quarCsvBtn = document.getElementById("art-dl-quarantine-csv");
   if (quarCsvBtn) {
     quarCsvBtn.href = `/api/download/quarantine-records/${sessionId}?format=csv`;
+    if (validCount === 0 && quarCount > 0) {
+      quarCsvBtn.classList.add("btn-primary");
+      quarCsvBtn.classList.remove("btn-secondary");
+      quarCsvBtn.textContent = "Download Quarantined CSV (.csv)";
+      quarCsvBtn.style.background = "var(--recon-rose-base)";
+      quarCsvBtn.style.borderColor = "var(--recon-rose-base)";
+      quarCsvBtn.style.color = "#ffffff";
+    }
   }
 
   const artDlSpec = document.getElementById("art-dl-mapping-spec");

@@ -1146,6 +1146,12 @@ def download_valid_records(session_id: str, format: str = "jsonl") -> Response:
             writer.writeheader()
             for r in records:
                 writer.writerow(r)
+        elif "contract" in session and hasattr(session["contract"], "fields"):
+            # When 0 records passed validation, emit target schema header row so CSV is never a 0-byte ghost file
+            headers = list(session["contract"].fields.keys())
+            if headers:
+                writer = csv.DictWriter(out, fieldnames=headers)
+                writer.writeheader()
         content = out.getvalue()
         return Response(
             content=content,
