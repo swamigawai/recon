@@ -1,0 +1,6 @@
+cust_id,full_name,email_address,country_code,created_at
+C101,Emma Watson,emma@example.com,GB,2023-01-15
+C102,Rajesh Sharma,rajesh@example.in,IN,2023-02-20
+C103,Lucas Dupont,lucas@example.fr,FR,2023-03-10
+C104,Sophia Miller,sophia@example.com,US,2023-04-05
+C105,Max Schmidt,max@example.de,DE,2023-05-12

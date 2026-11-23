@@ -1,0 +1,8 @@
+order_id,customer_ref,order_date,total_usd,fulfillment_status
+ORD-901,C101,2024-03-01,120.00,Delivered
+ORD-902,C101,2024-03-05,45.50,Delivered
+ORD-903,C102,2024-03-02,310.00,Shipped
+ORD-904,C103,2024-03-03,85.20,Delivered
+ORD-905,C104,2024-03-04,210.00,Processing
+ORD-906,C104,2024-03-06,95.00,Delivered
+ORD-907,C105,2024-03-07,140.00,Shipped

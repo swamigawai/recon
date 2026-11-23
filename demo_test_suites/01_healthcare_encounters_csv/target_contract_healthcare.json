@@ -1,0 +1,78 @@
+{
+  "contract_name": "healthcare_patient_encounter_contract",
+  "version": "1.0.0",
+  "description": "Standard schema for hospital patient admission and outpatient clinical encounters.",
+  "fields": {
+    "encounter_id": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^ENC-[0-9]{6}$",
+      "description": "Unique alphanumeric encounter identifier format ENC-######",
+      "name": "encounter_id"
+    },
+    "patient_id": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Master patient index (MPI) identifier",
+      "name": "patient_id"
+    },
+    "admission_date": {
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "Admission timestamp in ISO 8601 format",
+      "name": "admission_date"
+    },
+    "discharge_date": {
+      "target_type": "datetime",
+      "required": false,
+      "nullable": true,
+      "description": "Discharge timestamp if patient has been released",
+      "name": "discharge_date"
+    },
+    "encounter_type": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "Inpatient",
+        "Outpatient",
+        "Emergency",
+        "Urgent Care"
+      ],
+      "description": "Clinical encounter classification",
+      "name": "encounter_type"
+    },
+    "primary_icd10": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^[A-Z][0-9]{2}(\\.[0-9]{1,4})?$",
+      "description": "Primary diagnosis ICD-10-CM code",
+      "name": "primary_icd10"
+    },
+    "total_billed_amount": {
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Total hospital billed charges in USD",
+      "name": "total_billed_amount"
+    },
+    "copay_collected": {
+      "target_type": "float",
+      "required": false,
+      "nullable": true,
+      "description": "Upfront patient copay collected at triage",
+      "name": "copay_collected"
+    },
+    "readmission_flag": {
+      "target_type": "boolean",
+      "required": true,
+      "nullable": false,
+      "description": "Flag indicating 30-day unplanned readmission",
+      "name": "readmission_flag"
+    }
+  }
+}

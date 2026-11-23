@@ -1,0 +1,48 @@
+{
+  "contract_name": "enterprise_warehouse_orders_contract",
+  "version": "1.0.0",
+  "description": "Unified analytics warehouse schema consolidating orders and customer attribution.",
+  "fields": {
+    "order_id": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Unique transaction ID",
+      "name": "order_id"
+    },
+    "customer_id": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Attributed customer ID",
+      "name": "customer_id"
+    },
+    "order_date": {
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "Transaction date",
+      "name": "order_date"
+    },
+    "total_amount": {
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Total order amount in USD",
+      "name": "total_amount"
+    },
+    "status": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "Delivered",
+        "Shipped",
+        "Processing",
+        "Cancelled"
+      ],
+      "description": "Fulfillment status",
+      "name": "status"
+    }
+  }
+}

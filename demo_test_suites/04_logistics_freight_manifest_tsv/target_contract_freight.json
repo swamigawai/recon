@@ -1,0 +1,64 @@
+{
+  "contract_name": "logistics_freight_dispatch_contract",
+  "version": "1.0.0",
+  "description": "Standard schema for intermodal freight consignments, weight verification, and hazmat compliance.",
+  "fields": {
+    "consignment_id": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "pattern": "^CON-[0-9]{6}$",
+      "description": "Unique consignment tracking reference",
+      "name": "consignment_id"
+    },
+    "carrier_code": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "allowed_values": [
+        "FEDEX",
+        "DHL",
+        "UPS",
+        "MAERSK",
+        "DB_SCHENKER"
+      ],
+      "description": "Accredited freight carrier",
+      "name": "carrier_code"
+    },
+    "dispatch_timestamp": {
+      "target_type": "datetime",
+      "required": true,
+      "nullable": false,
+      "description": "Warehouse dock release timestamp",
+      "name": "dispatch_timestamp"
+    },
+    "gross_weight_kg": {
+      "target_type": "float",
+      "required": true,
+      "nullable": false,
+      "description": "Certified scale weight in kilograms",
+      "name": "gross_weight_kg"
+    },
+    "pallet_count": {
+      "target_type": "integer",
+      "required": true,
+      "nullable": false,
+      "description": "Total standardized pallet units",
+      "name": "pallet_count"
+    },
+    "destination_hub": {
+      "target_type": "string",
+      "required": true,
+      "nullable": false,
+      "description": "Destination container freight station code",
+      "name": "destination_hub"
+    },
+    "hazardous_material": {
+      "target_type": "boolean",
+      "required": true,
+      "nullable": false,
+      "description": "Flag for hazardous cargo requiring placarding",
+      "name": "hazardous_material"
+    }
+  }
+}
