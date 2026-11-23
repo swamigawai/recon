@@ -1057,4 +1057,50 @@ def test_sqlite_persistence_status_and_restore(client: TestClient) -> None:
     assert "# Recon Integration Readiness Report" in res_report.text
 
 
+def test_download_valid_and_quarantine_records_csv_and_jsonl(client: TestClient) -> None:
+    """Verifies that transformed clean records and quarantine records download in both CSV and JSONL."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
+    session_id = res_assess.json()["session_id"]
+
+    res_approve = client.post(
+        "/api/approve-and-generate",
+        json={"session_id": session_id, "reviewer": "qa_tester", "overrides": {}},
+    )
+    assert res_approve.status_code == 200
+
+    # 1. Download clean records as CSV
+    res_valid_csv = client.get(f"/api/download/valid-records/{session_id}?format=csv")
+    assert res_valid_csv.status_code == 200
+    assert "text/csv" in res_valid_csv.headers["content-type"]
+    assert "clean_valid_records_" in res_valid_csv.headers["content-disposition"]
+    valid_csv_text = res_valid_csv.text
+    assert len(valid_csv_text.strip().splitlines()) >= 2  # header + data rows
+
+    # 2. Download clean records as JSONL
+    res_valid_jsonl = client.get(f"/api/download/valid-records/{session_id}?format=jsonl")
+    assert res_valid_jsonl.status_code == 200
+    assert "application/x-jsonlines" in res_valid_jsonl.headers["content-type"]
+    assert len(res_valid_jsonl.text.strip().splitlines()) >= 1
+
+    # 3. Download quarantined records as CSV
+    res_quar_csv = client.get(f"/api/download/quarantine-records/{session_id}?format=csv")
+    assert res_quar_csv.status_code == 200
+    assert "text/csv" in res_quar_csv.headers["content-type"]
+    assert "quarantine_records_" in res_quar_csv.headers["content-disposition"]
+    assert "record_index,failure_reason,violated_fields,raw_record" in res_quar_csv.text
+
+    # 4. Download quarantined records as JSONL
+    res_quar_jsonl = client.get(f"/api/download/quarantine-records/{session_id}?format=jsonl")
+    assert res_quar_jsonl.status_code == 200
+    assert "application/x-jsonlines" in res_quar_jsonl.headers["content-type"]
+
+
+
 
