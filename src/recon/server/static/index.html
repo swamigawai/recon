@@ -875,11 +875,11 @@ div>
 
           <!-- Apple Hero Text -->
           <div class="apple-hero-text">
-            <p class="apple-eyebrow">STAGE 07 // CERTIFIED READINESS &amp; DELIVERABLES</p>
-            <h2 class="apple-headline">Certified ready. Sealed by proof.</h2>
+            <p class="apple-eyebrow">STAGE 07 // INTEGRATION SUMMARY &amp; EXPORT</p>
+            <h2 class="apple-headline">Certified &amp; Ready for Production.</h2>
             <p class="apple-subhead">
-              Every schema mapping, AST adapter, and zero-loss quarantine split is compiled into production deliverables. 
-              Cryptographically signed with 100% mathematical conservation.
+              Every schema mapping, generated Python adapter, and quarantined record is ready for deployment.
+              100% data integrity with zero records silently lost.
             </p>
           </div>
 
@@ -896,11 +896,11 @@ div>
                     </svg>
                   </div>
                   <div>
-                    <div style="font-weight: 700; font-size: 20px; font-family: var(--font-display); letter-spacing: -0.02em;" id="dossier-state-heading">READINESS: PASS</div>
-                    <div style="font-size: 13px; margin-top: 4px; color: var(--apple-text-secondary);" id="dossier-rationale-text">All required fields mapped and contract validated with 100% parity.</div>
+                    <div style="font-weight: 700; font-size: 20px; font-family: var(--font-display); letter-spacing: -0.02em;" id="dossier-state-heading">STATUS: READY FOR PRODUCTION</div>
+                    <div style="font-size: 13px; margin-top: 4px; color: var(--apple-text-secondary);" id="dossier-rationale-text">All required fields mapped and validated with zero data loss.</div>
                   </div>
                 </div>
-                <span class="badge badge-emerald holographic-pill" id="dossier-state-badge" style="font-size: 12px; padding: 6px 14px;">CERTIFIED READY</span>
+                <span class="badge badge-emerald holographic-pill" id="dossier-state-badge" style="font-size: 12px; padding: 6px 14px;">PRODUCTION READY</span>
               </div>
             </div>
 
@@ -908,15 +908,15 @@ div>
             <div class="apple-stats-grid" style="border-top: 1px solid var(--apple-hairline); margin-top: 28px; padding-top: 28px;">
               <div class="stat-card">
                 <span class="stat-big" id="dossier-stat-parity" style="color: var(--apple-accent-success-text);">100%</span>
-                <span class="stat-desc">Conservation parity. Zero silent drops or unlogged records.</span>
+                <span class="stat-desc">Data Integrity Check. Zero records lost or silently dropped.</span>
               </div>
               <div class="stat-card">
                 <span class="stat-big" id="dossier-stat-artifacts">5</span>
-                <span class="stat-desc">Compiled production-ready integration deliverables.</span>
+                <span class="stat-desc">Production Deliverables (Code, CI/CD, and Data).</span>
               </div>
               <div class="stat-card">
                 <span class="stat-big" id="dossier-stat-airgap">0 KB/s</span>
-                <span class="stat-desc">Air-gapped execution. Zero external cloud dependencies.</span>
+                <span class="stat-desc">Private &amp; Secure. Zero external cloud tracking.</span>
               </div>
             </div>
           </div>
@@ -1014,14 +1014,17 @@ div>
               <div>
                 <div class="artifact-title">
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-success);"><circle cx="8" cy="8" r="6"/><polyline points="5 8 7 10 11 6"/></svg>
-                  <span>Transformed Valid Output</span>
+                  <span>Clean Transformed Records</span>
                 </div>
                 <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
-                  Transformed records conforming strictly to target schema specifications with verified type integrity.
+                  Clean records matching target schema specifications, ready for immediate Excel or database use.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-valid-count">0 valid records</div>
               </div>
-              <a class="btn btn-secondary btn-sm" id="art-dl-valid" download>Download Output (.jsonl)</a>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a class="btn btn-primary btn-sm" id="art-dl-valid-csv" download style="font-weight: 600;">Download CSV (.csv)</a>
+                <a class="btn btn-secondary btn-sm" id="art-dl-valid" download>JSONL</a>
+              </div>
             </div>
 
             <!-- 4. Quarantine Diagnostic Log -->
@@ -1029,14 +1032,17 @@ div>
               <div>
                 <div class="artifact-title">
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; color: var(--apple-accent-warning);"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9"/><circle cx="8" cy="12" r="0.75" fill="currentColor"/></svg>
-                  <span>Quarantine Diagnostic Log</span>
+                  <span>Quarantined Records</span>
                 </div>
                 <p class="text-muted" style="font-size: 11px; margin-top: 6px; line-height: 1.45;">
-                  Quarantined records with attached schema violation error codes, payload snapshots, and failure rationales.
+                  Records that failed validation, with attached error reasons and original values for easy fixes.
                 </p>
                 <div class="font-mono text-muted" style="font-size: 11px; margin-top: 8px;" id="art-quarantine-count">0 quarantined records</div>
               </div>
-              <a class="btn btn-secondary btn-sm" id="art-dl-quarantine" download>Download Quarantine (.jsonl)</a>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a class="btn btn-secondary btn-sm" id="art-dl-quarantine-csv" download style="color: var(--apple-accent-danger);">Download CSV (.csv)</a>
+                <a class="btn btn-secondary btn-sm" id="art-dl-quarantine" download>JSONL</a>
+              </div>
             </div>
 
             <!-- 5. Mapping Specification (.json) -->

@@ -4154,21 +4154,21 @@ function renderReadinessDossier(data) {
 
   if (state === "pass" || state === "ready") {
     banner.className = "radar-status-card ready";
-    heading.textContent = `READINESS: PASS (${data.validation.contract_pass_rate}% Yield)`;
+    heading.textContent = `STATUS: READY FOR PRODUCTION (${data.validation.contract_pass_rate}% Passed)`;
     badge.className = "badge badge-emerald holographic-pill";
-    badge.textContent = "CERTIFIED READY";
+    badge.textContent = "PRODUCTION READY";
     if (seal) seal.classList.remove("hidden");
     SoundEngine.playCelebration();
     triggerConfettiCelebration();
   } else if (state === "needs_review") {
     banner.className = "radar-status-card warning";
-    heading.textContent = `READINESS: NEEDS REVIEW (${data.validation.contract_pass_rate}% Yield)`;
+    heading.textContent = `STATUS: REVIEW NEEDED (${data.validation.contract_pass_rate}% Passed)`;
     badge.className = "badge badge-amber";
     badge.textContent = "REVIEW NEEDED";
     if (seal) seal.classList.add("hidden");
   } else {
     banner.className = "radar-status-card blocked";
-    heading.textContent = `READINESS: BLOCKED (${data.validation.contract_pass_rate}% Yield)`;
+    heading.textContent = `STATUS: BLOCKED (${data.validation.contract_pass_rate}% Passed - Action Required)`;
     badge.className = "badge badge-rose";
     badge.textContent = "BLOCKED";
     if (seal) seal.classList.add("hidden");
@@ -4191,10 +4191,18 @@ function renderReadinessDossier(data) {
   document.getElementById("art-dl-report-json").href = `/api/download/report/${sessionId}?format=json`;
 
   document.getElementById("art-valid-count").textContent = `${data.validation.valid_records_count} records validated`;
-  document.getElementById("art-dl-valid").href = `/api/download/valid-records/${sessionId}`;
+  document.getElementById("art-dl-valid").href = `/api/download/valid-records/${sessionId}?format=jsonl`;
+  const validCsvBtn = document.getElementById("art-dl-valid-csv");
+  if (validCsvBtn) {
+    validCsvBtn.href = `/api/download/valid-records/${sessionId}?format=csv`;
+  }
 
   document.getElementById("art-quarantine-count").textContent = `${data.validation.quarantined_records_count} records quarantined`;
-  document.getElementById("art-dl-quarantine").href = `/api/download/quarantine-records/${sessionId}`;
+  document.getElementById("art-dl-quarantine").href = `/api/download/quarantine-records/${sessionId}?format=jsonl`;
+  const quarCsvBtn = document.getElementById("art-dl-quarantine-csv");
+  if (quarCsvBtn) {
+    quarCsvBtn.href = `/api/download/quarantine-records/${sessionId}?format=csv`;
+  }
 
   const artDlSpec = document.getElementById("art-dl-mapping-spec");
   if (artDlSpec) {

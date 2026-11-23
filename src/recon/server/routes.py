@@ -1124,8 +1124,8 @@ def download_adapter(session_id: str) -> Response:
 
 
 @router.get("/download/valid-records/{session_id}")
-def download_valid_records(session_id: str) -> Response:
-    """Downloads valid transformed records in JSONL format."""
+def download_valid_records(session_id: str, format: str = "jsonl") -> Response:
+    """Downloads valid transformed records in CSV or JSONL format."""
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
@@ -1135,18 +1135,36 @@ def download_valid_records(session_id: str) -> Response:
     safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
     val = session["validation"]
     records = val.all_valid_records if getattr(val, "all_valid_records", None) else val.sample_valid_output
-    lines = [json.dumps(rec, default=str) for rec in records]
-    content = "\n".join(lines)
-    return PlainTextResponse(
-        content=content,
-        media_type="application/x-jsonlines",
-        headers={"Content-Disposition": f'attachment; filename="valid_records_{safe_id}.jsonl"'}
-    )
+
+    if format.lower() == "csv":
+        import csv
+        import io
+        out = io.StringIO()
+        if records:
+            headers = list(records[0].keys())
+            writer = csv.DictWriter(out, fieldnames=headers)
+            writer.writeheader()
+            for r in records:
+                writer.writerow(r)
+        content = out.getvalue()
+        return Response(
+            content=content,
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="clean_valid_records_{safe_id}.csv"'}
+        )
+    else:
+        lines = [json.dumps(rec, default=str) for rec in records]
+        content = "\n".join(lines)
+        return PlainTextResponse(
+            content=content,
+            media_type="application/x-jsonlines",
+            headers={"Content-Disposition": f'attachment; filename="valid_records_{safe_id}.jsonl"'}
+        )
 
 
 @router.get("/download/quarantine-records/{session_id}")
-def download_quarantine_records(session_id: str) -> Response:
-    """Downloads quarantined records with diagnostics in JSONL format."""
+def download_quarantine_records(session_id: str, format: str = "jsonl") -> Response:
+    """Downloads quarantined records with diagnostics in CSV or JSONL format."""
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
@@ -1156,13 +1174,35 @@ def download_quarantine_records(session_id: str) -> Response:
     safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
     val = session["validation"]
     records = val.all_quarantined_records if getattr(val, "all_quarantined_records", None) else val.sample_quarantined_records
-    lines = [json.dumps(rec, default=str) for rec in records]
-    content = "\n".join(lines)
-    return PlainTextResponse(
-        content=content,
-        media_type="application/x-jsonlines",
-        headers={"Content-Disposition": f'attachment; filename="quarantine_records_{safe_id}.jsonl"'}
-    )
+
+    if format.lower() == "csv":
+        import csv
+        import io
+        out = io.StringIO()
+        writer = csv.DictWriter(out, fieldnames=["record_index", "failure_reason", "violated_fields", "raw_record"])
+        writer.writeheader()
+        if records:
+            for r in records:
+                writer.writerow({
+                    "record_index": r.get("record_index"),
+                    "failure_reason": r.get("failure_reason"),
+                    "violated_fields": "; ".join(r.get("violated_fields", [])),
+                    "raw_record": json.dumps(r.get("raw_record", {}), default=str),
+                })
+        content = out.getvalue()
+        return Response(
+            content=content,
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="quarantine_records_{safe_id}.csv"'}
+        )
+    else:
+        lines = [json.dumps(rec, default=str) for rec in records]
+        content = "\n".join(lines)
+        return PlainTextResponse(
+            content=content,
+            media_type="application/x-jsonlines",
+            headers={"Content-Disposition": f'attachment; filename="quarantine_records_{safe_id}.jsonl"'}
+        )
 
 
 @router.get("/download/mapping-spec/{session_id}")
