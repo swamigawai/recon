@@ -183,7 +183,7 @@ For technical sign-off on enterprise rollout, Recon has demonstrated compliance 
 | **GATE-01** | **Deterministic Speed:** Full columnar profiling of 220,000 cells in $\le 5.0\text{ seconds}$. | **2.84 Seconds (NYC-311 5,000-Row, 44-Col Benchmark)** | **PASSED (100%)** |
 | **GATE-02** | **Zero Data Loss:** Complete mathematical proof of record conservation ($N_{\text{in}} = N_{\text{val}} + N_{\text{quar}}$). | **100.000% Accounted (0 Dropped Records)** | **PASSED (100%)** |
 | **GATE-03** | **Hard Blocker Enforcement:** 100% compile lock when required contract fields are unmapped. | **Deterministic Code Generation Prevention** | **PASSED (100%)** |
-| **GATE-04** | **Test Suite Reliability:** 100% pass rate across regression, security, and edge-case suites. | **160 / 160 Tests Passing (Python 3.11 & 3.12)** | **PASSED (100%)** |
+| **GATE-04** | **Test Suite Reliability:** 100% pass rate across regression, security, and edge-case suites. | **214 / 214 Tests Passing (Python 3.11 & 3.12)** | **PASSED (100%)** |
 | **GATE-05** | **Zero Telemetry Security:** In-process AST sandbox with dangerous builtins stripped and zero network calls. | **Verified In-Process & Docker Air-Gapped** | **PASSED (100%)** |
 
 ### 4.2 Zero-Trust Security & Governance Posture

@@ -11,7 +11,7 @@
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-v2.0-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![CI / CD](https://img.shields.io/badge/CI%2FCD-Passing-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/swamigawai/recon/actions)
-[![Pytest](https://img.shields.io/badge/Tests-160%20Passed-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Tests](https://img.shields.io/badge/Tests-214%20Passing-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://github.com/swamigawai/recon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -46,10 +46,11 @@ Recon is engineered with modern, production-grade technologies optimized for exe
 | Component | Technology | Role & Capability |
 | :--- | :--- | :--- |
 | **Language Runtime** | **Python 3.11 / 3.12** | High-performance type hinting, pattern matching, and native AST compilation. |
+| **High-Throughput Streaming** | **Polars + PyArrow** | Chunked streaming engine processing multi-gigabyte files with sub-linear memory overhead. |
 | **Schema Validation** | **Pydantic v2 (Rust Core)** | Blazing-fast runtime schema validation and contract coercion. |
 | **API & Web Server** | **FastAPI + Uvicorn ASGI** | Async REST endpoints, background session cleanup, and sub-millisecond route dispatch. |
 | **Code Synthesis** | **Python Abstract Syntax Tree (AST)** | Compiles approved mappings into standalone, reviewable PEP-8 Python scripts. |
-| **Testing Harness** | **Pytest + Starlette TestClient** | 160 deterministic unit, integration, and security tests with 100% pass rate. |
+| **Testing Harness** | **Pytest + Starlette TestClient** | 214 deterministic unit, integration, and security tests with 100% pass rate. |
 | **Frontend Studio** | **Swiss Modern UI + Tailwind CSS** | Zero-latency browser interface with dynamic flow graph and virtualized telemetry. |
 | **Containerization** | **Docker & Docker Compose** | Reproducible, isolated local and staging environments with multi-stage builds. |
 
@@ -117,13 +118,13 @@ flowchart TD
 
 Traditional ETL pipelines fail silently because they treat integration as an ad-hoc scripting exercise after data is already ingested. Recon shifts validation upstream to preflight.
 
-| Dimension | Traditional ETL Scripts | Raw LLMs / Copilots | Recon Readiness Engine |
+| Dimension | Custom Ad-Hoc Scripts | Generic Cloud ETL | Recon Readiness Engine |
 | :--- | :---: | :---: | :---: |
-| **Data Quality Scan** | Ad-hoc runtime crashes | Blind prompt assumption | **Deterministic 100% Columnar Preflight** |
-| **Hallucination Risk** | High (accidental column mis-mapping) | Extreme (silent field hallucination) | **Zero (Refuses to guess; human approval gate)** |
-| **Data Loss Policy** | Drops rows or crashes silently | Unpredictable loss | **Zero-Loss Guarantee ($N_{\text{in}} \equiv N_{\text{val}} + N_{\text{quar}}$)** |
-| **Output Deliverable** | Monolithic proprietary runtime | Chat snippet code | **Standalone Python AST Adapter + Audit Dossier** |
-| **Telemetry & Privacy** | Cloud SaaS phone-home | Third-party cloud API ingestion | **100% Local-First / Zero Telemetry** |
+| **Data Quality Scan** | Ad-hoc runtime crashes | Post-ingestion error tables | **Deterministic 100% Columnar Preflight** |
+| **Schema Drift & Gaps** | Discovered in production | Silent column drops | **Refuses to guess; explicit human approval gate** |
+| **Data Loss Policy** | Drops rows or crashes silently | Unlogged loss or partial loads | **Zero-Loss Guarantee ($N_{\text{in}} \equiv N_{\text{val}} + N_{\text{quar}}$)** |
+| **Output Deliverable** | Fragile glue-code | Proprietary platform lock-in | **Dual Output: Direct Clean CSVs + Standalone Python AST Adapter** |
+| **Execution Architecture** | Cloud SaaS dependency | Cloud SaaS phone-home | **100% Air-Gapped / Zero External Telemetry** |
 
 ---
 
@@ -174,9 +175,9 @@ Recon provides an engineering-grade, Linear-inspired dark interface designed for
 </details>
 
 <details>
-<summary><b>07 Readiness Dossier — Certified Production Deliverables</b></summary>
+<summary><b>07 Integration Summary & Export — Dual-Action Production Deliverables</b></summary>
 <br/>
-<p>One-click export for the synthesized Python adapter, valid JSONL output, quarantine exception log, executive markdown audit report, and reusable CI/CD mapping spec.</p>
+<p>Provides deliverables tailored for both business stakeholders and integration engineers: direct 1-click clean CSV and JSONL downloads for immediate data operations, alongside an Enterprise CI/CD Pack (.zip) containing the standalone Python adapter, Dockerfile, GitHub Actions workflow, and a verified Markdown audit dossier.</p>
 <img src="benchmarks/results/screenshots/step07_readiness_dossier.png" alt="Readiness Dossier" width="100%">
 </details>
 
