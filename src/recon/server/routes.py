@@ -1235,6 +1235,33 @@ def download_mapping_spec(session_id: str) -> Response:
     )
 
 
+@router.get("/download/contract/{session_id}")
+def download_target_contract(session_id: str) -> Response:
+    """Downloads the target schema contract specification in JSON format."""
+    if not IDENTIFIER_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format.")
+    session = SESSIONS.get(session_id) or _ensure_session_objects(session_id)
+    if not session or "contract" not in session:
+        stored = store.get_session(session_id)
+        if stored and stored.get("assessment", {}).get("contract"):
+            contract_json = json.dumps(stored["assessment"]["contract"], indent=2)
+            return Response(
+                content=contract_json,
+                media_type="application/json",
+                headers={"Content-Disposition": 'attachment; filename="target_contract.json"'},
+            )
+        raise HTTPException(status_code=404, detail="Target contract not found for session.")
+
+    contract = session["contract"]
+    contract_data = contract.model_dump(mode="json") if hasattr(contract, "model_dump") else contract
+    return Response(
+        content=json.dumps(contract_data, indent=2),
+        media_type="application/json",
+        headers={"Content-Disposition": 'attachment; filename="target_contract.json"'},
+    )
+
+
+
 @router.get("/download/deployment-bundle/{session_id}")
 def download_deployment_bundle(session_id: str) -> Response:
     """Downloads the full Enterprise CI/CD Deployment Pack in a production .zip archive."""

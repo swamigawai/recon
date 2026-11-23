@@ -4231,6 +4231,15 @@ function renderReadinessDossier(data) {
     artDlSpec.href = `/api/download/mapping-spec/${sessionId}`;
   }
 
+  const artDlContract = document.getElementById("art-dl-contract");
+  if (artDlContract) {
+    artDlContract.href = `/api/download/contract/${sessionId}`;
+    const contractEl = document.getElementById("art-contract-name");
+    if (contractEl && data.contract && data.contract.contract_name) {
+      contractEl.textContent = `${data.contract.contract_name}.json`;
+    }
+  }
+
   // Pillar 3: Enterprise CI/CD Deploy Pack (.zip)
   const artDlBundle = document.getElementById("art-dl-bundle");
   if (artDlBundle) {

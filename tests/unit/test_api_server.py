@@ -1136,6 +1136,28 @@ def test_download_valid_records_csv_when_zero_valid_emits_headers(client: TestCl
     assert "ticket_id" in lines[0]
 
 
+def test_download_target_contract_json(client: TestClient) -> None:
+    """Verifies that the target schema contract can be downloaded directly in JSON format."""
+    res_assess = client.post(
+        "/api/assess",
+        data={
+            "sample_dataset_id": "synthetic_nyc_311",
+            "sample_contract_id": "target_contract_service_request",
+        },
+    )
+    assert res_assess.status_code == 200
+    session_id = res_assess.json()["session_id"]
+
+    res_contract = client.get(f"/api/download/contract/{session_id}")
+    assert res_contract.status_code == 200
+    assert "application/json" in res_contract.headers["content-type"]
+    assert "target_contract.json" in res_contract.headers["content-disposition"]
+    data = res_contract.json()
+    assert data["contract_name"] == "service_request_target_contract"
+    assert "ticket_id" in data["fields"]
+
+
+
 
 
 
