@@ -18,11 +18,16 @@ from recon.contracts.universal import (
 )
 from recon.exceptions import ContractError
 from recon.ingestion.loader import load_dataset
+from recon.ingestion.models import IngestionConfig, RawDataset
 from recon.profiling.models import InferredType
 from recon.profiling.profiler import profile_dataset
 
 
-def load_csv_contract(path: Path) -> TargetContract:
+def load_csv_contract(
+    path: Path,
+    config: IngestionConfig | None = None,
+    dataset: RawDataset | None = None,
+) -> TargetContract:
     """Loads and derives a TargetContract from a CSV/TSV data dictionary or sample dataset file.
 
     Supports:
@@ -30,14 +35,15 @@ def load_csv_contract(path: Path) -> TargetContract:
       2. Target Sample Datasets: Any CSV file representing the target format, with profiling
       3. Header-only Templates: CSV with zero rows, inferring fields from header tokens
     """
-    try:
-        dataset = load_dataset(path)
-    except Exception as exc:
-        raise ContractError(
-            f"Failed to ingest target contract CSV '{path.name}': {exc}",
-            actionable_suggestion="Verify the CSV file formatting, encoding, and permissions.",
-            context={"file_path": str(path)},
-        ) from exc
+    if dataset is None:
+        try:
+            dataset = load_dataset(path, config=config)
+        except Exception as exc:
+            raise ContractError(
+                f"Failed to ingest target contract CSV '{path.name}': {exc}",
+                actionable_suggestion="Verify the CSV file formatting, encoding, and permissions.",
+                context={"file_path": str(path)},
+            ) from exc
 
     if not dataset.headers:
         raise ContractError(
@@ -268,6 +274,8 @@ def load_csv_contract(path: Path) -> TargetContract:
 def load_target_contract(
     contract_path_or_dict: str | Path | dict[str, Any],
     schema_name: str | None = None,
+    config: IngestionConfig | None = None,
+    dataset: RawDataset | None = None,
 ) -> TargetContract:
     """Loads, validates, and normalizes a target contract from Native Recon, JSON Schema, OpenAPI, or CSV formats.
 
@@ -325,7 +333,7 @@ def load_target_contract(
 
         # Handle CSV / TSV / Excel tabular target contracts
         if suffix in (".csv", ".tsv", ".xlsx", ".xlsm"):
-            return load_csv_contract(path)
+            return load_csv_contract(path, config=config, dataset=dataset)
 
         # Handle JSON / OpenAPI contracts (with rigorous BOM stripping)
         try:

@@ -23,7 +23,7 @@ from recon.deploy.bundle import (
 )
 from recon.exceptions import AdapterError, ReconError
 from recon.ingestion.loader import load_dataset
-from recon.ingestion.models import RawDataset
+from recon.ingestion.models import IngestionConfig, RawDataset
 from recon.mapping.approval import approve_mapping_plan
 from recon.mapping.models import MappingPlan, MappingStatus, MappingType
 from recon.mapping.proposer import propose_mappings
@@ -498,9 +498,26 @@ async def assess_integration(
 
         # 3. Execute Engine Pipeline (Ingestion -> Profiling -> Mapping -> Risks)
         try:
-            dataset: RawDataset = load_dataset(source_path)
+            # High-performance sampling ceiling: for files > 5MB, sample first 20,000 rows
+            # to guarantee sub-second interactive response time on cloud servers.
+            source_cfg = IngestionConfig(max_rows=20000) if source_path.stat().st_size > 5 * 1024 * 1024 else None
+            contract_cfg = IngestionConfig(max_rows=20000) if contract_path.stat().st_size > 5 * 1024 * 1024 else None
+
+            dataset: RawDataset = load_dataset(source_path, config=source_cfg)
             profile: SourceProfile = profile_dataset(dataset)
-            contract: TargetContract = load_target_contract(contract_path, schema_name=schema_name)
+
+            target_dataset = None
+            if contract_path.suffix.lower() in (".csv", ".tsv", ".xlsx", ".xlsm"):
+                target_dataset = load_dataset(contract_path, config=contract_cfg)
+                contract: TargetContract = load_target_contract(
+                    contract_path,
+                    schema_name=schema_name,
+                    config=contract_cfg,
+                    dataset=target_dataset,
+                )
+            else:
+                contract = load_target_contract(contract_path, schema_name=schema_name)
+
             plan: MappingPlan = propose_mappings(profile, contract)
 
             # Apply mapping specification if provided
@@ -517,15 +534,15 @@ async def assess_integration(
 
             risks: RiskAssessment = evaluate_risks(profile, contract, plan)
 
-            # If target is tabular (CSV, XLSX, etc.), run multi-entity table matching
+            # If target is tabular (CSV, XLSX, etc.), run multi-entity table matching reusing target_dataset
             table_match = None
-            if contract_path.suffix.lower() in (".csv", ".tsv", ".xlsx", ".xlsm"):
+            if target_dataset is not None:
                 try:
-                    target_dataset = load_dataset(contract_path)
                     target_profile = profile_dataset(target_dataset)
                     table_match = match_tables(profile, target_profile).model_dump()
                 except Exception as match_err:
                     log_safe_event("table_match_skipped", {"reason": str(match_err)})
+
 
         except ReconError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
@@ -1506,8 +1523,10 @@ async def match_tables_endpoint(
         with open(path_b, "wb") as fb:
             fb.write(content_b)
 
-        ds_a = load_dataset(path_a)
-        ds_b = load_dataset(path_b)
+        cfg_a = IngestionConfig(max_rows=20000) if path_a.stat().st_size > 5 * 1024 * 1024 else None
+        cfg_b = IngestionConfig(max_rows=20000) if path_b.stat().st_size > 5 * 1024 * 1024 else None
+        ds_a = load_dataset(path_a, config=cfg_a)
+        ds_b = load_dataset(path_b, config=cfg_b)
         prof_a = profile_dataset(ds_a)
         prof_b = profile_dataset(ds_b)
 
