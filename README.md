@@ -60,62 +60,66 @@ Recon is engineered with modern, production-grade technologies optimized for exe
 
 ## ⚡ The 7-Stage Integration Lifecycle
 
-Recon replaces brittle scripts and opaque black-box guessing with an auditable, 7-stage deterministic preflight pipeline:
+Recon replaces brittle scripts and opaque black-box guessing with an auditable, multi-tier deterministic preflight architecture:
 
 ```mermaid
 flowchart TD
-    classDef inputStyle fill:#1e293b,stroke:#475569,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
-    classDef profileStyle fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
-    classDef mappingStyle fill:#1e1e38,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
-    classDef gateStyle fill:#3b0764,stroke:#d946ef,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
-    classDef synthStyle fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
-    classDef deliverStyle fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
-    classDef quarStyle fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
+    classDef inputStyle fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef contractStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef profileStyle fill:#022c22,stroke:#34d399,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef engineStyle fill:#18181b,stroke:#a1a1aa,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef gateStyle fill:#450a0a,stroke:#f87171,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef signStyle fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef sandboxStyle fill:#1e293b,stroke:#fbbf24,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef outValid fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef outQuar fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef outPack fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
+    classDef mathProof fill:#0c4a6e,stroke:#0284c7,stroke-width:3px,color:#f8fafc,rx:8,ry:8;
 
-    subgraph S1["01 Intake Cockpit"]
-        P1["📂 Source Raw Data Stream\n(CSV, TSV, XLSX, JSONL)\n• Delimiter & Encoding Detection\n• UTF-8 BOM Auto-Stripping\n• Cryptographic SHA-256 Fingerprint"]:::inputStyle
-        P2["📜 Target Schema Contract\n(JSON Schema / OpenAPI 3.x)\n• Invariant Field Rules\n• Regex Patterns & Types\n• Domain Enum Sets"]:::inputStyle
+    subgraph INTAKE["⚡ TIER 1: DUAL-PORT INTAKE & CRYPTOGRAPHIC STAGING"]
+        direction LR
+        SRC["📂 RAW DATA INTAKE PORT\n• Multi-Format: CSV, XLSX, TSV, JSONL\n• Auto-Encoding & UTF-8 BOM Strip\n• Deterministic SHA-256 Fingerprint"]:::inputStyle
+        TGT["📜 TARGET CONTRACT PORT\n• JSON Schema / OpenAPI 3.x\n• Invariant Field Types & Patterns\n• Strict Domain Enum Whitelists"]:::contractStyle
     end
 
-    subgraph S2["02 Columnar Profile Matrix"]
-        PROF["📊 100% Columnar Profiler\n(Zero-Sampling Forensics)\n• Cardinality & Null Ratios\n• Dynamic Type Distribution\n• Whitespace & Anomaly Scan"]:::profileStyle
+    subgraph PREFLIGHT["🔬 TIER 2: 100% COLUMNAR FORENSICS & TOPOLOGY MATCHING"]
+        direction LR
+        PROF["📊 ZERO-SAMPLING PROFILER\n• 100% Row/Cell Analysis\n• Null Ratios & Cardinality\n• Whitespace & Type Anomalies"]:::profileStyle
+        MATCH["🧠 VECTORIZED MATCHMAKER\n• Jaro-Winkler & Levenshtein\n• PK/FK Join Discovery (1:1, 1:N)\n• Duplicate Table Detection"]:::engineStyle
     end
 
-    subgraph S3["03 Mapping & Relational Matchmaker"]
-        ALIGN["🧠 Semantic Alignment Engine\n• Acronym Expansion (qty ↔ item_count)\n• Normalized Levenshtein & Jaro-Winkler\n• Relational PK/FK Table Matching (1:1, 1:N)"]:::mappingStyle
+    subgraph GOVERNANCE["🛡️ TIER 3: DETERMINISTIC RISK RADAR & GO/NO-GO AUDIT GATE"]
+        direction LR
+        RADAR["🚨 9-RULE SAFETY MATRIX\nR001-R009 Violation Analysis\nType Incompatibilities · Null Drift"]:::gateStyle
+        AUDIT{"🔒 PREFLIGHT GATE\nMissing Required Fields?"}:::gateStyle
+        SIGN["✍️ LEAD ENGINEER SIGN-OFF\nAudit Handle Stamp + Risk Acknowledgment\nIrreversible In-Memory Commit"]:::signStyle
     end
 
-    subgraph S4["04 Risk Radar & Approval Gate"]
-        GATE{"🔒 Preflight Audit Gate (R001–R009)\nAre all required fields mapped?"}:::gateStyle
-        BLOCK["🛑 Hard Blocker (R001)\nRefuses code generation"]:::quarStyle
-        SIGN["✍️ Lead Engineer Sign-Off\nAudit handle + acknowledged warnings"]:::gateStyle
+    subgraph COMPILER["⚡ TIER 4: PURE-PYTHON AST SYNTHESIS & AIR-GAPPED SANDBOX"]
+        direction LR
+        AST["🐍 AST COMPILER (Python 3.11)\n• Typed Casting & Date Normalizers\n• Sanitized Variable Names\n• Standalone PEP-8 adapter.py"]:::sandboxStyle
+        RUNTIME["🧪 ISOLATED SANDBOX RUNTIME\n• Process Boundary / Air-Gapped\n• Dangerous Builtins Stripped\n• Zero Network / Zero Telemetry"]:::sandboxStyle
     end
 
-    subgraph S5["05 Adapter Code Workbench"]
-        AST["🐍 Pure-Python 3.11 AST Compiler\n• Typed casting & date parsers\n• Sanitized token variables\n• Standalone PEP-8 adapter.py"]:::synthStyle
+    subgraph EGRESS["📦 TIER 5: VERIFIED DUAL-STREAM EGRESS & CI/CD DEPLOY PACK"]
+        direction TB
+        subgraph STREAMS["Dual Delivery Channels"]
+            VALID["✅ CLEAN VALID RECORDS\n(1-Click CSV & JSONL)\nReady for Production Database / Warehouse"]:::outValid
+            QUAR["⚠️ QUARANTINE FORENSIC LEDGER\n(1-Click CSV & JSONL)\nLine Numbers + Exact Error Violations"]:::outQuar
+            BUNDLE["📦 ENTERPRISE CI/CD DEPLOY PACK (.zip)\nadapter.py + Dockerfile + GitHub Actions + Schema"]:::outPack
+        end
+        PROOF["⚖️ MATHEMATICAL CONSERVATION PROOF (Zero Silent Drops)\nN_total ≡ N_valid + N_quarantined  ·  Parity: 100.000%"]:::mathProof
     end
 
-    subgraph S6["06 Sandboxed Validation Lab"]
-        SANDBOX["🧪 Isolated Execution Sandbox\nRuns 100% of rows against target schema\nZero network calls · Air-gapped"]:::synthStyle
-    end
-
-    subgraph S7["07 Integration Summary & Dual Egress"]
-        VALID["✅ Clean Valid Records (CSV / JSONL)\nSchema-compliant, ready for Excel/DB"]:::deliverStyle
-        QUAR["⚠️ Quarantine Ledger (CSV / JSONL)\nRejected rows with exact error diagnostics"]:::quarStyle
-        PACK["📦 Complete Enterprise CI/CD Deploy Pack\nadapter.py + Dockerfile + GitHub Actions + Schema"]:::deliverStyle
-        BALANCE["⚖️ Mathematical Invariant Verified:\nN_total ≡ N_valid + N_quarantined (0 dropped)"]:::deliverStyle
-    end
-
-    P1 & P2 --> PROF
-    PROF --> ALIGN
-    ALIGN --> GATE
-    GATE -->|Missing Required Fields| BLOCK
-    BLOCK -->|Engineer Overrides via 1-Click Dropdown| ALIGN
-    GATE -->|Approved & Cleared| SIGN
+    SRC & TGT --> PROF & MATCH
+    PROF & MATCH --> RADAR
+    RADAR --> AUDIT
+    AUDIT -->|Hard Blocker: Unmapped Fields| RADAR
+    AUDIT -->|Approved & Signed| SIGN
     SIGN --> AST
-    AST --> SANDBOX
-    SANDBOX --> VALID & QUAR & PACK
-    VALID & QUAR --> BALANCE
+    AST --> RUNTIME
+    RUNTIME --> VALID & QUAR & BUNDLE
+    VALID & QUAR --> PROOF
 ```
 
 ---

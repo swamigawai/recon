@@ -1,7 +1,9 @@
 """Automated production UI screenshot capture using Headless Edge / Chrome CDP.
 Generates crystal-clear, high-resolution screenshots for all 7 Recon stages.
+Guarantees zero modal overlays and pristine UI state.
 """
 
+from pathlib import Path
 import os
 import sys
 import time
@@ -11,8 +13,6 @@ import asyncio
 import subprocess
 import urllib.request
 import websockets
-
-from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCREENSHOT_DIR = str(REPO_ROOT / "benchmarks" / "results" / "screenshots")
@@ -76,7 +76,7 @@ def wait_for_server(url, timeout=20):
 
 async def main():
     print("=" * 70)
-    print("Recon UI Screenshot Engine — High-DPI Capture")
+    print("Recon UI Screenshot Engine — High-DPI Capture (Zero Gate Overlays)")
     print("=" * 70)
 
     # 1. Start local Recon server
@@ -85,6 +85,7 @@ async def main():
     server_env["PYTHONPATH"] = "src"
     server_proc = subprocess.Popen(
         [sys.executable, "-m", "recon.cli", "serve", "--host", "127.0.0.1", "--port", str(SERVER_PORT)],
+        cwd=str(REPO_ROOT),
         env=server_env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -109,8 +110,8 @@ async def main():
         f"--user-data-dir={USER_DATA_DIR}",
         "--no-first-run",
         "--no-default-browser-check",
-        "--window-size=1440,900",
-        f"http://127.0.0.1:{SERVER_PORT}/",
+        "--window-size=1600,1050",
+        f"http://127.0.0.1:{SERVER_PORT}/?key=RECON-2026",
     ]
     browser_proc = subprocess.Popen(browser_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     await asyncio.sleep(2.5)
@@ -135,17 +136,34 @@ async def main():
 
             # High-DPI Display setup (scale factor 1.25 for crisp text rendering)
             await send_cdp(ws, "Emulation.setDeviceMetricsOverride", {
-                "width": 1440,
-                "height": 920,
+                "width": 1500,
+                "height": 980,
                 "deviceScaleFactor": 1.25,
                 "mobile": False
             }, msg_id)
             msg_id += 1
 
-            await asyncio.sleep(2.0)
+            # Fully unlock studio & destroy any lingering overlays
+            await evaluate(ws, """
+                localStorage.setItem('recon_pilot_unlocked', 'true');
+                localStorage.setItem('recon_active_key', 'RECON-2026');
+                sessionStorage.setItem('recon_access_key', 'RECON-2026');
+                const gate = document.getElementById('recon-access-gate');
+                if (gate) gate.remove();
+                const modal = document.getElementById('modal-access-key');
+                if (modal) modal.remove();
+                document.querySelectorAll('.recon-modal-backdrop').forEach(b => b.remove());
+                document.body.classList.remove('modal-open');
+                window.scrollTo(0, 0);
+            """, msg_id)
+            msg_id += 1
+            await asyncio.sleep(1.0)
 
             # Stage 01: Intake Cockpit
             print("\n[4/7] Capturing Stage 01 (Intake Cockpit)...")
+            await evaluate(ws, "navigateToStep(1); window.scrollTo(0, 0);", msg_id)
+            msg_id += 1
+            await asyncio.sleep(0.8)
             await take_screenshot(ws, "step01_ingest_desktop.png", msg_id)
             msg_id += 1
 
@@ -163,17 +181,21 @@ async def main():
 
             # Restore desktop view
             await send_cdp(ws, "Emulation.setDeviceMetricsOverride", {
-                "width": 1440,
-                "height": 920,
+                "width": 1500,
+                "height": 980,
                 "deviceScaleFactor": 1.25,
                 "mobile": False
             }, msg_id)
             msg_id += 1
             await asyncio.sleep(0.5)
 
-            # Load demo scenario (B2B Vendor Invoices)
-            print("\n[5/7] Executing Preflight Assessment with B2B Vendor Invoicing Scenario...")
-            await evaluate(ws, "loadScenario('b2b')", msg_id)
+            # Load demo scenario (NYC 311 Service Requests)
+            print("\n[5/7] Executing Preflight Assessment (NYC 311 Ground Truth)...")
+            await evaluate(ws, """
+                loadScenario('nyc311');
+                const gate = document.getElementById('recon-access-gate');
+                if (gate) gate.remove();
+            """, msg_id)
             msg_id += 1
             await asyncio.sleep(0.5)
 
@@ -188,20 +210,20 @@ async def main():
                 if has_assessment:
                     break
                 await asyncio.sleep(0.25)
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.0)
 
             # Stage 02: Profile Matrix
             print("\n[6/7] Capturing Stages 02 through 07...")
-            await evaluate(ws, "navigateToStep(2)", msg_id)
+            await evaluate(ws, "navigateToStep(2); window.scrollTo(0, 0);", msg_id)
             msg_id += 1
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.0)
             await take_screenshot(ws, "step02_profile_matrix.png", msg_id)
             msg_id += 1
 
             # Stage 03: Mapping Review Studio
-            await evaluate(ws, "navigateToStep(3)", msg_id)
+            await evaluate(ws, "navigateToStep(3); window.scrollTo(0, 0);", msg_id)
             msg_id += 1
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.0)
             await take_screenshot(ws, "step03_mapping_studio.png", msg_id)
             msg_id += 1
 
@@ -215,36 +237,27 @@ async def main():
             await take_screenshot(ws, "step03_mapping_drawer.png", msg_id)
             msg_id += 1
 
-            # Stage 04: Risk Radar & Approval Gate
-            await evaluate(ws, "navigateToStep(4)", msg_id)
+            # Close drawer
+            await evaluate(ws, """
+                const closeBtn = document.getElementById('btn-close-drawer');
+                if (closeBtn) closeBtn.click();
+            """, msg_id)
             msg_id += 1
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(0.4)
+
+            # Stage 04: Risk Radar & Approval Gate
+            await evaluate(ws, "navigateToStep(4); window.scrollTo(0, 0);", msg_id)
+            msg_id += 1
+            await asyncio.sleep(1.0)
             await take_screenshot(ws, "step04_risk_radar.png", msg_id)
             msg_id += 1
 
-            # Authorize mappings and sign off
+            # Trigger approval and adapter generation
+            print("  Synthesizing adapter and running validation...")
             await evaluate(ws, """
-                document.querySelectorAll('#mappings-tbody tr.state-missing-req select').forEach(sel => {
-                    if (sel.options.length > 1) {
-                        sel.selectedIndex = 1;
-                        sel.dispatchEvent(new Event('change'));
-                    }
-                });
                 const chk = document.getElementById('ack-checkbox');
-                if (chk) {
-                    chk.checked = true;
-                    chk.dispatchEvent(new Event('change'));
-                }
-            """, msg_id)
-            msg_id += 1
-            await asyncio.sleep(0.5)
-
-            # Click Approve & Generate
-            await evaluate(ws, """
-                const btnApprove = document.getElementById('btn-approve');
-                if (btnApprove && !btnApprove.disabled) {
-                    btnApprove.click();
-                }
+                if (chk) chk.checked = true;
+                handleApproveAndGenerate();
             """, msg_id)
             msg_id += 1
 
@@ -255,26 +268,26 @@ async def main():
                 if has_results:
                     break
                 await asyncio.sleep(0.25)
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.2)
 
             # Stage 05: Adapter Code Workbench
-            await evaluate(ws, "navigateToStep(5)", msg_id)
+            await evaluate(ws, "navigateToStep(5); window.scrollTo(0, 0);", msg_id)
             msg_id += 1
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.0)
             await take_screenshot(ws, "step05_adapter_workbench.png", msg_id)
             msg_id += 1
 
             # Stage 06: Validation Lab & Quarantine Forensics (Apple-grade card & cell matrix)
-            await evaluate(ws, "navigateToStep(6)", msg_id)
+            await evaluate(ws, "navigateToStep(6); window.scrollTo(0, 0);", msg_id)
             msg_id += 1
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.0)
             await take_screenshot(ws, "step06_validation_lab.png", msg_id)
             msg_id += 1
 
             # Stage 07: Integration Summary & Export (Direct CSV downloads, Target contract, Deploy Pack)
-            await evaluate(ws, "navigateToStep(7)", msg_id)
+            await evaluate(ws, "navigateToStep(7); window.scrollTo(0, 0);", msg_id)
             msg_id += 1
-            await asyncio.sleep(0.8)
+            await asyncio.sleep(1.0)
             await take_screenshot(ws, "step07_readiness_dossier.png", msg_id)
             msg_id += 1
 
