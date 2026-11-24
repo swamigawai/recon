@@ -24,7 +24,7 @@
 
 <p align="center">
   <a href="#-quick-start"><b>Quick Start</b></a> •
-  <a href="#-the-7-stage-integration-lifecycle"><b>7-Stage Architecture</b></a> •
+  <a href="#architecture-overview"><b>Architecture</b></a> •
   <a href="#-visual-studio-tour"><b>Visual Studio Tour</b></a> •
   <a href="#-why-recon-the-paradigm-shift"><b>Why Recon</b></a> •
   <a href="demo_test_suites/"><b>Demo Test Suites (5 Domains)</b></a> •
@@ -58,68 +58,55 @@ Recon is engineered with modern, production-grade technologies optimized for exe
 
 ---
 
-## ⚡ The 7-Stage Integration Lifecycle
+## Architecture Overview
 
-Recon replaces brittle scripts and opaque black-box guessing with an auditable, multi-tier deterministic preflight architecture:
+Recon replaces brittle custom scripts and post-ingestion pipeline failures with a deterministic preflight pipeline:
 
 ```mermaid
-flowchart TD
-    classDef inputStyle fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef contractStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef profileStyle fill:#022c22,stroke:#34d399,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef engineStyle fill:#18181b,stroke:#a1a1aa,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef gateStyle fill:#450a0a,stroke:#f87171,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef signStyle fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef sandboxStyle fill:#1e293b,stroke:#fbbf24,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef outValid fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef outQuar fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef outPack fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#f8fafc,rx:6,ry:6;
-    classDef mathProof fill:#0c4a6e,stroke:#0284c7,stroke-width:3px,color:#f8fafc,rx:8,ry:8;
+flowchart LR
+    classDef default fill:#0f172a,stroke:#334155,stroke-width:1.5px,color:#f1f5f9,rx:4,ry:4;
+    classDef gate fill:#1e1b4b,stroke:#6366f1,stroke-width:1.5px,color:#f1f5f9,rx:4,ry:4;
+    classDef valid fill:#064e3b,stroke:#059669,stroke-width:1.5px,color:#f1f5f9,rx:4,ry:4;
+    classDef quar fill:#450a0a,stroke:#dc2626,stroke-width:1.5px,color:#f1f5f9,rx:4,ry:4;
 
-    subgraph INTAKE["⚡ TIER 1: DUAL-PORT INTAKE & CRYPTOGRAPHIC STAGING"]
-        direction LR
-        SRC["📂 RAW DATA INTAKE PORT\n• Multi-Format: CSV, XLSX, TSV, JSONL\n• Auto-Encoding & UTF-8 BOM Strip\n• Deterministic SHA-256 Fingerprint"]:::inputStyle
-        TGT["📜 TARGET CONTRACT PORT\n• JSON Schema / OpenAPI 3.x\n• Invariant Field Types & Patterns\n• Strict Domain Enum Whitelists"]:::contractStyle
-    end
-
-    subgraph PREFLIGHT["🔬 TIER 2: 100% COLUMNAR FORENSICS & TOPOLOGY MATCHING"]
-        direction LR
-        PROF["📊 ZERO-SAMPLING PROFILER\n• 100% Row/Cell Analysis\n• Null Ratios & Cardinality\n• Whitespace & Type Anomalies"]:::profileStyle
-        MATCH["🧠 VECTORIZED MATCHMAKER\n• Jaro-Winkler & Levenshtein\n• PK/FK Join Discovery (1:1, 1:N)\n• Duplicate Table Detection"]:::engineStyle
-    end
-
-    subgraph GOVERNANCE["🛡️ TIER 3: DETERMINISTIC RISK RADAR & GO/NO-GO AUDIT GATE"]
-        direction LR
-        RADAR["🚨 9-RULE SAFETY MATRIX\nR001-R009 Violation Analysis\nType Incompatibilities · Null Drift"]:::gateStyle
-        AUDIT{"🔒 PREFLIGHT GATE\nMissing Required Fields?"}:::gateStyle
-        SIGN["✍️ LEAD ENGINEER SIGN-OFF\nAudit Handle Stamp + Risk Acknowledgment\nIrreversible In-Memory Commit"]:::signStyle
-    end
-
-    subgraph COMPILER["⚡ TIER 4: PURE-PYTHON AST SYNTHESIS & AIR-GAPPED SANDBOX"]
-        direction LR
-        AST["🐍 AST COMPILER (Python 3.11)\n• Typed Casting & Date Normalizers\n• Sanitized Variable Names\n• Standalone PEP-8 adapter.py"]:::sandboxStyle
-        RUNTIME["🧪 ISOLATED SANDBOX RUNTIME\n• Process Boundary / Air-Gapped\n• Dangerous Builtins Stripped\n• Zero Network / Zero Telemetry"]:::sandboxStyle
-    end
-
-    subgraph EGRESS["📦 TIER 5: VERIFIED DUAL-STREAM EGRESS & CI/CD DEPLOY PACK"]
+    subgraph Intake["1. Ingestion & Contract"]
         direction TB
-        subgraph STREAMS["Dual Delivery Channels"]
-            VALID["✅ CLEAN VALID RECORDS\n(1-Click CSV & JSONL)\nReady for Production Database / Warehouse"]:::outValid
-            QUAR["⚠️ QUARANTINE FORENSIC LEDGER\n(1-Click CSV & JSONL)\nLine Numbers + Exact Error Violations"]:::outQuar
-            BUNDLE["📦 ENTERPRISE CI/CD DEPLOY PACK (.zip)\nadapter.py + Dockerfile + GitHub Actions + Schema"]:::outPack
-        end
-        PROOF["⚖️ MATHEMATICAL CONSERVATION PROOF (Zero Silent Drops)\nN_total ≡ N_valid + N_quarantined  ·  Parity: 100.000%"]:::mathProof
+        Raw["Source Data Feed\nCSV · XLSX · TSV · JSONL"]
+        Contract["Target Contract\nJSON Schema · OpenAPI 3.x"]
     end
 
-    SRC & TGT --> PROF & MATCH
-    PROF & MATCH --> RADAR
-    RADAR --> AUDIT
-    AUDIT -->|Hard Blocker: Unmapped Fields| RADAR
-    AUDIT -->|Approved & Signed| SIGN
-    SIGN --> AST
-    AST --> RUNTIME
-    RUNTIME --> VALID & QUAR & BUNDLE
-    VALID & QUAR --> PROOF
+    subgraph Profiling["2. Profiling & Alignment"]
+        direction TB
+        Profiler["Columnar Profiler\n100% records · zero sampling"]
+        Matcher["Mapping Engine\nJaro-Winkler · PK/FK detection"]
+    end
+
+    subgraph Audit["3. Preflight Safety Gate"]
+        direction TB
+        Rules["Risk Engine\nRules R001–R009"]
+        Approval{"Approval Gate\nHuman Sign-Off"}:::gate
+    end
+
+    subgraph Runtime["4. AST Synthesis & Sandbox"]
+        direction TB
+        Compiler["AST Compiler\nStandalone adapter.py"]
+        Sandbox["Air-Gapped Sandbox\nIsolated process execution"]
+    end
+
+    subgraph Egress["5. Dual-Stream Delivery"]
+        direction TB
+        ValidOutput["Clean Valid Records\nCSV / JSONL"]:::valid
+        QuarOutput["Quarantine Ledger\nCSV / JSONL with diagnostics"]:::quar
+        DeployPack["CI/CD Deploy Pack\nadapter.py · Dockerfile · CI workflow"]
+    end
+
+    Raw & Contract --> Profiler
+    Profiler --> Matcher
+    Matcher --> Rules
+    Rules --> Approval
+    Approval -->|Approved| Compiler
+    Compiler --> Sandbox
+    Sandbox --> ValidOutput & QuarOutput & DeployPack
 ```
 
 ---
