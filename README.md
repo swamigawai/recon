@@ -19,18 +19,17 @@
 <h3><b>Know what will break before you build the integration.</b></h3>
 
 <p align="center">
-  <b>Recon</b> is a developer-first preflight engine that catches mapping gaps, schema mismatches, and data-quality defects in third-party partner data batches <i>before</i> you write or deploy ingestion pipeline code.
+  <b>Recon</b> is an air-gapped data integration readiness platform that detects schema drift, type mismatches, and data quality defects in third-party partner datasets <i>before</i> pipeline deployment.
 </p>
 
 <p align="center">
   <a href="#-quick-start"><b>Quick Start</b></a> •
-  <a href="#-the-live-integration-lifecycle"><b>Live Architecture Flow</b></a> •
+  <a href="#-the-7-stage-integration-lifecycle"><b>7-Stage Architecture</b></a> •
   <a href="#-visual-studio-tour"><b>Visual Studio Tour</b></a> •
   <a href="#-why-recon-the-paradigm-shift"><b>Why Recon</b></a> •
+  <a href="demo_test_suites/"><b>Demo Test Suites (5 Domains)</b></a> •
   <a href="#-cli--cicd-gate"><b>CI/CD Gate</b></a> •
-  <a href="#-tech-stack--architecture-foundation"><b>Tech Stack</b></a> •
-  <a href="docs/FDE_PLAYBOOK.md"><b>FDE Playbook</b></a> •
-  <a href="docs/"><b>Documentation</b></a>
+  <a href="docs/FDE_PLAYBOOK.md"><b>FDE Playbook</b></a>
 </p>
 
 </div>
@@ -51,6 +50,7 @@ Recon is engineered with modern, production-grade technologies optimized for exe
 | **API & Web Server** | **FastAPI + Uvicorn ASGI** | Async REST endpoints, background session cleanup, and sub-millisecond route dispatch. |
 | **Code Synthesis** | **Python Abstract Syntax Tree (AST)** | Compiles approved mappings into standalone, reviewable PEP-8 Python scripts. |
 | **Testing Harness** | **Pytest + Starlette TestClient** | 214 deterministic unit, integration, and security tests with 100% pass rate. |
+| **Relational Matchmaker** | **Vectorized Set Containment & PK Discovery** | Discovers Primary/Foreign keys, 1:N cardinality, and identical duplicate tables. |
 | **Frontend Studio** | **Swiss Modern UI + Tailwind CSS** | Zero-latency browser interface with dynamic flow graph and virtualized telemetry. |
 | **Containerization** | **Docker & Docker Compose** | Reproducible, isolated local and staging environments with multi-stage builds. |
 
@@ -58,9 +58,9 @@ Recon is engineered with modern, production-grade technologies optimized for exe
 
 ---
 
-## ⚡ The Live Integration Lifecycle
+## ⚡ The 7-Stage Integration Lifecycle
 
-Recon replaces brittle scripts and opaque black-box guessing with an auditable, 5-phase deterministic pipeline:
+Recon replaces brittle scripts and opaque black-box guessing with an auditable, 7-stage deterministic preflight pipeline:
 
 ```mermaid
 flowchart TD
@@ -72,43 +72,49 @@ flowchart TD
     classDef deliverStyle fill:#14532d,stroke:#22c55e,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
     classDef quarStyle fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#f8fafc,rx:8,ry:8;
 
-    subgraph PHASE1["⚡ Phase 1: Dual-Port Universal Intake"]
-        P1["📂 Port 1: Raw Data Stream\n(CSV, TSV, JSON, JSONL)\n• Auto-detect Delimiter & Encoding\n• UTF-8 BOM Auto-Stripping\n• Deep Dot-Notation Flattening"]:::inputStyle
-        P2["📜 Port 2: Target Contract\n(JSON Schema / OpenAPI 3.x)\n• Required Invariants\n• Regex Patterns & Types\n• Domain Enum Sets"]:::inputStyle
+    subgraph S1["01 Intake Cockpit"]
+        P1["📂 Source Raw Data Stream\n(CSV, TSV, XLSX, JSONL)\n• Delimiter & Encoding Detection\n• UTF-8 BOM Auto-Stripping\n• Cryptographic SHA-256 Fingerprint"]:::inputStyle
+        P2["📜 Target Schema Contract\n(JSON Schema / OpenAPI 3.x)\n• Invariant Field Rules\n• Regex Patterns & Types\n• Domain Enum Sets"]:::inputStyle
     end
 
-    subgraph PHASE2["🔬 Phase 2: Autonomous Profiling & Risk Radar"]
-        PROF["📊 100% Columnar Profiler\n(Zero-Sampling Analysis)\n• Cardinality & Null Ratios\n• Dynamic Type Inference\n• Whitespace & Anomaly Scan"]:::profileStyle
-        ALIGN["🧠 Semantic Alignment Engine\n• Acronym Expansion (qty ↔ item_count)\n• Normalized Levenshtein / Jaro-Winkler\n• Type-Aware Confidence Scoring"]:::mappingStyle
-        RISK["🚨 Pre-Flight Risk Matrix (R001–R009)\n• Type Incompatibilities\n• Nullability Constraint Violations\n• Domain Enum Violations"]:::gateStyle
+    subgraph S2["02 Columnar Profile Matrix"]
+        PROF["📊 100% Columnar Profiler\n(Zero-Sampling Forensics)\n• Cardinality & Null Ratios\n• Dynamic Type Distribution\n• Whitespace & Anomaly Scan"]:::profileStyle
     end
 
-    subgraph PHASE3["🛡️ Phase 3: Human-in-the-Loop Approval Boundary"]
-        GATE{"🔒 Go / No-Go Gate\nAre all required fields mapped?"}:::gateStyle
+    subgraph S3["03 Mapping & Relational Matchmaker"]
+        ALIGN["🧠 Semantic Alignment Engine\n• Acronym Expansion (qty ↔ item_count)\n• Normalized Levenshtein & Jaro-Winkler\n• Relational PK/FK Table Matching (1:1, 1:N)"]:::mappingStyle
+    end
+
+    subgraph S4["04 Risk Radar & Approval Gate"]
+        GATE{"🔒 Preflight Audit Gate (R001–R009)\nAre all required fields mapped?"}:::gateStyle
         BLOCK["🛑 Hard Blocker (R001)\nRefuses code generation"]:::quarStyle
-        SIGN["✍️ Lead Engineer Sign-Off\nAudit handle + acknowledged risks"]:::gateStyle
+        SIGN["✍️ Lead Engineer Sign-Off\nAudit handle + acknowledged warnings"]:::gateStyle
     end
 
-    subgraph PHASE4["⚡ Phase 4: AST Synthesis & Zero-Loss Sandbox"]
+    subgraph S5["05 Adapter Code Workbench"]
         AST["🐍 Pure-Python 3.11 AST Compiler\n• Typed casting & date parsers\n• Sanitized token variables\n• Standalone PEP-8 adapter.py"]:::synthStyle
-        SANDBOX["🧪 Isolated AST Execution Sandbox\nRuns 100% of rows against target schema"]:::synthStyle
     end
 
-    subgraph PHASE5["📦 Phase 5: Verified Dual-Stream Egress"]
-        VALID["✅ Valid Stream (valid_records.jsonl)\nClean, validated, schema-compliant records"]:::deliverStyle
-        QUAR["⚠️ Quarantine Ledger (quarantine_records.jsonl)\nRejected rows with line numbers & diagnostics"]:::quarStyle
-        BALANCE["⚖️ Mathematical Invariant Verified:\nN_total == N_valid + N_quarantined (0 dropped)"]:::deliverStyle
+    subgraph S6["06 Sandboxed Validation Lab"]
+        SANDBOX["🧪 Isolated Execution Sandbox\nRuns 100% of rows against target schema\nZero network calls · Air-gapped"]:::synthStyle
     end
 
-    P1 & P2 --> PROF & ALIGN
-    PROF & ALIGN --> RISK
-    RISK --> GATE
+    subgraph S7["07 Integration Summary & Dual Egress"]
+        VALID["✅ Clean Valid Records (CSV / JSONL)\nSchema-compliant, ready for Excel/DB"]:::deliverStyle
+        QUAR["⚠️ Quarantine Ledger (CSV / JSONL)\nRejected rows with exact error diagnostics"]:::quarStyle
+        PACK["📦 Complete Enterprise CI/CD Deploy Pack\nadapter.py + Dockerfile + GitHub Actions + Schema"]:::deliverStyle
+        BALANCE["⚖️ Mathematical Invariant Verified:\nN_total ≡ N_valid + N_quarantined (0 dropped)"]:::deliverStyle
+    end
+
+    P1 & P2 --> PROF
+    PROF --> ALIGN
+    ALIGN --> GATE
     GATE -->|Missing Required Fields| BLOCK
     BLOCK -->|Engineer Overrides via 1-Click Dropdown| ALIGN
     GATE -->|Approved & Cleared| SIGN
     SIGN --> AST
     AST --> SANDBOX
-    SANDBOX --> VALID & QUAR
+    SANDBOX --> VALID & QUAR & PACK
     VALID & QUAR --> BALANCE
 ```
 
@@ -130,54 +136,54 @@ Traditional ETL pipelines fail silently because they treat integration as an ad-
 
 ## 📸 Visual Studio Tour
 
-Recon provides an engineering-grade, Linear-inspired dark interface designed for fast keyboard navigation and visual clarity.
+Recon provides an engineering-grade, high-contrast dark studio interface designed for rapid keyboard navigation, clear visual hierarchies, and zero latency.
 
 <details open>
-<summary><b>01 Ingest Cockpit — Dual-Port Intake & Live Staging</b></summary>
+<summary><b>01 Ingest Cockpit — Multi-Format Intake & Cryptographic Staging</b></summary>
 <br/>
-<p>Drag-and-drop dual-port ingestion for raw datasets and target contracts with cryptographic SHA-256 fingerprinting, automatic encoding detection, and UTF-8 BOM stripping.</p>
+<p>Dual-port ingestion supporting raw CSV, Excel (XLSX), TSV, and JSONL data alongside JSON Schema / OpenAPI 3.x contracts with cryptographic SHA-256 fingerprinting, automatic encoding detection, and UTF-8 BOM auto-stripping.</p>
 <img src="benchmarks/results/screenshots/step01_ingest_desktop.png" alt="Ingest Cockpit" width="100%">
 </details>
 
 <details>
-<summary><b>02 Profile Matrix — Deep Columnar Forensics</b></summary>
+<summary><b>02 Profile Matrix — 100% Columnar Forensics</b></summary>
 <br/>
-<p>Calculates null percentages, distinct value cardinalities, whitespace anomalies, and dynamic type distributions across 100% of records without lossy sampling.</p>
+<p>Calculates null percentages, distinct value cardinalities, whitespace anomalies, and dynamic type distributions across 100% of records without lossy sampling or arbitrary truncation.</p>
 <img src="benchmarks/results/screenshots/step02_profile_matrix.png" alt="Profile Matrix" width="100%">
 </details>
 
 <details>
-<summary><b>03 Mapping Studio — Semantic Alignment & SVG Flow Graph</b></summary>
+<summary><b>03 Mapping Studio &amp; Relational Matchmaker — Semantic Alignment &amp; Join Discovery</b></summary>
 <br/>
-<p>High-confidence matches are auto-proposed with transparent match evidence. Ambiguous fields are flagged for 1-click human assignment.</p>
+<p>High-confidence matches are auto-proposed with transparent match evidence and SVG flow graphs. Features vectorized Primary Key &amp; Foreign Key discovery across multiple tables with cardinality evaluation (1:1, 1:N) and identical duplicate table detection.</p>
 <img src="benchmarks/results/screenshots/step03_mapping_studio.png" alt="Mapping Studio" width="100%">
 </details>
 
 <details>
-<summary><b>04 Risk Radar & Approval Gate — Pre-Flight Flight Check</b></summary>
+<summary><b>04 Risk Radar &amp; Approval Gate — Pre-Flight Safety Audit</b></summary>
 <br/>
-<p>Evaluates 9 deterministic risk rules (R001–R009). Strictly blocks adapter generation if required fields are unmapped; logs warnings for domain enum deviations.</p>
+<p>Evaluates 9 deterministic risk rules (R001–R009). Strictly blocks adapter generation if required contract fields are unmapped; logs warnings for domain enum deviations with explicit engineering handle sign-off.</p>
 <img src="benchmarks/results/screenshots/step04_risk_radar.png" alt="Risk Radar" width="100%">
 </details>
 
 <details>
 <summary><b>05 Adapter Workbench — Pure-Python AST Synthesis</b></summary>
 <br/>
-<p>Inspects the generated, reviewable Python adapter synthesized from the approved mapping plan. Standalone code with zero proprietary framework lock-in.</p>
+<p>Inspects the generated, reviewable Python adapter synthesized by the AST compiler. Standalone PEP-8 code featuring typed casting, datetime normalization, and zero proprietary framework lock-in.</p>
 <img src="benchmarks/results/screenshots/step05_adapter_workbench.png" alt="Adapter Workbench" width="100%">
 </details>
 
 <details>
-<summary><b>06 Validation Lab & Quarantine Forensics — Zero-Loss Verification</b></summary>
+<summary><b>06 Validation Lab &amp; Quarantine Forensics — Zero-Loss Mathematical Proof</b></summary>
 <br/>
-<p>Executes the adapter inside an isolated sandbox. Conforming records stream to valid output; faulty records route to the quarantine ledger with line numbers and violation diagnostics.</p>
+<p>Executes the synthesized adapter inside an isolated, air-gapped sandbox. Conforming records stream to valid output; faulty records route to the quarantine ledger with line numbers and diagnostic justifications. Verified by mathematical invariant: <code>N_total ≡ N_valid + N_quarantined</code>.</p>
 <img src="benchmarks/results/screenshots/step06_validation_lab.png" alt="Validation Lab" width="100%">
 </details>
 
 <details>
-<summary><b>07 Integration Summary & Export — Dual-Action Production Deliverables</b></summary>
+<summary><b>07 Integration Summary &amp; Dual Egress — Certified Production Deliverables</b></summary>
 <br/>
-<p>Provides deliverables tailored for both business stakeholders and integration engineers: direct 1-click clean CSV and JSONL downloads for immediate data operations, alongside an Enterprise CI/CD Pack (.zip) containing the standalone Python adapter, Dockerfile, GitHub Actions workflow, and a verified Markdown audit dossier.</p>
+<p>Delivers for both business analysts and data platform engineers: direct 1-click clean CSV and JSONL downloads for immediate data operations, quarantined CSVs with attached error justifications, the target schema contract (.json), and a complete Enterprise CI/CD Deploy Pack (.zip) containing <code>adapter.py</code>, Docker container definitions, GitHub Actions workflow, and a verified Markdown audit dossier.</p>
 <img src="benchmarks/results/screenshots/step07_readiness_dossier.png" alt="Readiness Dossier" width="100%">
 </details>
 
