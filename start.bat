@@ -53,7 +53,7 @@ if exist ".venv\Scripts\python.exe" (
 
 :: 4. Verify & Self-Heal Dependencies
 echo [2/3] Verifying runtime dependencies and local package...
-%PY_BIN% -c "import recon, fastapi, uvicorn, pydantic, multipart" >nul 2>&1
+%PY_BIN% -c "import recon, fastapi, uvicorn, pydantic, multipart, openpyxl" >nul 2>&1
 if !errorlevel! neq 0 (
     echo       Installing required dependencies via pip...
     %PY_BIN% -m pip install --upgrade pip --quiet %PIP_FLAGS%

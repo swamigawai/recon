@@ -1129,12 +1129,23 @@ def download_valid_records(session_id: str, format: str = "jsonl") -> Response:
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
-    if not session or "validation" not in session:
+    records = None
+
+    if session and "validation" in session:
+        val = session["validation"]
+        records = val.all_valid_records if getattr(val, "all_valid_records", None) else val.sample_valid_output
+    else:
+        # Fallback to persistent SQLite store
+        stored = store.get_session(session_id)
+        if stored and stored.get("results"):
+            res = stored["results"]
+            val_info = res.get("validation", {})
+            records = val_info.get("sample_valid_output", [])
+
+    if records is None:
         raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
 
     safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
-    val = session["validation"]
-    records = val.all_valid_records if getattr(val, "all_valid_records", None) else val.sample_valid_output
 
     if format.lower() == "csv":
         import csv
@@ -1146,9 +1157,15 @@ def download_valid_records(session_id: str, format: str = "jsonl") -> Response:
             writer.writeheader()
             for r in records:
                 writer.writerow(r)
-        elif "contract" in session and hasattr(session["contract"], "fields"):
+        else:
             # When 0 records passed validation, emit target schema header row so CSV is never a 0-byte ghost file
-            headers = list(session["contract"].fields.keys())
+            headers = []
+            if session and "contract" in session and hasattr(session["contract"], "fields"):
+                headers = list(session["contract"].fields.keys())
+            else:
+                stored = store.get_session(session_id)
+                if stored:
+                    headers = list(stored.get("assessment", {}).get("contract", {}).get("fields", {}).keys())
             if headers:
                 writer = csv.DictWriter(out, fieldnames=headers)
                 writer.writeheader()
@@ -1174,12 +1191,33 @@ def download_quarantine_records(session_id: str, format: str = "jsonl") -> Respo
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
     session = SESSIONS.get(session_id)
-    if not session or "validation" not in session:
+    records = None
+
+    if session and "validation" in session:
+        val = session["validation"]
+        records = val.all_quarantined_records if getattr(val, "all_quarantined_records", None) else val.sample_quarantined_records
+    else:
+        # Fallback to persistent SQLite store
+        stored = store.get_session(session_id)
+        if stored:
+            stored_quar, _ = store.query_quarantine_records(session_id, limit=50000)
+            if stored_quar:
+                records = [
+                    {
+                        "record_index": q.get("row_index"),
+                        "failure_reason": q.get("failure_reasons"),
+                        "violated_fields": [q.get("target_field")] if q.get("target_field") else [],
+                        "raw_record": json.loads(q["raw_record"]) if isinstance(q.get("raw_record"), str) else q.get("raw_record", {}),
+                    }
+                    for q in stored_quar
+                ]
+            elif stored.get("results"):
+                records = []
+
+    if records is None:
         raise HTTPException(status_code=404, detail="Validation results not found. Run approval and validation first.")
 
     safe_id = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:8]
-    val = session["validation"]
-    records = val.all_quarantined_records if getattr(val, "all_quarantined_records", None) else val.sample_quarantined_records
 
     if format.lower() == "csv":
         import csv
@@ -1216,23 +1254,31 @@ def download_mapping_spec(session_id: str) -> Response:
     """Downloads versioned mapping specification JSON generated from current session mapping state."""
     if not IDENTIFIER_PATTERN.match(session_id):
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
-    session = SESSIONS.get(session_id)
-    if not session or "plan" not in session or "contract" not in session or "profile" not in session:
-        raise HTTPException(status_code=404, detail="Mapping plan not found for session.")
+    session = SESSIONS.get(session_id) or _ensure_session_objects(session_id)
 
-    plan_to_export = session.get("approved_plan") or session["plan"]
-    spec = export_mapping_spec(
-        contract=session["contract"],
-        profile=session["profile"],
-        plan=plan_to_export,
-        reviewer=session.get("reviewer", "web_user"),
-    )
+    if session and "plan" in session and "contract" in session and "profile" in session:
+        plan_to_export = session.get("approved_plan") or session["plan"]
+        spec = export_mapping_spec(
+            contract=session["contract"],
+            profile=session["profile"],
+            plan=plan_to_export,
+            reviewer=session.get("reviewer", "web_user"),
+        )
+        return Response(
+            content=spec.to_json(),
+            media_type="application/json",
+            headers={"Content-Disposition": 'attachment; filename="recon_mapping_spec.json"'},
+        )
 
-    return Response(
-        content=spec.to_json(),
-        media_type="application/json",
-        headers={"Content-Disposition": 'attachment; filename="recon_mapping_spec.json"'},
-    )
+    stored = store.get_session(session_id)
+    if stored and stored.get("mapping_spec_json"):
+        return Response(
+            content=stored["mapping_spec_json"],
+            media_type="application/json",
+            headers={"Content-Disposition": 'attachment; filename="recon_mapping_spec.json"'},
+        )
+
+    raise HTTPException(status_code=404, detail="Mapping plan not found for session.")
 
 
 @router.get("/download/contract/{session_id}")

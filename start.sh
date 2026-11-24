@@ -49,7 +49,7 @@ fi
 
 # 3. Check and self-heal dependencies
 echo "[3/3] Verifying runtime dependencies..."
-if ! "$ACTIVE_PY" -c "import recon, fastapi, uvicorn, pydantic, multipart" >/dev/null 2>&1; then
+if ! "$ACTIVE_PY" -c "import recon, fastapi, uvicorn, pydantic, multipart, openpyxl" >/dev/null 2>&1; then
     echo "      Installing Recon dependencies via pip..."
     "$ACTIVE_PY" -m pip install --upgrade pip --quiet || true
     "$ACTIVE_PY" -m pip install -e . --quiet || "$ACTIVE_PY" -m pip install -r requirements.txt --quiet

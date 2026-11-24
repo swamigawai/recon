@@ -182,3 +182,18 @@ def test_csv_visual_report_offset_and_footer(tmp_path: Path):
     assert any("Visual report layout detected" in w for w in dataset.warnings)
     assert any("Ignored report summary/footer commentary" in w for w in dataset.warnings)
 
+
+def test_load_tsv_file(tmp_path: Path):
+    """Verifies that tab-separated (.tsv) files automatically detect tab delimiter and parse cleanly."""
+    tsv_file = tmp_path / "freight_manifest.tsv"
+    tsv_content = "ShipmentRef\tCarrier\tWeightKg\nSHP-001\tFEDEX\t120.5\nSHP-002\tDHL\t45.0\n"
+    tsv_file.write_text(tsv_content, encoding="utf-8")
+
+    dataset = load_csv(tsv_file)
+    assert dataset.row_count == 2
+    assert dataset.headers == ["ShipmentRef", "Carrier", "WeightKg"]
+    assert dataset.rows[0]["ShipmentRef"] == "SHP-001"
+    assert dataset.rows[0]["Carrier"] == "FEDEX"
+    assert dataset.rows[1]["WeightKg"] == "45.0"
+
+

@@ -161,3 +161,20 @@ def test_unified_loader_routes_formats(fixtures_dir: Path):
     ds_json = load_dataset(json_path)
     assert ds_json.row_count == 5
     assert "address.city" in ds_json.headers
+
+
+def test_load_jsonl_file(tmp_path: Path):
+    """Verifies that line-delimited JSON (.jsonl) files parse correctly."""
+    jsonl_file = tmp_path / "invoices.jsonl"
+    lines = [
+        json.dumps({"inv_id": "INV-100", "total": 500.0, "status": "PAID"}),
+        json.dumps({"inv_id": "INV-101", "total": 1250.0, "status": "OPEN"}),
+    ]
+    jsonl_file.write_text("\n".join(lines), encoding="utf-8")
+
+    dataset = load_dataset(jsonl_file)
+    assert dataset.row_count == 2
+    assert dataset.headers == ["inv_id", "total", "status"]
+    assert dataset.rows[0]["inv_id"] == "INV-100"
+    assert dataset.rows[1]["total"] == 1250.0
+

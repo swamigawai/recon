@@ -57,6 +57,7 @@ def check_and_heal_dependencies() -> bool:
         "uvicorn": "uvicorn",
         "pydantic": "pydantic",
         "python-multipart": "multipart",
+        "openpyxl": "openpyxl",
     }
     missing_pkgs = []
     for pkg_name, import_mod in core_modules.items():
@@ -72,7 +73,7 @@ def check_and_heal_dependencies() -> bool:
         missing_pkgs.append("recon (local package)")
 
     if not missing_pkgs:
-        print(f"{GREEN}[PASS] Core Dependencies: FastAPI, Uvicorn, Pydantic v2, Python-Multipart installed{RESET}")
+        print(f"{GREEN}[PASS] Core Dependencies: FastAPI, Uvicorn, Pydantic v2, Python-Multipart, OpenPyXL installed{RESET}")
         return True
 
     print(f"{YELLOW}[WARN] Missing required dependencies: {', '.join(missing_pkgs)}{RESET}")

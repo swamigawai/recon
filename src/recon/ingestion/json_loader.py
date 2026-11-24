@@ -132,22 +132,71 @@ def load_json(file_path: str | Path, config: IngestionConfig | None = None) -> R
     fingerprint = calculate_file_hash(path)
     encoding = cfg.encoding or detect_file_encoding(path)
 
-    try:
-        with open(path, "r", encoding=encoding) as f:
-            payload = json.load(f)
-    except json.JSONDecodeError as exc:
-        raise IngestionError(
-            f"Malformed JSON in {path.name}: {exc.msg} (line {exc.lineno}, col {exc.colno})",
-            actionable_suggestion="Check JSON syntax, trailing commas, or unescaped characters in the source file.",
-            context={
-                "file_path": str(path),
-                "line_number": exc.lineno,
-                "column_number": exc.colno,
-                "error": exc.msg,
-            },
-        ) from exc
+    records: list[dict[str, Any]] = []
+    warnings: list[str] = []
 
-    records, warnings = extract_records_from_json(payload, path.name)
+    is_jsonl = path.suffix.lower() == ".jsonl"
+    if is_jsonl:
+        try:
+            with open(path, "r", encoding=encoding) as f:
+                for line_idx, line in enumerate(f, start=1):
+                    line_str = line.strip()
+                    if not line_str:
+                        continue
+                    try:
+                        obj = json.loads(line_str)
+                        if isinstance(obj, dict):
+                            records.append(flatten_json_record(obj))
+                        else:
+                            raise IngestionError(
+                                f"Non-object record on line {line_idx} in {path.name}",
+                                actionable_suggestion="Each line in a JSONL file must be a JSON object dictionary.",
+                                context={"line_number": line_idx, "file_path": str(path)},
+                            )
+                    except json.JSONDecodeError as err:
+                        raise IngestionError(
+                            f"Malformed JSON on line {line_idx} in {path.name}: {err.msg}",
+                            actionable_suggestion="Verify valid JSON syntax on each line of the JSONL file.",
+                            context={"line_number": line_idx, "error": err.msg, "file_path": str(path)},
+                        ) from err
+            if not records:
+                raise IngestionError(
+                    f"JSONL file contains zero records in {path.name}",
+                    actionable_suggestion="Ensure the JSONL file contains at least one valid JSON object line.",
+                    context={"file_name": path.name},
+                )
+        except IngestionError:
+            raise
+    else:
+        try:
+            with open(path, "r", encoding=encoding) as f:
+                payload = json.load(f)
+            records, warnings = extract_records_from_json(payload, path.name)
+        except json.JSONDecodeError as exc:
+            # Fallback attempt: test if standard text/json file actually contains JSON Lines
+            try:
+                with open(path, "r", encoding=encoding) as f:
+                    jl_recs = []
+                    for line in f:
+                        line_str = line.strip()
+                        if line_str:
+                            jl_recs.append(flatten_json_record(json.loads(line_str)))
+                if jl_recs:
+                    records = jl_recs
+                    warnings.append("Parsed dataset as line-delimited JSON (JSONL)")
+                else:
+                    raise exc
+            except Exception:
+                raise IngestionError(
+                    f"Malformed JSON in {path.name}: {exc.msg} (line {exc.lineno}, col {exc.colno})",
+                    actionable_suggestion="Check JSON syntax, trailing commas, or unescaped characters in the source file.",
+                    context={
+                        "file_path": str(path),
+                        "line_number": exc.lineno,
+                        "column_number": exc.colno,
+                        "error": exc.msg,
+                    },
+                ) from exc
 
     if cfg.max_rows and len(records) > cfg.max_rows:
         records = records[: cfg.max_rows]

@@ -454,6 +454,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         "fastapi": "fastapi",
         "uvicorn": "uvicorn",
         "python-multipart": "multipart",
+        "openpyxl": "openpyxl",
     }
     missing_deps = []
     for dep_name, imp_mod in deps.items():
@@ -465,7 +466,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         "check": "Core Dependencies",
         "detail": "All core modules present" if not missing_deps else f"Missing: {', '.join(missing_deps)}",
         "passed": len(missing_deps) == 0,
-        "requirement": "pydantic, fastapi, uvicorn, python-multipart",
+        "requirement": "pydantic, fastapi, uvicorn, python-multipart, openpyxl",
     })
 
     # 3. Disk Write & Temp File Permissions

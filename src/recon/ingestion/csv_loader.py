@@ -108,9 +108,29 @@ def load_csv(file_path: str | Path, config: IngestionConfig | None = None) -> Ra
     rows: list[dict[str, str]] = []
     headers: list[str] = []
 
+    # Detect delimiter: honor .tsv extension or sniff delimiter from first line
+    delimiter = ","
+    if path.suffix.lower() == ".tsv":
+        delimiter = "\t"
+    else:
+        try:
+            with open(path, "r", encoding=encoding, newline="") as probe_f:
+                probe_line = probe_f.readline()
+                if probe_line:
+                    if "\t" in probe_line and "," not in probe_line:
+                        delimiter = "\t"
+                    elif probe_line.count("\t") > probe_line.count(","):
+                        delimiter = "\t"
+                    elif probe_line.count(";") > probe_line.count(","):
+                        delimiter = ";"
+                    elif probe_line.count("|") > probe_line.count(","):
+                        delimiter = "|"
+        except Exception:
+            pass
+
     try:
         with open(path, "r", encoding=encoding, newline="") as f:
-            reader = csv.reader(f)
+            reader = csv.reader(f, delimiter=delimiter)
 
             # Sample first rows to detect visual reports / table offsets
             sample_rows: list[list[str]] = []

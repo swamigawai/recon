@@ -73,3 +73,4 @@ def test_packaging_artifacts_presence() -> None:
     assert "uvicorn" in req_text
     assert "pydantic" in req_text
     assert "python-multipart" in req_text
+    assert "openpyxl" in req_text
