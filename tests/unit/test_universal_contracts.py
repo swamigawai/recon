@@ -457,3 +457,54 @@ def test_load_contract_utf8_bom_handling(tmp_path: Path) -> None:
     })
     c_str = load_target_contract(bom_str)
     assert c_str.contract_name == "StringBomContract"
+
+
+def test_load_frictionless_datapackage_and_table_schema(tmp_path: Path) -> None:
+    """Verifies Frictionless datapackage.json and standalone Table Schema ingestion."""
+    import json
+
+    datapackage = {
+        "name": "airport-codes",
+        "title": "Airport Codes",
+        "resources": [
+            {
+                "name": "airport-codes",
+                "path": "data/airport-codes.csv",
+                "schema": {
+                    "fields": [
+                        {"name": "ident", "type": "string", "constraints": {"required": True, "pattern": "^[A-Z0-9-]+$"}},
+                        {"name": "type", "type": "string", "constraints": {"enum": ["heliport", "small_airport", "large_airport"]}},
+                        {"name": "elevation_ft", "type": "integer"},
+                        {"name": "score", "type": "number"},
+                        {"name": "is_active", "type": "boolean"},
+                        {"name": "updated_date", "type": "date"},
+                    ]
+                },
+            }
+        ],
+    }
+    dp_file = tmp_path / "datapackage.json"
+    dp_file.write_text(json.dumps(datapackage), encoding="utf-8")
+
+    contract = load_target_contract(dp_file)
+    assert contract.contract_name == "airport-codes_airport-codes"
+    assert contract.fields["ident"].required is True
+    assert contract.fields["ident"].pattern == "^[A-Z0-9-]+$"
+    assert contract.fields["type"].allowed_values == ["heliport", "small_airport", "large_airport"]
+    assert contract.fields["elevation_ft"].target_type == ContractType.INTEGER
+    assert contract.fields["score"].target_type == ContractType.FLOAT
+    assert contract.fields["is_active"].target_type == ContractType.BOOLEAN
+    assert contract.fields["updated_date"].target_type == ContractType.DATE
+
+    # Standalone Table Schema (top-level fields list)
+    table_schema = {
+        "fields": [
+            {"name": "country", "type": "string"},
+            {"name": "year", "type": "year"},
+        ]
+    }
+    ts_file = tmp_path / "table_schema.json"
+    ts_file.write_text(json.dumps(table_schema), encoding="utf-8")
+    ts_contract = load_target_contract(ts_file)
+    assert ts_contract.fields["country"].target_type == ContractType.STRING
+    assert ts_contract.fields["year"].target_type == ContractType.INTEGER

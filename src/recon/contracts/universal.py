@@ -14,6 +14,7 @@ class ContractFormat(str, Enum):
     JSON_SCHEMA_DRAFT_07 = "json_schema_draft_07"
     JSON_SCHEMA_2020_12 = "json_schema_2020_12"
     OPENAPI_3 = "openapi_3"
+    FRICTIONLESS = "frictionless"
     UNKNOWN = "unknown"
 
 
@@ -56,9 +57,17 @@ def detect_contract_format(data: dict[str, Any]) -> tuple[ContractFormat, str]:
     if data.get("type") == "object":
         return ContractFormat.JSON_SCHEMA_DRAFT_07, "JSON Schema (object-inferred)"
 
+    # 4. Frictionless Data Package (datapackage.json) or Table Schema
+    if "resources" in data and isinstance(data["resources"], list):
+        for res in data["resources"]:
+            if isinstance(res, dict) and isinstance(res.get("schema"), dict) and isinstance(res["schema"].get("fields"), list):
+                return ContractFormat.FRICTIONLESS, "Frictionless Data Package (datapackage.json)"
+    if "fields" in data and isinstance(data["fields"], list):
+        return ContractFormat.FRICTIONLESS, "Frictionless Table Schema"
+
     raise ContractError(
-        "Unrecognized contract schema format. Expected Native Recon contract, JSON Schema (Draft-07/2020-12), or OpenAPI 3.x.",
-        actionable_suggestion="Ensure the file has either a native 'contract_name' with 'fields', a JSON Schema '$schema'/'properties', or an OpenAPI 'openapi: 3.x' specification.",
+        "Unrecognized contract schema format. Expected Native Recon contract, JSON Schema (Draft-07/2020-12), OpenAPI 3.x, or Frictionless Data Package (datapackage.json).",
+        actionable_suggestion="Ensure the file has a native 'contract_name' with 'fields', a JSON Schema '$schema'/'properties', an OpenAPI 'openapi: 3.x' specification, or a Frictionless 'resources'/'fields' schema.",
     )
 
 
@@ -326,4 +335,92 @@ def parse_openapi_contract(
         version=doc_version,
         description=selected_schema.get("description") or info.get("description"),
         root_doc=openapi_doc,
+    )
+
+
+def _map_frictionless_type(ftype: str) -> ContractType:
+    """Maps Frictionless Table Schema field types to Recon ContractType."""
+    clean = str(ftype).strip().lower()
+    mapping = {
+        "integer": ContractType.INTEGER,
+        "year": ContractType.INTEGER,
+        "number": ContractType.FLOAT,
+        "boolean": ContractType.BOOLEAN,
+        "datetime": ContractType.DATETIME,
+        "timestamp": ContractType.DATETIME,
+        "date": ContractType.DATE,
+    }
+    return mapping.get(clean, ContractType.STRING)
+
+
+def parse_frictionless_schema(
+    data: dict[str, Any],
+    contract_name: str = "frictionless_contract",
+    schema_name: str | None = None,
+) -> TargetContract:
+    """Parses a Frictionless Data Package (datapackage.json) or Table Schema into a TargetContract."""
+    schema_obj: dict[str, Any] | None = None
+    resolved_name = str(data.get("name") or contract_name)
+    resolved_desc = data.get("description") or data.get("title")
+    resolved_version = str(data.get("version") or "1.0.0")
+
+    if "resources" in data and isinstance(data["resources"], list):
+        candidates = [
+            res for res in data["resources"]
+            if isinstance(res, dict) and isinstance(res.get("schema"), dict) and isinstance(res["schema"].get("fields"), list)
+        ]
+        if not candidates:
+            raise ContractError(
+                "Frictionless Data Package contains no resources with a valid 'schema.fields' list.",
+                actionable_suggestion="Ensure at least one resource in 'resources' defines 'schema.fields'.",
+            )
+        selected = candidates[0]
+        if schema_name:
+            for res in candidates:
+                if res.get("name") == schema_name:
+                    selected = res
+                    break
+        schema_obj = selected["schema"]
+        if selected.get("name"):
+            resolved_name = f"{resolved_name}_{selected['name']}" if data.get("name") else str(selected["name"])
+    elif "fields" in data and isinstance(data["fields"], list):
+        schema_obj = data
+
+    if not schema_obj or not schema_obj.get("fields"):
+        raise ContractError(
+            "Frictionless schema defines no fields.",
+            actionable_suggestion="Ensure 'fields' is a non-empty list of column definitions.",
+        )
+
+    parsed_fields: dict[str, TargetField] = {}
+    for raw_field in schema_obj["fields"]:
+        if not isinstance(raw_field, dict) or not raw_field.get("name"):
+            continue
+        fname = str(raw_field["name"])
+        constraints = raw_field.get("constraints") if isinstance(raw_field.get("constraints"), dict) else {}
+        is_required = bool(constraints.get("required", False))
+        allowed_vals = constraints.get("enum") if isinstance(constraints.get("enum"), list) else None
+        pattern_val = str(constraints["pattern"]) if constraints.get("pattern") else None
+
+        parsed_fields[fname] = TargetField(
+            name=fname,
+            target_type=_map_frictionless_type(raw_field.get("type", "string")),
+            required=is_required,
+            nullable=not is_required,
+            description=raw_field.get("description") or raw_field.get("title"),
+            pattern=pattern_val,
+            allowed_values=allowed_vals,
+        )
+
+    if not parsed_fields:
+        raise ContractError(
+            "No valid field definitions found in Frictionless schema.",
+            actionable_suggestion="Each item in 'fields' must be an object with at least a 'name' key.",
+        )
+
+    return TargetContract(
+        contract_name=resolved_name,
+        version=resolved_version,
+        description=resolved_desc,
+        fields=parsed_fields,
     )

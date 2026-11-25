@@ -13,6 +13,7 @@ from recon.contracts.models import ContractType, TargetContract, TargetField
 from recon.contracts.universal import (
     ContractFormat,
     detect_contract_format,
+    parse_frictionless_schema,
     parse_json_schema,
     parse_openapi_contract,
 )
@@ -371,6 +372,13 @@ def load_target_contract(
     elif fmt == ContractFormat.OPENAPI_3:
         return parse_openapi_contract(
             raw_data,
+            schema_name=schema_name,
+        )
+
+    elif fmt == ContractFormat.FRICTIONLESS:
+        return parse_frictionless_schema(
+            raw_data,
+            contract_name=contract_stem,
             schema_name=schema_name,
         )
 
