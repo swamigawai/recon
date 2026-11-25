@@ -1723,12 +1723,29 @@ function renderPreflightContractPeek() {
   if (!wrap) return;
 
   function renderFieldPills(fields) {
-    let pillsHtml = Object.entries(fields).map(([name, f]) => {
+    const entries = Array.isArray(fields)
+      ? fields.filter(f => f && f.name).map(f => [f.name, {
+          required: Boolean(f.required || (f.constraints && f.constraints.required)),
+          target_type: f.target_type || f.type || "any"
+        }])
+      : Object.entries(fields);
+    let pillsHtml = entries.map(([name, f]) => {
       const isReq = Boolean(f.required);
       const type = f.target_type || f.type || "any";
       return `<span class="peek-field-pill ${isReq ? "is-required" : ""}">${isReq ? '<span style="color:var(--recon-rose-text); font-weight:700;">*</span> ' : ""}${escapeHtml(name)} <span class="text-muted" style="font-size:9px;">(${escapeHtml(type)})</span></span>`;
     }).join("");
     wrap.innerHTML = pillsHtml || `<span class="text-muted font-mono" style="font-size:11px;">0 fields defined</span>`;
+  }
+
+  function renderContractObject(obj) {
+    if (!obj || typeof obj !== "object") return false;
+    if (obj.fields) { renderFieldPills(obj.fields); return true; }
+    if (obj.properties) { renderPropertiesPills(obj.properties, obj.required); return true; }
+    if (Array.isArray(obj.resources)) {
+      const res = obj.resources.find(r => r && r.schema && Array.isArray(r.schema.fields));
+      if (res) { renderFieldPills(res.schema.fields); return true; }
+    }
+    return false;
   }
 
   function renderPropertiesPills(props, requiredList) {
@@ -1760,8 +1777,7 @@ function renderPreflightContractPeek() {
     if (cId && sampleContractsMap[cId] && sampleContractsMap[cId].content) {
       try {
         const obj = JSON.parse(stripBOM(sampleContractsMap[cId].content));
-        if (obj.fields) return renderFieldPills(obj.fields);
-        if (obj.properties) return renderPropertiesPills(obj.properties, obj.required);
+        if (renderContractObject(obj)) return;
       } catch (_) {}
     }
   } else if (activeContractTab === "upload" && stagedContractFile) {
@@ -1774,14 +1790,13 @@ function renderPreflightContractPeek() {
       } else {
         try {
           const obj = JSON.parse(text);
-          if (obj.fields) return renderFieldPills(obj.fields);
-          if (obj.properties) return renderPropertiesPills(obj.properties, obj.required);
+          if (renderContractObject(obj)) return;
         } catch (_) {
           wrap.innerHTML = `<span class="text-muted font-mono" style="font-size:11px;">Target JSON ready for validation</span>`;
         }
       }
     };
-    reader.readAsText(stagedContractFile.slice(0, 8192));
+    reader.readAsText(isCsv ? stagedContractFile.slice(0, 8192) : stagedContractFile.slice(0, 131072));
     return;
   } else if (activeContractTab === "paste") {
     const text = stripBOM((document.getElementById("contract-text-area") && document.getElementById("contract-text-area").value.trim()) || "");
@@ -1789,8 +1804,7 @@ function renderPreflightContractPeek() {
       if (text.startsWith("{") || text.startsWith("[")) {
         try {
           const obj = JSON.parse(text);
-          if (obj.fields) return renderFieldPills(obj.fields);
-          if (obj.properties) return renderPropertiesPills(obj.properties, obj.required);
+          if (renderContractObject(obj)) return;
         } catch (_) {}
       } else {
         return renderCsvHeaders(text);
