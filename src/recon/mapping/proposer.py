@@ -26,13 +26,77 @@ SYNONYMS: dict[str, list[str]] = {
     "website": ["website", "url", "webpage", "web"],
     "order_id": ["order id", "order_id", "order_number", "order_no", "order_key", "id"],
     "customer_id": ["customer id", "customer_id", "client_id", "buyer_id", "user_id"],
-    "order_status": ["order status", "order_status", "status", "order_state", "state"],
+    "order_status": ["order status", "order_status", "fulfillment state", "status", "order_state", "state"],
     "order_purchase_timestamp": ["order purchase timestamp", "purchase timestamp", "order date", "order_purchase_timestamp", "purchased_at", "created_at"],
     "order_delivered_customer_date": ["order delivered customer date", "delivered date", "delivery date", "delivered_at", "order_delivered_date"],
     "payment_value": ["payment value", "payment_value", "total amount", "total", "price", "order_amount", "amount", "order_total"],
     "freight_value": ["freight value", "freight_value", "freight", "shipping", "shipping fee", "delivery fee"],
     "customer_city": ["customer city", "customer_city", "city", "shipping city"],
     "customer_state": ["customer state", "customer_state", "state", "shipping state", "province"],
+    # Healthcare / Clinical Encounters
+    "encounter_id": ["encounter id"],
+    "patient_id": ["patient id", "pat mpi"],
+    "admission_date": ["admission date", "admit time"],
+    "discharge_date": ["discharge date", "release time"],
+    "encounter_type": ["encounter type", "visit class"],
+    "primary_icd10": ["primary icd10", "diag code"],
+    "total_billed_amount": ["total billed amount", "gross billed usd"],
+    "copay_collected": ["copay collected", "copay usd"],
+    "readmission_flag": ["readmission flag", "is 30d readmit"],
+    # E-commerce Fulfillment
+    "customer_email": ["customer email", "cust email"],
+    "order_date": ["order date", "purchased at"],
+    "item_count": ["item count", "units bought"],
+    "order_total": ["order total", "total cost usd"],
+    "shipping_country": ["shipping country", "dest country"],
+    "is_priority_shipping": ["is priority shipping", "express flag"],
+    # Fintech B2B Invoices
+    "invoice_number": ["invoice number", "invoice code"],
+    "vendor_id": ["vendor id", "supplier ref"],
+    "invoice_date": ["invoice date", "issue date"],
+    "due_date": ["due date"],
+    "currency": ["currency", "billing currency"],
+    "subtotal": ["subtotal", "net subtotal"],
+    "tax_amount": ["tax amount", "vat amt"],
+    "total_amount": ["total amount", "gross payable"],
+    "payment_status": ["payment status", "settlement status"],
+    # Logistics Freight Manifest
+    "consignment_id": ["consignment id", "shipment ref"],
+    "carrier_code": ["carrier code", "carrier name"],
+    "dispatch_timestamp": ["dispatch timestamp", "departure time"],
+    "gross_weight_kg": ["gross weight kg", "actual weight kg"],
+    "pallet_count": ["pallet count", "pallets"],
+    "destination_hub": ["destination hub", "dest station"],
+    "hazardous_material": ["hazardous material", "is hazmat"],
+}
+
+
+ABBREVIATIONS: dict[str, str] = {
+    "amt": "amount",
+    "qty": "quantity",
+    "cnt": "count",
+    "cust": "customer",
+    "pat": "patient",
+    "vend": "vendor",
+    "supp": "supplier",
+    "inv": "invoice",
+    "ord": "order",
+    "ship": "shipping",
+    "dest": "destination",
+    "wt": "weight",
+    "ts": "timestamp",
+    "dt": "date",
+    "vat": "tax",
+    "diag": "icd10",
+    "admit": "admission",
+    "hazmat": "hazardous",
+    "num": "number",
+    "no": "number",
+    "ref": "id",
+    "visit": "encounter",
+    "release": "discharge",
+    "settlement": "payment",
+    "mail": "email",
 }
 
 
@@ -48,8 +112,19 @@ def normalize_name(name: str) -> str:
 
 
 def tokenize(name: str) -> list[str]:
-    """Tokenizes field name into alphanumeric words."""
-    return [w for w in re.split(r"[^a-z0-9]+", name.lower()) if w]
+    """Tokenizes field name into alphanumeric words, splitting CamelCase/PascalCase."""
+    camel_split = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name)
+    camel_split = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", camel_split)
+    return [w for w in re.split(r"[^a-z0-9]+", camel_split.lower()) if w]
+
+
+def _expand_tokens(tokens: list[str]) -> set[str]:
+    """Expands common enterprise abbreviations into canonical tokens."""
+    expanded = set(tokens)
+    for t in tokens:
+        if t in ABBREVIATIONS:
+            expanded.add(ABBREVIATIONS[t])
+    return expanded
 
 
 def find_matching_source_columns(
@@ -126,12 +201,23 @@ def propose_mappings(
     """Generates evidence-backed mapping proposals by comparing SourceProfile to TargetContract."""
     available_source_cols = list(profile.columns.keys())
     proposals: dict[str, FieldMappingProposal] = {}
+    used_source_cols: set[str] = set()
 
     for target_name, target_field in contract.fields.items():
         primary_col, alternatives = find_matching_source_columns(
             target_name,
             available_source_cols,
         )
+        if primary_col and primary_col in used_source_cols:
+            unused_alts = [a for a in alternatives if a not in used_source_cols]
+            if unused_alts:
+                primary_col = unused_alts[0]
+                alternatives = [a for a in alternatives if a != primary_col]
+            else:
+                primary_col = None
+
+        if primary_col:
+            used_source_cols.add(primary_col)
 
         if not primary_col:
             # Missing source column
