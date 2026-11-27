@@ -852,42 +852,24 @@ def test_auth_gate_open_by_default(client: TestClient, monkeypatch: pytest.Monke
     assert res_assess.status_code == 200
 
 
-def test_auth_gate_enforcement_with_key(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verifies that when RECON_ACCESS_KEY is set, unauthenticated requests are blocked."""
+def test_auth_gate_always_open(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verifies that open-access mode never prompts for or enforces a Pilot Access Key."""
     monkeypatch.setenv("RECON_ACCESS_KEY", "pilot_secret_999")
 
-    # 1. Auth status reports gate is active and unauthenticated
     res_status = client.get("/api/auth-status")
     assert res_status.status_code == 200
-    assert res_status.json() == {"requires_auth": True, "authenticated": False}
+    assert res_status.json() == {"requires_auth": False, "authenticated": True}
 
-    # 2. POST /api/verify-key tests
-    res_bad_verify = client.post("/api/verify-key", json={"access_key": "wrong_key"})
-    assert res_bad_verify.status_code == 401
+    res_verify = client.post("/api/verify-key", json={"access_key": ""})
+    assert res_verify.status_code == 200
+    assert res_verify.json()["valid"] is True
 
-    res_good_verify = client.post("/api/verify-key", json={"access_key": "pilot_secret_999"})
-    assert res_good_verify.status_code == 200
-    assert res_good_verify.json()["valid"] is True
-
-    # 3. Assess endpoint blocks unauthenticated calls with 401
-    res_blocked = client.post(
-        "/api/assess",
-        data={
-            "sample_dataset_id": "synthetic_nyc_311",
-            "sample_contract_id": "target_contract_service_request",
-        },
-    )
-    assert res_blocked.status_code == 401
-    assert "Pilot Access Key required" in res_blocked.json()["detail"]
-
-    # 4. Assess endpoint accepts valid X-Recon-Key header
     res_allowed = client.post(
         "/api/assess",
         data={
             "sample_dataset_id": "synthetic_nyc_311",
             "sample_contract_id": "target_contract_service_request",
         },
-        headers={"X-Recon-Key": "pilot_secret_999"},
     )
     assert res_allowed.status_code == 200
     assert "session_id" in res_allowed.json()

@@ -105,38 +105,20 @@ class KeyVerificationRequest(BaseModel):
 
 
 def _check_access(request: Request) -> None:
-    """Verifies that the client provided the valid configured RECON_ACCESS_KEY if one is set."""
-    configured_key = os.environ.get("RECON_ACCESS_KEY", "").strip()
-    if not configured_key:
-        return
-    provided_key = request.headers.get("X-Recon-Key", "").strip()
-    if provided_key != configured_key:
-        raise HTTPException(
-            status_code=401,
-            detail="Unauthorized: Valid Recon Pilot Access Key required in 'X-Recon-Key' header.",
-        )
+    """Open-access mode: no password or Pilot Access Key required."""
+    return
 
 
 @router.get("/auth-status")
 def get_auth_status(request: Request) -> dict[str, Any]:
-    """Returns whether this Recon instance requires an invitation key and if the client is authenticated."""
-    configured_key = os.environ.get("RECON_ACCESS_KEY", "").strip()
-    if not configured_key:
-        return {"requires_auth": False, "authenticated": True}
-    provided_key = request.headers.get("X-Recon-Key", "").strip()
-    is_valid = (provided_key == configured_key)
-    return {"requires_auth": True, "authenticated": is_valid}
+    """Returns open-access authentication status."""
+    return {"requires_auth": False, "authenticated": True}
 
 
 @router.post("/verify-key")
 def verify_access_key(body: KeyVerificationRequest) -> dict[str, Any]:
-    """Validates an incoming pilot invitation access key."""
-    configured_key = os.environ.get("RECON_ACCESS_KEY", "").strip()
-    if not configured_key:
-        return {"valid": True, "message": "No access key required for this instance."}
-    if body.access_key.strip() == configured_key:
-        return {"valid": True, "message": "Pilot Access Key accepted."}
-    raise HTTPException(status_code=401, detail="Invalid Pilot Access Key. Check with project administrator.")
+    """Open-access verification endpoint."""
+    return {"valid": True, "message": "No access key required for this instance."}
 
 
 
